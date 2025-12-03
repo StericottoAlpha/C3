@@ -110,10 +110,12 @@ if SUPABASE_DB_HOST:
             'USER': SUPABASE_DB_USER,
             'PASSWORD': SUPABASE_DB_PASSWORD,
             'HOST': SUPABASE_DB_HOST,
-            'PORT': '6543',
+            'PORT': os.getenv('SUPABASE_DB_PORT', '6543'),
             'OPTIONS': {
-                'options': '-c use_prepared_statements=0',
+                'sslmode': 'require',
+                'options': '-c statement_timeout=30000',
             },
+            'CONN_MAX_AGE': 0,
             'DISABLE_SERVER_SIDE_CURSORS': True,
         }
     }
