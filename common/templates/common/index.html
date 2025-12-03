@@ -4,8 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>C3 ステリコットα</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .visit-list {
+            margin-top: 30px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        .visit-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .visit-item:last-child {
+            border-bottom: none;
+        }
+        .count {
+            background: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello World</h1>
+    <h1>Hello World - DB接続テスト</h1>
+    <p>このページにアクセスするたびにデータベースに記録されます。</p>
+
+    <div class="visit-list">
+        <h2>訪問記録 <span class="count">{{ visits.count }}件</span></h2>
+        {% if visits %}
+            {% for visit in visits %}
+            <div class="visit-item">
+                <strong>{{ forloop.counter }}.</strong>
+                {{ visit.message }} -
+                <em>{{ visit.visited_at|date:"Y-m-d H:i:s" }}</em>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>まだ記録がありません。</p>
+        {% endif %}
+    </div>
 </body>
 </html>

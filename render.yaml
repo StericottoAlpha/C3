@@ -13,5 +13,13 @@ services:
         value: False
       - key: ALLOWED_HOSTS
         sync: false
-      - key: DATABASE_URL
+      - key: SUPABASE_DB_NAME
+        sync: false
+      - key: SUPABASE_DB_USER
+        sync: false
+      - key: SUPABASE_DB_PASSWORD
+        sync: false
+      - key: SUPABASE_DB_HOST
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
         sync: false

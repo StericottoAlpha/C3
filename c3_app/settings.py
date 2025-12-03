@@ -92,24 +92,38 @@ WSGI_APPLICATION = 'c3_app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASE_URL = os.getenv('SUPABASE_URL')
-if DATABASE_URL:
+# Supabase環境変数の読み込み
+SUPABASE_DB_NAME = os.getenv('SUPABASE_DB_NAME')
+SUPABASE_DB_USER = os.getenv('SUPABASE_DB_USER')
+SUPABASE_DB_PASSWORD = os.getenv('SUPABASE_DB_PASSWORD')
+SUPABASE_DB_HOST = os.getenv('SUPABASE_DB_HOST')
+
+# ローカル開発用のDATABASE_URL（Dockerの場合）
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if SUPABASE_DB_HOST:
+    # Supabase設定（本番環境）
     DATABASES = {
         'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': SUPABASE_DB_NAME,
-        'USER': SUPABASE_DB_USER,
-        'PASSWORD': SUPABASE_DB_PASSWORD,
-        'HOST': SUPABASE_DB_HOST,
-        'PORT': '6543',  # トランザクションモード用のポート
-        'OPTIONS': {
-            'options': '-c use_prepared_statements=0',
-        },
-        'DISABLE_SERVER_SIDE_CURSORS': True,  # サーバーサイドカーソルを無効化
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': SUPABASE_DB_NAME,
+            'USER': SUPABASE_DB_USER,
+            'PASSWORD': SUPABASE_DB_PASSWORD,
+            'HOST': SUPABASE_DB_HOST,
+            'PORT': '6543',
+            'OPTIONS': {
+                'options': '-c use_prepared_statements=0',
+            },
+            'DISABLE_SERVER_SIDE_CURSORS': True,
+        }
     }
+elif DATABASE_URL:
+    # ローカル開発（Docker PostgreSQL）
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
     }
 else:
-    # Fallback to SQLite for development
+    # Fallback to SQLite
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

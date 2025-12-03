@@ -29,9 +29,12 @@ migrate:
 db-update: makemigrations migrate
 
 db-reset:
+	@echo "Resetting databases..."
 	rm -f db.sqlite3
+	python3 manage.py flush --no-input
 	python3 manage.py migrate
 	python3 manage.py seed
+	@echo "Database reset complete!"
 
 setup: install migrate
 
