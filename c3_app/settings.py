@@ -95,7 +95,16 @@ WSGI_APPLICATION = 'c3_app.wsgi.application'
 DATABASE_URL = os.getenv('DATABASE_URL')
 if DATABASE_URL:
     DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL)
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': SUPABASE_DB_NAME,
+        'USER': SUPABASE_DB_USER,
+        'PASSWORD': SUPABASE_DB_PASSWORD,
+        'HOST': SUPABASE_DB_HOST,
+        'PORT': '6543',  # トランザクションモード用のポート
+        'OPTIONS': {
+            'options': '-c use_prepared_statements=0',
+        },
+        'DISABLE_SERVER_SIDE_CURSORS': True,  # サーバーサイドカーソルを無効化
     }
 else:
     # Fallback to SQLite for development
