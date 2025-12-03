@@ -223,7 +223,10 @@ Renderで以下の環境変数を設定してください:
 - `SECRET_KEY`: Django SECRET_KEY（自動生成）
 - `DEBUG`: `False`
 - `ALLOWED_HOSTS`: `your-app.onrender.com`
-- `DATABASE_URL`: Supabase PostgreSQL接続URL
+- `SUPABASE_DB_NAME`: Supabase PostgreSQL名前
+- `SUPABASE_DB_USER`: user name
+- `SUPABASE_DB_PASSWORD`: password
+- `SUPABASE_DB_HOST`: host
 - `CSRF_TRUSTED_ORIGINS`: `https://your-app.onrender.com`
 
 ### GitHub Secrets
