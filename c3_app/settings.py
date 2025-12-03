@@ -92,9 +92,10 @@ WSGI_APPLICATION = 'c3_app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('SUPABASE_URL')
 if DATABASE_URL:
     DATABASES = {
+        'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': SUPABASE_DB_NAME,
         'USER': SUPABASE_DB_USER,
@@ -105,6 +106,7 @@ if DATABASE_URL:
             'options': '-c use_prepared_statements=0',
         },
         'DISABLE_SERVER_SIDE_CURSORS': True,  # サーバーサイドカーソルを無効化
+    }
     }
 else:
     # Fallback to SQLite for development
