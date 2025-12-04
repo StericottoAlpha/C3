@@ -1,0 +1,87 @@
+{% extends 'accounts/base_auth.html' %}
+
+{% block title %}Login - C3 ステリコットα{% endblock %}
+
+{% block error_messages %}
+    {% if form.non_field_errors %}
+        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center">
+            <span class="mr-2">⚠️</span>
+            <span class="text-sm">{{ form.non_field_errors.0 }}</span>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block auth_content %}
+<form method="post" novalidate>
+    {% csrf_token %}
+
+    <!-- User ID Field -->
+    <div class="mb-6">
+        <label for="id_username" class="flex items-center text-gray-600 text-sm font-medium mb-2">
+            <span class="mr-2">🆔</span>
+            User ID
+        </label>
+        <input
+            type="text"
+            name="username"
+            id="id_username"
+            class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg text-base transition-all focus:outline-none focus:border-primary focus:bg-white"
+            placeholder="sample"
+            value="{{ form.username.value|default:'' }}"
+            required
+        >
+        <p class="text-xs text-gray-400 mt-1">Half-width alphanumeric characters</p>
+    </div>
+
+    <!-- Password Field -->
+    <div class="mb-8">
+        <label for="id_password" class="flex items-center text-gray-600 text-sm font-medium mb-2">
+            <span class="mr-2">🔒</span>
+            Password
+        </label>
+        <div class="relative">
+            <input
+                type="password"
+                name="password"
+                id="id_password"
+                class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg text-base transition-all focus:outline-none focus:border-primary focus:bg-white pr-12"
+                placeholder="********"
+                required
+            >
+            <button
+                type="button"
+                onclick="togglePassword()"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 text-xl"
+            >
+                <span id="password-toggle-icon">👁️</span>
+            </button>
+        </div>
+        <p class="text-xs text-gray-400 mt-1">Half-width alphanumeric characters</p>
+    </div>
+
+    <!-- Login Button -->
+    <button
+        type="submit"
+        class="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-lg transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+    >
+        Login
+    </button>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function togglePassword() {
+        const passwordInput = document.getElementById('id_password');
+        const toggleIcon = document.getElementById('password-toggle-icon');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.textContent = '🙈';
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.textContent = '👁️';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}C3 ステリコットα{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5fa8a8',
+                        'primary-dark': '#4d8f8f',
+                        'primary-light': '#a8d5d5',
+                    }
+                }
+            }
+        }
+    </script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}bg-gray-50{% endblock %}">
+    {% block body %}
+        {% block content %}{% endblock %}
+    {% endblock %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
