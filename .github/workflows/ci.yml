@@ -64,6 +64,7 @@ jobs:
 
     steps:
     - name: Deploy to Render
+      id: deploy
       env:
         RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
       run: |
@@ -75,3 +76,58 @@ jobs:
         echo "Triggering Render deployment..."
         curl -X POST "$RENDER_DEPLOY_HOOK_URL"
         echo "Deployment triggered successfully!"
+
+    - name: Notify Slack
+      if: always()
+      uses: slackapi/slack-github-action@v1.26.0
+      with:
+        payload: |
+          {
+            "text": "${{ steps.deploy.outcome == 'success' && '✅ Deploy Success' || '❌ Deploy Failed' }}",
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "${{ steps.deploy.outcome == 'success' && '✅ Deployment Successful' || '❌ Deployment Failed' }}"
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Repository:*\n${{ github.repository }}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Branch:*\n${{ github.ref_name }}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Tests:*\n✅ Passed"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Deploy:*\n${{ steps.deploy.outcome == 'success' && '🚀 Triggered' || '💥 Failed' }}"
+                  }
+                ]
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Commit:* <${{ github.event.head_commit.url }}|${{ github.event.head_commit.message }}>\n*Author:* ${{ github.event.head_commit.author.name }}"
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*App URL:* https://c3-app.onrender.com"
+                }
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
