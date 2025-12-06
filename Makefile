@@ -47,14 +47,42 @@ else
 endif
 
 docker-up:
-	docker-compose up -d
+	@docker volume create postgres_data 2>/dev/null || true
+	@if [ -z "$$(docker ps -q -f name=c3-app-postgres)" ]; then \
+		if [ -n "$$(docker ps -aq -f name=c3-app-postgres)" ]; then \
+			docker start c3-app-postgres; \
+		else \
+			docker run -d \
+				--name c3-app-postgres \
+				-e POSTGRES_DB=c3_app_dev \
+				-e POSTGRES_USER=c3 \
+				-e POSTGRES_PASSWORD=password \
+				-p 5433:5432 \
+				-v postgres_data:/var/lib/postgresql/data \
+				--restart unless-stopped \
+				postgres:17-alpine; \
+		fi \
+	else \
+		echo "PostgreSQL container is already running"; \
+	fi
 
 docker-down:
-	docker-compose down
+	@docker stop c3-app-postgres 2>/dev/null || true
 
 docker-reset:
-	docker-compose down -v
-	docker-compose up -d
+	@docker stop c3-app-postgres 2>/dev/null || true
+	@docker rm c3-app-postgres 2>/dev/null || true
+	@docker volume rm postgres_data 2>/dev/null || true
+	@docker volume create postgres_data
+	@docker run -d \
+		--name c3-app-postgres \
+		-e POSTGRES_DB=c3_app_dev \
+		-e POSTGRES_USER=c3 \
+		-e POSTGRES_PASSWORD=password \
+		-p 5433:5432 \
+		-v postgres_data:/var/lib/postgresql/data \
+		--restart unless-stopped \
+		postgres:17-alpine
 	@echo "Waiting for PostgreSQL to be ready..."
 	@sleep 3
 	python3 manage.py migrate
