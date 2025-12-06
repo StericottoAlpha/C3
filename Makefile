@@ -1,4 +1,4 @@
-.PHONY: install clean lint lint-fix test run makemigrations migrate db-update db-reset setup hash docker-up docker-down docker-reset
+.PHONY: install clean lint lint-fix test run makemigrations migrate db-update db-reset setup hash docker-start docker-stop docker-reset docker-clean
 
 install:
 	pip3 install -r requirements.txt
@@ -46,7 +46,7 @@ else
 	@python3 manage.py shell -c "from django.contrib.auth.hashers import make_password; print(make_password('$(TARGET)'))"
 endif
 
-docker-up:
+docker-start:
 	@docker volume create postgres_data 2>/dev/null || true
 	@if [ -z "$$(docker ps -q -f name=c3-app-postgres)" ]; then \
 		if [ -n "$$(docker ps -aq -f name=c3-app-postgres)" ]; then \
@@ -66,7 +66,7 @@ docker-up:
 		echo "PostgreSQL container is already running"; \
 	fi
 
-docker-down:
+docker-stop:
 	@docker stop c3-app-postgres 2>/dev/null || true
 
 docker-reset:
@@ -87,3 +87,9 @@ docker-reset:
 	@sleep 3
 	python3 manage.py migrate
 	python3 manage.py seed
+
+docker-clean:
+	@docker stop c3-app-postgres 2>/dev/null || true
+	@docker rm c3-app-postgres 2>/dev/null || true
+	@docker volume rm postgres_data 2>/dev/null || true
+	@echo "PostgreSQL container and volume removed"
