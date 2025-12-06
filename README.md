@@ -37,7 +37,7 @@
 ### 必要な環境
 
 - Python 3.10以上
-- Docker & Docker Compose
+- Docker
 - Make
 
 ### 1. リポジトリのクローン
@@ -68,7 +68,7 @@ make install
 PostgreSQLコンテナを起動します:
 
 ```bash
-make docker-up
+make docker-start
 ```
 
 ### 5. データベースのセットアップ
@@ -114,12 +114,10 @@ make db-reset
 make hash TARGET=password123
 
 # Dockerコンテナの操作
-make docker-up      # コンテナ起動
-make docker-down    # コンテナ停止
-make docker-reset   # データベース完全リセット
-
-## ボリュームも削除したいとき
-docker-compose down -v
+make docker-start   # コンテナ起動
+make docker-stop    # コンテナ停止
+make docker-reset   # データベース完全リセット（ボリューム削除 + マイグレーション）
+make docker-clean   # コンテナとボリュームを完全削除
 
 # 開発サーバーの起動
 make run
@@ -168,7 +166,6 @@ c3_app/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml       # CI/CDパイプライン
-├── docker-compose.yml   # Docker設定
 ├── build.sh             # Renderビルドスクリプト
 ├── render.yaml          # Render設定
 ├── requirements.txt     # Python依存パッケージ
