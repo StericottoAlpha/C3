@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block body_class %}bg-gradient-to-br from-teal-200 to-teal-400 min-h-screen flex items-center justify-center p-5{% endblock %}
+
+{% block body %}
+<div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
+    <!-- Logo Section -->
+    <div class="text-center mb-10">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-3">
+            <span class="text-white text-2xl font-bold">C3</span>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800">TitleApp</h1>
+    </div>
+
+    <!-- Error Messages Block -->
+    {% block error_messages %}{% endblock %}
+
+    <!-- Main Content Block -->
+    {% block auth_content %}{% endblock %}
+</div>
+{% endblock %}
