@@ -44,7 +44,7 @@
 
 ```bash
 git clone <repository-url>
-cd c3_app
+cd C3
 ```
 
 ### 2. 環境変数の設定
