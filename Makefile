@@ -1,4 +1,4 @@
-.PHONY: install clean lint lint-fix test run makemigrations migrate db-update db-reset setup hash docker-start docker-stop docker-reset docker-clean
+.PHONY: install clean lint lint-fix test run makemigrations migrate db-update db-reset-old setup hash docker-start docker-stop docker-reset docker-clean
 
 install:
 	pip3 install -r requirements.txt
@@ -28,7 +28,7 @@ migrate:
 
 db-update: makemigrations migrate
 
-db-reset:
+db-reset-old:
 	@echo "Resetting databases..."
 	rm -f db.sqlite3
 	python3 manage.py flush --no-input
@@ -84,9 +84,12 @@ docker-reset:
 		--restart unless-stopped \
 		postgres:17-alpine
 	@echo "Waiting for PostgreSQL to be ready..."
-	@sleep 3
-	python3 manage.py migrate
-	python3 manage.py seed
+	@sleep 5
+	@echo "Running migrations..."
+	@python3 manage.py migrate || (echo "❌ Migration failed. PostgreSQL may not be ready yet. Try running 'make migrate' again in a few seconds."; exit 1)
+	@echo "Running seed..."
+	@python3 manage.py seed || (echo "❌ Seed failed. Check the error message above."; exit 1)
+	@echo "✅ Docker reset complete!"
 
 docker-clean:
 	@docker stop c3-app-postgres 2>/dev/null || true
