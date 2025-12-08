@@ -6,6 +6,5 @@ app_name = 'reports'
 
 urlpatterns = [
     path('register/', views.report_register, name='register'),
-    # path('', views.report_list, name='list'),
-    # path('<int:pk>/', views.report_detail, name='detail'),
+    path('view/<int:report_id>/', views.report_view, name='view'),
 ]

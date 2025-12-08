@@ -5,6 +5,7 @@ from django.utils import timezone
 from .forms import DailyReportForm
 from .models import DailyReport, ReportImage
 from bbs.models import BBSPost
+from .models import DailyReport
 
 
 @login_required
@@ -52,3 +53,21 @@ def report_register(request):
         'form': form,
     }
     return render(request, 'reports/register.html', context)
+
+
+
+@login_required
+def report_view(request, report_id):
+    """View a single daily report"""
+
+    # Get report with related data
+    report = get_object_or_404(
+        DailyReport.objects.select_related('store', 'user').prefetch_related('images'),
+        report_id=report_id
+    )
+
+    context = {
+        'report': report,
+    }
+
+    return render(request, 'reports/view.html', context)
