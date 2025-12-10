@@ -3,7 +3,7 @@ services:
     name: c3-app
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "python manage.py migrate && gunicorn c3_app.wsgi:application --bind 0.0.0.0:$PORT"
+    startCommand: "gunicorn c3_app.wsgi:application --bind 0.0.0.0:$PORT"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
