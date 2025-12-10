@@ -25,7 +25,7 @@ services:
         value: 5432
       - key: CSRF_TRUSTED_ORIGINS
         sync: false
-      - key: DJANGO_SUPERUSER_USERNAME
+      - key: DJANGO_SUPERUSER_USER_ID
         sync: false
       - key: DJANGO_SUPERUSER_PASSWORD
         sync: false
