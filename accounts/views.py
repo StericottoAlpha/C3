@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, get_user_model
+from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.http import Http404
@@ -27,6 +27,14 @@ def login_view(request):
         form = LoginForm()
 
     return render(request, 'accounts/login.html', {'form': form})
+
+def logout_view(request):
+    """
+    現在ログインしているユーザをログアウトさせる。
+    ログアウト後は /account/login/ にリダイレクトする。
+    """
+    logout(request)
+    return redirect('accounts:login')  # ログイン画面のURL名に合わせて修正
 
 @login_required
 def profile_view(request):
