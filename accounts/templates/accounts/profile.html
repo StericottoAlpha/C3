@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">ユーザー情報</h4>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3 border-bottom pb-2">
+                <div class="col-md-4 fw-bold text-secondary">氏名</div>
+                <div class="col-md-8 fs-5">{{ full_name }}</div>
+            </div>
+
+            <div class="row mb-3 border-bottom pb-2">
+                <div class="col-md-4 fw-bold text-secondary">権限</div>
+                <div class="col-md-8">
+                    <span class="badge bg-info text-dark">{{ role }}</span>
+                </div>
+            </div>
+
+            <div class="row mb-3 border-bottom pb-2">
+                <div class="col-md-4 fw-bold text-secondary">ユーザID</div>
+                <div class="col-md-8 font-monospace">{{ user_id }}</div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4 fw-bold text-secondary">所属店舗名</div>
+                <div class="col-md-8">{{ store_name }}</div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
