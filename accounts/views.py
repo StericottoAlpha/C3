@@ -5,6 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.http import Http404
 
 from .forms import LoginForm
+from django.contrib.auth.decorators import login_required
 
 # ユーザーモデルを取得
 User = get_user_model()

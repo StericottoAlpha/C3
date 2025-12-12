@@ -1,21 +1,9 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ホーム | C3 ステリコットα</title>
+{% extends "base.html" %}
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: { colors: { teal: { 600: '#5fa8a8', 800: '#4d8f8f' } } }
-            }
-        }
-    </script>
-</head>
-<body class="bg-gray-100 min-h-screen pb-20 font-sans text-gray-800">
+{% block title %}C3 ステリコットα{% endblock %}
 
+{% block content %}
+<div class="max-w-2xl mx-auto mt-12 px-4">
     <div class="bg-teal-600 pt-10 pb-20 px-6 rounded-b-[30px] shadow-md text-white text-center relative">
         <p class="text-4xl font-bold mb-1">{% now "Y" %}</p>
         <h1 class="text-6xl font-bold mb-4">
@@ -55,5 +43,5 @@
         <span class="text-[10px] font-bold text-gray-600">日報登録</span>
     </a>
 
-    </body>
-</html>
+</div>
+{% endblock %}

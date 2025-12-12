@@ -5,5 +5,5 @@ from . import views
 app_name = 'ai_features'
 
 urlpatterns = [
-    # path('', views.ai_dashboard, name='dashboard'),
+    path('', views.ai_dashboard, name='dashboard'),
 ]
