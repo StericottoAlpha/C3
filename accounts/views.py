@@ -5,7 +5,6 @@ from django.views.decorators.http import require_http_methods
 from django.http import Http404
 
 from .forms import LoginForm
-from . import services  # ビジネスロジック層をインポート
 
 # ユーザーモデルを取得
 User = get_user_model()
@@ -29,19 +28,38 @@ def login_view(request):
     return render(request, 'accounts/login.html', {'form': form})
 
 def logout_view(request):
-    """
-    現在ログインしているユーザをログアウトさせる。
-    ログアウト後は /account/login/ にリダイレクトする。
-    """
+    """ユーザをログアウトさせる。"""
     logout(request)
-    return redirect('accounts:login')  # ログイン画面のURL名に合わせて修正
-
+    return redirect('accounts:login')
+    
 @login_required
 def profile_view(request):
     """ログインユーザーのプロフィール情報を取得して表示する """
     try:
-        # ビジネスロジックは services.py に委譲
-        context = services.get_profile_context(request.user.pk)
+        # 1. ユーザー情報の取得（N+1対策でstoreも一緒に取得）
+        user = get_object_or_404(User.objects.select_related('store'), pk=request.user.pk)
+
+        # 2. 氏名の結合
+        full_name = f"{user.last_name} {user.first_name}".strip()
+        # もし名前が空ならユーザーIDを表示
+        if not full_name:
+            full_name = str(user.user_id)
+
+        # 3. 権限（役割）の取得
+        role = user.get_user_type_display()
+
+        # 4. 所属店舗名の取得
+        store_name = "所属なし"
+        if user.store:
+            store_name = getattr(user.store, 'store_name', str(user.store))
+
+        context = {
+            'full_name': full_name,
+            'user_id': user.user_id,
+            'role': role,
+            'store_name': store_name,
+        }
+
         return render(request, 'accounts/profile.html', context)
 
     except Exception as e:
