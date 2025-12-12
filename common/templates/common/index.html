@@ -1,55 +1,47 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C3 ステリコットα</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-        }
-        .visit-list {
-            margin-top: 30px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 20px;
-        }
-        .visit-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        .visit-item:last-child {
-            border-bottom: none;
-        }
-        .count {
-            background: #007bff;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 3px;
-            display: inline-block;
-        }
-    </style>
-</head>
-<body>
-    <h1>Hello World - DB接続テスト</h1>
-    <p>このページにアクセスするたびにデータベースに記録されます。</p>
+{% extends "base.html" %}
 
-    <div class="visit-list">
-        <h2>訪問記録 <span class="count">{{ visits.count }}件</span></h2>
-        {% if visits %}
-            {% for visit in visits %}
-            <div class="visit-item">
-                <strong>{{ forloop.counter }}.</strong>
-                {{ visit.message }} -
-                <em>{{ visit.visited_at|date:"Y-m-d H:i:s" }}</em>
-            </div>
-            {% endfor %}
-        {% else %}
-            <p>まだ記録がありません。</p>
-        {% endif %}
+{% block title %}C3 ステリコットα{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto mt-12 px-4">
+    <div class="bg-teal-600 pt-10 pb-20 px-6 rounded-b-[30px] shadow-md text-white text-center relative">
+        <p class="text-4xl font-bold mb-1">{% now "Y" %}</p>
+        <h1 class="text-6xl font-bold mb-4">
+            {% now "m.d" %} <span class="text-2xl">{% now "D" %}</span>
+        </h1>
+        <p class="text-lg opacity-90">おはようございます</p>
+        
+        <p class="text-2xl font-bold mt-2">
+            {% if user.last_name and user.first_name %}
+                {{ user.last_name }} {{ user.first_name }} さん
+            {% else %}
+                {{ user.username }} さん
+            {% endif %}
+        </p>
     </div>
-</body>
-</html>
+
+    <div class="px-6 -mt-12 relative z-10">
+        <div class="bg-white rounded-xl shadow-lg p-8 text-center min-h-[200px] flex flex-col justify-center items-center">
+            <h2 class="text-teal-600 font-bold text-xl mb-4">🌿 今月の目標 🌿</h2>
+            
+            <p class="text-gray-500 text-2xl font-bold">
+                {% if user.store and user.store.goal %}
+                    {{ user.store.goal }}
+                {% else %}
+                    <span class="text-gray-400 text-lg">目標未設定</span>
+                {% endif %}
+            </p>
+            
+            {% if user.store %}
+                <p class="text-sm text-gray-400 mt-2">{{ user.store.store_name }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <a href="/report/register/" class="fixed bottom-24 right-6 bg-white rounded-full p-2 shadow-xl z-20 flex flex-col items-center justify-center w-20 h-20 border-4 border-white">
+        <span class="text-3xl text-gray-700">📝</span>
+        <span class="text-[10px] font-bold text-gray-600">日報登録</span>
+    </a>
+
+</div>
+{% endblock %}
