@@ -5,5 +5,4 @@ app_name = 'common'
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('other/', views.other, name='other'),
 ]
