@@ -1,7 +1,7 @@
 .PHONY: install clean lint lint-fix test run makemigrations migrate db-update db-reset-old setup hash docker-start docker-stop docker-reset docker-clean
 
 install:
-	pip3 install -r requirements.txt
+	pip3 install -r requirements.txt --break-system-packages
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
