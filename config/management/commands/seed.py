@@ -40,15 +40,15 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(self.style.SUCCESS(f'Created store: {store.store_name}'))
 
-        # 2. ユーザーデータ作成
+# 2. ユーザーデータ作成
         users_data = [
-            {'user_id': 'admin', 'store': '本部', 'user_type': 'admin', 'email': 'admin@example.com'},
-            {'user_id': 'manager001', 'store': 'A店', 'user_type': 'manager', 'email': 'manager.a@example.com'},
-            {'user_id': 'manager002', 'store': 'B店', 'user_type': 'manager', 'email': 'manager.b@example.com'},
-            {'user_id': 'staff001', 'store': 'A店', 'user_type': 'staff', 'email': 'staff001@example.com'},
-            {'user_id': 'staff002', 'store': 'A店', 'user_type': 'staff', 'email': 'staff002@example.com'},
-            {'user_id': 'staff003', 'store': 'B店', 'user_type': 'staff', 'email': 'staff003@example.com'},
-            {'user_id': 'staff004', 'store': 'C店', 'user_type': 'staff', 'email': 'staff004@example.com'},
+            {'user_id': 'admin', 'last_name': 'システム', 'first_name': '管理者', 'store': '本部', 'user_type': 'admin', 'email': 'admin@example.com'},
+            {'user_id': 'manager001', 'last_name': '佐藤', 'first_name': '健一', 'store': 'A店', 'user_type': 'manager', 'email': 'manager.a@example.com'},
+            {'user_id': 'manager002', 'last_name': '鈴木', 'first_name': '一郎', 'store': 'B店', 'user_type': 'manager', 'email': 'manager.b@example.com'},
+            {'user_id': 'staff001', 'last_name': '田中', 'first_name': '花子', 'store': 'A店', 'user_type': 'staff', 'email': 'staff001@example.com'},
+            {'user_id': 'staff002', 'last_name': '高橋', 'first_name': '次郎', 'store': 'A店', 'user_type': 'staff', 'email': 'staff002@example.com'},
+            {'user_id': 'staff003', 'last_name': '渡辺', 'first_name': '美咲', 'store': 'B店', 'user_type': 'staff', 'email': 'staff003@example.com'},
+            {'user_id': 'staff004', 'last_name': '伊藤', 'first_name': '健太', 'store': 'C店', 'user_type': 'staff', 'email': 'staff004@example.com'},
         ]
 
         users = {}
@@ -57,6 +57,8 @@ class Command(BaseCommand):
                 user = User.objects.create_user(
                     user_id=user_data['user_id'],
                     password='password123',  # 全ユーザー共通パスワード（開発用）
+                    last_name=user_data['last_name'],   # 追加
+                    first_name=user_data['first_name'], # 追加
                     store=stores[user_data['store']],
                     user_type=user_data['user_type'],
                     email=user_data.get('email')
@@ -66,7 +68,7 @@ class Command(BaseCommand):
                     user.is_superuser = True
                     user.save()
                 users[user_data['user_id']] = user
-                self.stdout.write(self.style.SUCCESS(f'Created user: {user.user_id} ({user.get_user_type_display()})'))
+                self.stdout.write(self.style.SUCCESS(f'Created user: {user.user_id} ({user.last_name} {user.first_name})'))
             else:
                 users[user_data['user_id']] = User.objects.get(user_id=user_data['user_id'])
 
