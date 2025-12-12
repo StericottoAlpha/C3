@@ -45,6 +45,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('manager', '店長'),
         ('admin', '管理者'),
     ]
+    
+    last_name = models.CharField(max_length=50, verbose_name='姓', default='')
+    first_name = models.CharField(max_length=50, verbose_name='名', default='')
 
     user_id = models.CharField(
         max_length=20,

@@ -76,7 +76,7 @@ make docker-start
 db初期化、マイグレーションとシードデータの投入:
 
 ```bash
-make db-reset
+make docker-reset
 ```
 
 ### 6. 開発サーバーの起動
