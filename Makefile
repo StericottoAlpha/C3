@@ -1,4 +1,4 @@
-.PHONY: install clean lint lint-fix test run makemigrations migrate db-update db-reset-old setup hash docker-start docker-stop docker-reset docker-clean
+.PHONY: install clean lint lint-fix test run makemigrations migrate db-update db-reset-old setup hash docker-start docker-stop docker-reset docker-clean ollama ollama-stop ollama-pull
 
 install:
 	pip3 install -r requirements.txt
@@ -96,3 +96,34 @@ docker-clean:
 	@docker rm c3-app-postgres 2>/dev/null || true
 	@docker volume rm postgres_data 2>/dev/null || true
 	@echo "PostgreSQL container and volume removed"
+
+ollama:
+	@docker volume create ollama_data 2>/dev/null || true
+	@if [ -z "$$(docker ps -q -f name=c3-app-ollama)" ]; then \
+		if [ -n "$$(docker ps -aq -f name=c3-app-ollama)" ]; then \
+			docker start c3-app-ollama; \
+			echo "Ollama container started"; \
+		else \
+			docker run -d \
+				--name c3-app-ollama \
+				-p 11434:11434 \
+				-v ollama_data:/root/.ollama \
+				--restart unless-stopped \
+				ollama/ollama:latest; \
+			echo "Ollama container created and started"; \
+			echo "Waiting for Ollama to be ready..."; \
+			sleep 3; \
+		fi \
+	else \
+		echo "Ollama container is already running"; \
+	fi
+	@echo "✅ Ollama is ready at http://localhost:11434"
+
+ollama-stop:
+	@docker stop c3-app-ollama 2>/dev/null || true
+	@echo "Ollama container stopped"
+
+ollama-pull:
+	@echo "Pulling llama3.2:3b model..."
+	@docker exec c3-app-ollama ollama pull llama3.2:3b
+	@echo "✅ Model downloaded successfully"
