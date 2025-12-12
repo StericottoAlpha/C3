@@ -23,10 +23,17 @@
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="{% block body_class %}bg-gray-50{% endblock %}">
+
+<body class="{% block body_class %}bg-gray-50 pb-16{% endblock %}">
+    <!-- メインコンテンツ -->
     {% block body %}
         {% block content %}{% endblock %}
     {% endblock %}
+
+    <!-- ボトムナビ（ログイン時のみ・全画面共通） -->
+    {% if user.is_authenticated %}
+        {% include "common/bottom_nav.html" %}
+    {% endif %}
 
     {% block extra_js %}{% endblock %}
 </body>
