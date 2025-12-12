@@ -5,11 +5,6 @@ from django.views.decorators.http import require_http_methods
 from .forms import LoginForm
 from django.contrib.auth.decorators import login_required
 
-@login_required
-def profile(request):
-    return render(request, 'accounts/profile.html')
-
-
 
 @require_http_methods(["GET", "POST"])
 def login_view(request):

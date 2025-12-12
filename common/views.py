@@ -13,3 +13,7 @@ def index(request):
     visits = PageVisit.objects.all()
 
     return render(request, 'common/index.html', {'visits': visits})
+
+@login_required
+def other(request):
+    return render(request, 'common/other.html')
