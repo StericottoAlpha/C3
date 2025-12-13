@@ -7,4 +7,5 @@ app_name = 'bbs'
 urlpatterns = [
     path('list/', views.bbs_list, name='list'),
     path('register/', views.bbs_register, name='register'),
+    path('detail/<int:bbs_id>/', views.bbs_detail, name='detail'),
 ]
