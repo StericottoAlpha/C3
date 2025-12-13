@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import BBSPost
-from .forms import BBSPostForm
+from .models import BBSPost, BBSComment
+from .forms import BBSPostForm, BBSCommentForm
 
 
 @login_required
@@ -37,36 +37,34 @@ def bbs_detail(request, bbs_id):
     """掲示板詳細ビュー（モックコメント付き）"""
     post = get_object_or_404(BBSPost.objects.select_related('user', 'store'), post_id=bbs_id)
 
-    # モックコメントデータ
-    all_comments = [
-        {
-            'user': '佐藤 太郎',
-            'content': 'とても参考になる情報ありがとうございます。うちの店舗でも同じような問題がありました。',
-            'created_at': '2025/10/10 14:25',
-            'is_best_answer': False,
-        },
-        {
-            'user': '田中 花子',
-            'content': 'この問題は本部に確認した方が良いと思います。マニュアルにも記載されているはずです。',
-            'created_at': '2025/10/10 15:30',
-            'is_best_answer': True,
-        },
-        {
-            'user': '鈴木 一郎',
-            'content': '私も同じ経験があります。その場合は、まずお客様に丁寧に説明することが大切だと思います。',
-            'created_at': '2025/10/10 16:45',
-            'is_best_answer': False,
-        },
-    ]
+    all_comments = BBSComment.objects.select_related('user').filter(post=post)
 
     # ベストアンサーを先頭に、その他を時系列順にソート
     # Pythonでは False < True なので、False（ベストアンサー）が先に来る
-    
-    mock_comments = sorted(all_comments, key=lambda x: (not x['is_best_answer'], x['created_at']))
+
+    comments = sorted(all_comments, key=lambda x: (not x.is_best_answer, x.created_at))
 
     context = {
         'post': post,
-        'comments': mock_comments,
+        'comments': comments,
+        'comment_form': BBSCommentForm(),
     }
 
     return render(request, 'bbs/detail.html', context)
+
+
+@login_required
+def bbs_comment(request, bbs_id):
+    if request.method == 'POST':
+        form = BBSCommentForm(request.POST)
+        if form.is_valid():
+            bbs_post = get_object_or_404(BBSPost, post_id=bbs_id)
+            bbs_comment = form.save(commit=False)
+            bbs_comment.user = request.user
+            bbs_comment.post = bbs_post
+            bbs_comment.save()
+            messages.success(request, 'コメントを投稿しました。')
+        else:
+            messages.error(request, 'コメントの投稿に失敗しました。')
+
+    return redirect('bbs:detail', bbs_id=bbs_id)
