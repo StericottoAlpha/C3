@@ -11,7 +11,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from tqdm import tqdm
 
-from ai_features.services import VectorizationService
+from ai_features.core_services import VectorizationService
 from reports.models import DailyReport
 from bbs.models import BBSPost, BBSComment
 

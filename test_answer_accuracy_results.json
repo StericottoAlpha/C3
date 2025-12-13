@@ -1,0 +1,74 @@
+[
+  {
+    "test_name": "クレーム検索（基本）",
+    "query": "先週のクレームを教えて",
+    "response": "Error: Function must have a docstring if description not provided.",
+    "keyword_score": 0.0,
+    "tool_score": 0.0,
+    "total_score": 0.0,
+    "passed": false
+  },
+  {
+    "test_name": "クレーム検索（詳細）",
+    "query": "A店で最近発生したクレームの内容と対策を教えて",
+    "response": "Error: Function must have a docstring if description not provided.",
+    "keyword_score": 0.0,
+    "tool_score": 0.0,
+    "total_score": 0.0,
+    "passed": false
+  },
+  {
+    "test_name": "売上分析",
+    "query": "最近の売上推移はどう？",
+    "response": "Error: Function must have a docstring if description not provided.",
+    "keyword_score": 0.0,
+    "tool_score": 0.0,
+    "total_score": 0.0,
+    "passed": false
+  },
+  {
+    "test_name": "現金過不足分析",
+    "query": "現金過不足の状況を教えて",
+    "response": "Error: Function must have a docstring if description not provided.",
+    "keyword_score": 0.0,
+    "tool_score": 0.0,
+    "total_score": 0.0,
+    "passed": false
+  },
+  {
+    "test_name": "クレーム統計",
+    "query": "クレームの件数と傾向を分析して",
+    "response": "Error: Function must have a docstring if description not provided.",
+    "keyword_score": 0.0,
+    "tool_score": 0.0,
+    "total_score": 0.0,
+    "passed": false
+  },
+  {
+    "test_name": "賞賛検索",
+    "query": "お客様から褒められた内容を教えて",
+    "response": "Error: Function must have a docstring if description not provided.",
+    "keyword_score": 0.0,
+    "tool_score": 0.0,
+    "total_score": 0.0,
+    "passed": false
+  },
+  {
+    "test_name": "事故検索",
+    "query": "設備トラブルや事故の記録は？",
+    "response": "Error: Function must have a docstring if description not provided.",
+    "keyword_score": 0.0,
+    "tool_score": 0.0,
+    "total_score": 0.0,
+    "passed": false
+  },
+  {
+    "test_name": "掲示板検索",
+    "query": "動線改善についての議論を教えて",
+    "response": "Error: Function must have a docstring if description not provided.",
+    "keyword_score": 0.0,
+    "tool_score": 0.0,
+    "total_score": 0.0,
+    "passed": false
+  }
+]
