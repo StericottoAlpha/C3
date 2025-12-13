@@ -61,6 +61,7 @@ def bbs_detail(request, bbs_id):
 
     # ベストアンサーを先頭に、その他を時系列順にソート
     # Pythonでは False < True なので、False（ベストアンサー）が先に来る
+    
     mock_comments = sorted(all_comments, key=lambda x: (not x['is_best_answer'], x['created_at']))
 
     context = {
