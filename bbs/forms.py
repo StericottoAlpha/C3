@@ -1,5 +1,5 @@
 from django import forms
-from .models import BBSPost
+from .models import BBSPost, BBSComment
 
 
 class BBSPostForm(forms.ModelForm):
@@ -40,3 +40,25 @@ class BBSPostForm(forms.ModelForm):
         
         # reportフィールドを任意にする
         self.fields['report'].required = False
+
+class BBSCommentForm(forms.ModelForm):
+    """掲示板コメントフォーム"""
+
+    class Meta:
+        model = BBSComment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'コメントを入力してください',
+                'rows': 3,
+                'required': True
+            }),
+        }
+        labels = {
+            'content': '',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['content'].required = True
