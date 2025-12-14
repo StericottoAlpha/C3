@@ -13,8 +13,7 @@ class GraphDataAPITest(TestCase):
     def setUp(self):
         self.store_a = Store.objects.create(
             store_name='A店',
-            address='東京都渋谷区道玄坂1-2-3',
-            sales_target='月間売上目標: 500万円'
+            address='東京都渋谷区道玄坂1-2-3'
         )
         
         self.staff_a = User.objects.create_user(
@@ -84,14 +83,19 @@ class GraphDataAPITest(TestCase):
         expected_customers = [50, 55, 60, 65, 70, 75, 80]
         self.assertEqual(data['data'], expected_customers)
 
-    def test_incident_count_graph_weekly(self):
+    def test_incident_by_location_graph_weekly(self):
         self.client.login(user_id='staff001', password='password123')
         response = self.client.get(reverse('analytics:graph_data'), {
-            'graph_type': 'incident_count',
+            'graph_type': 'incident_by_location',
             'period': 'week',
             'offset': 0
         })
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
+        self.assertIn('datasets', data)
+        self.assertIn('labels', data)
+        self.assertEqual(len(data['labels']), 7)
+        # hallのデータを確認
+        hall_dataset = [ds for ds in data['datasets'] if ds['label'] == 'ホール'][0]
         expected_incidents = [1, 0, 1, 0, 1, 0, 1]
-        self.assertEqual(data['data'], expected_incidents)
+        self.assertEqual(hall_dataset['data'], expected_incidents)

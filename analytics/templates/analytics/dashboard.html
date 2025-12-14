@@ -176,7 +176,7 @@
     document.getElementById('error-message').classList.add('hidden');
 
     // APIからデータ取得
-    let url = `/analytics/api/graph-data/?graph_type=${currentGraphType}&period=${currentPeriod}&offset=${currentOffset}`;
+    let url = `/analysis/api/graph-data/?graph_type=${currentGraphType}&period=${currentPeriod}&offset=${currentOffset}`;
 
     // ジャンルフィルタがある場合は追加
     if (currentGraphType === 'incident_by_location' && currentGenre) {
@@ -411,7 +411,7 @@
     document.getElementById('period-label').textContent = `${year}年${month}月`;
 
     // APIからデータ取得
-    fetch(`/analytics/api/monthly-goal/?year=${year}&month=${month}`)
+    fetch(`/analysis/api/monthly-goal/?year=${year}&month=${month}`)
       .then(response => {
         if (!response.ok) {
           return response.text().then(text => {

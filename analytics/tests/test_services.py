@@ -12,8 +12,7 @@ class AnalyticsServiceTest(TestCase):
     def setUp(self):
         self.store = Store.objects.create(
             store_name='A店',
-            address='東京都渋谷区道玄坂1-2-3',
-            sales_target='月間売上目標: 500万円'
+            address='東京都渋谷区道玄坂1-2-3'
         )
         
         self.staff = User.objects.create_user(
@@ -68,12 +67,18 @@ class AnalyticsServiceTest(TestCase):
         expected_customers = [50, 55, 60, 65, 70, 75, 80]
         self.assertEqual(result['data'], expected_customers)
 
-    def test_get_incident_count_data(self):
+    def test_get_incident_by_location_data(self):
         start_date = self.today - timedelta(days=6)
         end_date = self.today
-        result = AnalyticsService.get_incident_count_data(self.store, start_date, end_date)
+        result = AnalyticsService.get_incident_by_location_data(self.store, start_date, end_date)
+        # 積み上げグラフ用のdatasetsが返される
+        self.assertIn('datasets', result)
+        self.assertIn('labels', result)
+        self.assertEqual(len(result['labels']), 7)
+        # hallのデータを確認（テストデータではhallにインシデントを作成している）
+        hall_dataset = [ds for ds in result['datasets'] if ds['label'] == 'ホール'][0]
         expected_incidents = [1, 2, 1, 2, 1, 2, 1]
-        self.assertEqual(result['data'], expected_incidents)
+        self.assertEqual(hall_dataset['data'], expected_incidents)
 
     def test_get_week_range(self):
         start_date, end_date = AnalyticsService.get_week_range()
