@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.core.management import call_command
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from stores.models import Store
+from stores.models import Store, MonthlyGoal
 from reports.models import DailyReport, StoreDailyPerformance
 from bbs.models import BBSPost, BBSComment, BBSReaction
 from ai_features.models import AIProposal, AIAnalysisResult, AIChatHistory
@@ -21,10 +21,10 @@ class Command(BaseCommand):
 
         # 1. 店舗データ作成
         stores_data = [
-            {'store_name': '本部', 'address': '東京都千代田区丸の内1-1-1', 'sales_target': '月間売上目標: 1000万円'},
-            {'store_name': 'A店', 'address': '東京都渋谷区道玄坂1-2-3', 'sales_target': '月間売上目標: 500万円'},
-            {'store_name': 'B店', 'address': '大阪府大阪市北区梅田1-1-1', 'sales_target': '月間売上目標: 600万円'},
-            {'store_name': 'C店', 'address': '愛知県名古屋市中区栄3-4-5', 'sales_target': '月間売上目標: 450万円'},
+            {'store_name': '本部', 'address': '東京都千代田区丸の内1-1-1'},
+            {'store_name': 'A店', 'address': '東京都渋谷区道玄坂1-2-3'},
+            {'store_name': 'B店', 'address': '大阪府大阪市北区梅田1-1-1'},
+            {'store_name': 'C店', 'address': '愛知県名古屋市中区栄3-4-5'},
         ]
 
         stores = {}
@@ -32,8 +32,7 @@ class Command(BaseCommand):
             store, created = Store.objects.get_or_create(
                 store_name=store_data['store_name'],
                 defaults={
-                    'address': store_data['address'],
-                    'sales_target': store_data['sales_target']
+                    'address': store_data['address']
                 }
             )
             stores[store_data['store_name']] = store
@@ -88,38 +87,35 @@ class Command(BaseCommand):
                     )
         self.stdout.write(self.style.SUCCESS('Created 30 days of performance data for stores'))
 
-        # 4. 日報データ作成
-        reports_data = [
-            {
-                'store': stores['A店'], 'user': users['staff001'], 'date': today,
-                'genre': 'claim', 'location': 'hall', 'title': '接客態度に関するクレーム',
-                'content': 'お客様から「スタッフの対応が遅い」とのご指摘をいただきました。ピーク時の対応について改善が必要です。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['A店'], 'user': users['staff002'], 'date': today - timedelta(days=1),
-                'genre': 'praise', 'location': 'kitchen', 'title': '料理の美味しさを褒められました',
-                'content': 'お客様から「今日のハンバーグは特に美味しかった」と直接お褒めの言葉をいただきました。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['B店'], 'user': users['staff003'], 'date': today,
-                'genre': 'accident', 'location': 'kitchen', 'title': 'フライヤーの点検',
-                'content': 'フライヤーの温度が不安定だったため、業者に連絡して点検を依頼しました。',
-                'post_to_bbs': False
-            },
-            {
-                'store': stores['B店'], 'user': users['staff003'], 'date': today - timedelta(days=2),
-                'genre': 'report', 'location': 'toilet', 'title': 'トイレ清掃の改善',
-                'content': '本日よりトイレ清掃チェックリストを導入しました。30分おきの確認を徹底します。',
-                'post_to_bbs': True
-            },
-        ]
+        # 4. 日報データ作成（過去30日分）
+        genres = ['claim', 'praise', 'accident', 'report', 'other']
+        locations = ['kitchen', 'hall', 'cashier', 'toilet', 'other']
 
         reports = []
-        for report_data in reports_data:
-            report = DailyReport.objects.create(**report_data)
-            reports.append(report)
+        for i in range(30):
+            date = today - timedelta(days=i)
+            # 各日に1〜3件のインシデントを作成
+            num_incidents = (i % 3) + 1  # 1, 2, 3のサイクル
+
+            for j in range(num_incidents):
+                store = stores['A店'] if i % 2 == 0 else stores['B店']
+                user = users['staff001'] if store == stores['A店'] else users['staff003']
+                genre = genres[i % len(genres)]
+                location = locations[j % len(locations)]
+
+                if not DailyReport.objects.filter(store=store, date=date, title=f'{genre}の報告{i}-{j}').exists():
+                    report = DailyReport.objects.create(
+                        store=store,
+                        user=user,
+                        date=date,
+                        genre=genre,
+                        location=location,
+                        title=f'{genre}の報告{i}-{j}',
+                        content=f'{date}の{location}で発生した{genre}です。',
+                        post_to_bbs=(j == 0)  # 最初の1件のみ掲示板に投稿
+                    )
+                    reports.append(report)
+
         self.stdout.write(self.style.SUCCESS(f'Created {len(reports)} daily reports'))
 
         # 5. 掲示板投稿データ作成（日報から自動投稿 + 直接投稿）
@@ -228,6 +224,76 @@ class Command(BaseCommand):
             message='フライヤーの適正温度は一般的に170-180℃です。揚げ物の種類によって調整してください。'
         )
         self.stdout.write(self.style.SUCCESS('Created AI chat history'))
+
+        # 11. 月次目標データ作成（今月と先月）
+        today = datetime.now().date()
+        current_year = today.year
+        current_month = today.month
+
+        # 今月の目標
+        monthly_goals_data = [
+            {
+                'store': stores['A店'],
+                'year': current_year,
+                'month': current_month,
+                'goal_text': 'クレーム5件以下！\n売上目標500万円達成！\n違算ゼロ！',
+                'achievement_rate': 75,
+                'achievement_text': '順調に進んでいます'
+            },
+            {
+                'store': stores['B店'],
+                'year': current_year,
+                'month': current_month,
+                'goal_text': '客数1000人以上！\nスタッフ全員で笑顔の接客！',
+                'achievement_rate': 60,
+                'achievement_text': 'もう少し頑張りましょう'
+            },
+            {
+                'store': stores['C店'],
+                'year': current_year,
+                'month': current_month,
+                'goal_text': '新メニュー販売数100個以上！\n顧客満足度向上！',
+                'achievement_rate': 85,
+                'achievement_text': '好調です！'
+            },
+        ]
+
+        # 先月の目標（参考用）
+        last_month = current_month - 1 if current_month > 1 else 12
+        last_year = current_year if current_month > 1 else current_year - 1
+
+        monthly_goals_data.extend([
+            {
+                'store': stores['A店'],
+                'year': last_year,
+                'month': last_month,
+                'goal_text': 'クレーム3件以下！\n売上目標450万円達成！',
+                'achievement_rate': 90,
+                'achievement_text': '目標達成しました！'
+            },
+            {
+                'store': stores['B店'],
+                'year': last_year,
+                'month': last_month,
+                'goal_text': '客数900人以上！\n接客研修完了！',
+                'achievement_rate': 95,
+                'achievement_text': '素晴らしい成果です'
+            },
+        ])
+
+        for goal_data in monthly_goals_data:
+            MonthlyGoal.objects.get_or_create(
+                store=goal_data['store'],
+                year=goal_data['year'],
+                month=goal_data['month'],
+                defaults={
+                    'goal_text': goal_data['goal_text'],
+                    'achievement_rate': goal_data['achievement_rate'],
+                    'achievement_text': goal_data['achievement_text']
+                }
+            )
+
+        self.stdout.write(self.style.SUCCESS('Created monthly goals'))
 
         # Load seed data from JSON files
         fixtures_dir = Path(__file__).resolve().parent.parent.parent / 'fixtures'
