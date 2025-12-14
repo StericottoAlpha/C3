@@ -1,7 +1,508 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="p-4">
-  <h1 class="text-xl font-bold">分析（準備中）</h1>
+<div class="max-w-4xl mx-auto p-4 sm:p-6">
+  <h1 class="text-2xl font-bold mb-6 text-gray-900">分析・グラフ</h1>
+
+  <!-- エラー表示エリア -->
+  <div id="error-message" class="bg-red-100 text-red-800 p-3 rounded-lg mb-5 hidden"></div>
+
+  <!-- コントロール -->
+  <div class="flex flex-wrap gap-3 mb-5">
+    <!-- グラフ種類選択 -->
+    <select id="graph-type" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+      <option value="sales">売上</option>
+      <option value="customer_count">客数</option>
+      <option value="incident_by_location">場所別インシデント</option>
+      <option value="monthly_goal">月次目標</option>
+    </select>
+
+    <!-- ジャンル選択（場所別インシデントの場合のみ表示） -->
+    <select id="genre-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hidden">
+      <option value="">全ジャンル</option>
+      <option value="claim">クレーム</option>
+      <option value="praise">賞賛</option>
+      <option value="accident">事故</option>
+      <option value="report">報告</option>
+      <option value="other">その他</option>
+    </select>
+
+    <!-- 期間切り替え（週/月） -->
+    <div class="flex gap-2">
+      <button id="btn-week" class="px-4 py-2 border border-gray-300 rounded-lg text-sm cursor-pointer transition-colors hover:bg-gray-50 bg-blue-500 text-white border-blue-500" onclick="changePeriod('week')">週</button>
+      <button id="btn-month" class="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm cursor-pointer transition-colors hover:bg-gray-50" onclick="changePeriod('month')">月</button>
+    </div>
+  </div>
+
+  <!-- 期間移動ナビゲーション -->
+  <div class="flex items-center gap-3 mb-6">
+    <button onclick="movePeriod(-1)" class="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm cursor-pointer transition-colors hover:bg-gray-50">&lt;</button>
+    <div id="period-label" class="font-semibold min-w-[200px] text-center text-gray-900">読込中...</div>
+    <button onclick="movePeriod(1)" class="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm cursor-pointer transition-colors hover:bg-gray-50">&gt;</button>
+  </div>
+
+  <!-- グラフ表示エリア -->
+  <div class="bg-white p-5 rounded-lg shadow-sm">
+    <div id="loading" class="text-center py-10 text-gray-500">データを読み込み中...</div>
+    <canvas id="analytics-chart" class="hidden"></canvas>
+
+    <!-- 月次目標表示エリア -->
+    <div id="monthly-goal-container" class="hidden">
+      <h2 class="text-lg font-bold mb-4 text-gray-900">今月の目標</h2>
+      <div id="goal-content">
+        <div class="mb-4">
+          <h3 class="text-sm font-semibold text-gray-600 mb-2">目標内容</h3>
+          <div id="goal-text" class="whitespace-pre-wrap text-gray-900"></div>
+        </div>
+        <div class="mb-4">
+          <h3 class="text-sm font-semibold text-gray-600 mb-2">達成率</h3>
+          <div class="flex items-center gap-3">
+            <div class="flex-1 bg-gray-200 rounded-full h-6">
+              <div id="achievement-bar" class="bg-blue-500 h-6 rounded-full transition-all duration-300 flex items-center justify-center text-white text-sm font-semibold" style="width: 0%">
+                <span id="achievement-rate">0%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-sm font-semibold text-gray-600 mb-2">達成状況</h3>
+          <div id="achievement-text" class="text-gray-900"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  let currentChart = null;
+  let currentOffset = 0;
+  let currentPeriod = localStorage.getItem('analytics_period') || 'week';
+  let currentGraphType = localStorage.getItem('analytics_graph_type') || 'sales';
+  let currentGenre = localStorage.getItem('analytics_genre') || '';
+  let currentGoalYear = null;
+  let currentGoalMonth = null;
+
+  // グラフ種類変更
+  document.getElementById('graph-type').addEventListener('change', function(e) {
+    currentGraphType = e.target.value;
+    localStorage.setItem('analytics_graph_type', currentGraphType);
+
+    // 場所別インシデントの場合、ジャンルフィルタを表示
+    const genreFilter = document.getElementById('genre-filter');
+    if (currentGraphType === 'incident_by_location') {
+      genreFilter.classList.remove('hidden');
+    } else {
+      genreFilter.classList.add('hidden');
+    }
+
+    // 週/月切り替えボタンの表示/非表示
+    const weekBtn = document.getElementById('btn-week');
+    const monthBtn = document.getElementById('btn-month');
+
+    if (currentGraphType === 'monthly_goal') {
+      // 月次目標の場合は週/月ボタンを非表示
+      weekBtn.classList.add('hidden');
+      monthBtn.classList.add('hidden');
+      loadMonthlyGoal();
+    } else {
+      // その他の場合は週/月ボタンを表示
+      weekBtn.classList.remove('hidden');
+      monthBtn.classList.remove('hidden');
+      loadGraph();
+    }
+  });
+
+  // ジャンルフィルタ変更
+  document.getElementById('genre-filter').addEventListener('change', function(e) {
+    currentGenre = e.target.value;
+    localStorage.setItem('analytics_genre', currentGenre);
+    loadGraph();
+  });
+
+  // 期間切り替え（週/月）
+  function changePeriod(period) {
+    currentPeriod = period;
+    localStorage.setItem('analytics_period', period);
+    currentOffset = 0;  // 期間切り替え時は現在に戻す
+
+    // ボタンのアクティブ状態を切り替え
+    const weekBtn = document.getElementById('btn-week');
+    const monthBtn = document.getElementById('btn-month');
+
+    if (period === 'week') {
+      weekBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+      weekBtn.classList.remove('bg-white');
+      monthBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+      monthBtn.classList.add('bg-white');
+    } else {
+      monthBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+      monthBtn.classList.remove('bg-white');
+      weekBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+      weekBtn.classList.add('bg-white');
+    }
+
+    // 月次目標の場合は目標を再読み込み
+    if (currentGraphType === 'monthly_goal') {
+      loadMonthlyGoal();
+    } else {
+      loadGraph();
+    }
+  }
+
+  // 期間移動（前/次）
+  function movePeriod(direction) {
+    // 月次目標の場合は月を移動
+    if (currentGraphType === 'monthly_goal') {
+      const date = new Date(currentGoalYear, currentGoalMonth - 1);
+      date.setMonth(date.getMonth() + direction);
+      currentGoalYear = date.getFullYear();
+      currentGoalMonth = date.getMonth() + 1;
+      loadMonthlyGoal();
+    } else {
+      currentOffset += direction;
+      loadGraph();
+    }
+  }
+
+  // グラフデータを読み込み
+  function loadGraph() {
+    // ローディング表示
+    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('analytics-chart').classList.add('hidden');
+    document.getElementById('monthly-goal-container').classList.add('hidden');
+    document.getElementById('error-message').classList.add('hidden');
+
+    // APIからデータ取得
+    let url = `/analysis/api/graph-data/?graph_type=${currentGraphType}&period=${currentPeriod}&offset=${currentOffset}`;
+
+    // ジャンルフィルタがある場合は追加
+    if (currentGraphType === 'incident_by_location' && currentGenre) {
+      url += `&genre=${currentGenre}`;
+    }
+
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('データの取得に失敗しました');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // 期間ラベル更新
+        document.getElementById('period-label').textContent = data.period_label;
+
+        // グラフ描画
+        drawChart(data);
+
+        // ローディング非表示
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('analytics-chart').classList.remove('hidden');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error-message').textContent = 'データの読み込みに失敗しました: ' + error.message;
+        document.getElementById('error-message').classList.remove('hidden');
+      });
+  }
+
+  // グラフ描画
+  function drawChart(data) {
+    const ctx = document.getElementById('analytics-chart').getContext('2d');
+
+    // 既存のグラフを破棄
+    if (currentChart) {
+      currentChart.destroy();
+    }
+
+    // データセットの形式判定（積み上げグラフか折れ線グラフか）
+    const isStackedChart = data.datasets !== undefined;
+    const chartType = isStackedChart ? 'bar' : 'line';
+
+    // データセットの準備
+    let datasets;
+    if (isStackedChart) {
+      // 積み上げグラフ用：スタイリッシュなグラデーション効果を追加
+      datasets = data.datasets.map((dataset, index) => {
+        // グラデーション作成
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        const baseColor = dataset.backgroundColor;
+        let gradientApplied = false;
+
+        // RGBカラーを抽出してグラデーションを作成
+        if (typeof baseColor === 'string') {
+          const rgbaMatch = baseColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+          if (rgbaMatch) {
+            const r = rgbaMatch[1], g = rgbaMatch[2], b = rgbaMatch[3];
+            gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.9)`);
+            gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.6)`);
+            gradientApplied = true;
+          }
+        }
+
+        return {
+          ...dataset,
+          backgroundColor: gradientApplied ? gradient : baseColor,
+          borderWidth: 0,
+          borderRadius: {
+            topLeft: 8,
+            topRight: 8,
+            bottomLeft: 8,
+            bottomRight: 8
+          },
+          borderSkipped: false,
+        };
+      });
+    } else {
+      // 折れ線グラフ用（従来の形式）
+      datasets = [{
+        label: data.title,
+        data: data.data,
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.3,
+        fill: true,
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: 'rgb(59, 130, 246)',
+      }];
+    }
+
+    // 新しいグラフを作成
+    currentChart = new Chart(ctx, {
+      type: chartType,
+      data: {
+        labels: data.labels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              pointStyle: 'circle',
+              padding: 15,
+              font: {
+                size: 12,
+                weight: '500'
+              },
+              filter: function(legendItem, chartData) {
+                // ラベルに「(上)」「(下)」が含まれるものは凡例から除外
+                return !legendItem.text.includes('(上)') && !legendItem.text.includes('(下)');
+              }
+            }
+          },
+          title: {
+            display: true,
+            text: data.title,
+            font: {
+              size: 18,
+              weight: 'bold'
+            },
+            padding: {
+              top: 10,
+              bottom: 20
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            padding: 12,
+            cornerRadius: 8,
+            titleFont: {
+              size: 14,
+              weight: 'bold'
+            },
+            bodyFont: {
+              size: 13
+            },
+            callbacks: {
+              // ツールチップのラベルをフィルタリング
+              label: function(context) {
+                // ラベルに「(上)」「(下)」が含まれる場合は非表示
+                if (context.dataset.label && (context.dataset.label.includes('(上)') || context.dataset.label.includes('(下)'))) {
+                  return null;
+                }
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  label += context.parsed.y;
+                }
+                return label;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: isStackedChart,
+            grid: {
+              display: false
+            },
+            ticks: {
+              font: {
+                size: 11
+              }
+            }
+          },
+          y: {
+            stacked: isStackedChart,
+            beginAtZero: true,
+            min: 0,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.06)',
+              drawBorder: false
+            },
+            ticks: {
+              stepSize: currentGraphType === 'sales' ? 100000 : (currentGraphType === 'customer_count' ? 100 : 1),
+              font: {
+                size: 11
+              },
+              callback: function(value) {
+                if (currentGraphType === 'sales') {
+                  return '¥' + value.toLocaleString();
+                }
+                return value;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 月次目標を読み込み
+  function loadMonthlyGoal() {
+    // 既存のグラフを破棄
+    if (currentChart) {
+      currentChart.destroy();
+      currentChart = null;
+    }
+
+    // ローディング表示
+    document.getElementById('loading').classList.remove('hidden');
+    document.getElementById('analytics-chart').classList.add('hidden');
+    document.getElementById('monthly-goal-container').classList.add('hidden');
+    document.getElementById('error-message').classList.add('hidden');
+
+    // 年月を取得（初回は今月、2回目以降は保存された値）
+    const today = new Date();
+    if (currentGoalYear === null || currentGoalMonth === null) {
+      currentGoalYear = today.getFullYear();
+      currentGoalMonth = today.getMonth() + 1;
+    }
+
+    const year = currentGoalYear;
+    const month = currentGoalMonth;
+
+    // 期間ラベル更新
+    document.getElementById('period-label').textContent = `${year}年${month}月`;
+
+    // APIからデータ取得
+    fetch(`/analysis/api/monthly-goal/?year=${year}&month=${month}`)
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(`目標データの取得に失敗しました (${response.status}): ${text}`);
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        // 目標内容を表示
+        document.getElementById('goal-text').textContent = data.goal_text;
+
+        // 目標が設定されていない場合
+        if (data.goal_text === '目標が設定されていません') {
+          // 達成率とコメントを非表示
+          document.getElementById('achievement-rate').textContent = '-';
+          document.getElementById('achievement-bar').style.width = '0%';
+          document.getElementById('achievement-text').textContent = '管理者に目標の設定を依頼してください';
+        } else {
+          // 達成率を表示
+          const rate = data.achievement_rate;
+          document.getElementById('achievement-rate').textContent = rate + '%';
+          document.getElementById('achievement-bar').style.width = rate + '%';
+
+          // 達成率に応じて色を変更
+          const bar = document.getElementById('achievement-bar');
+          if (rate >= 80) {
+            bar.classList.remove('bg-blue-500', 'bg-yellow-500');
+            bar.classList.add('bg-green-500');
+          } else if (rate >= 50) {
+            bar.classList.remove('bg-blue-500', 'bg-green-500');
+            bar.classList.add('bg-yellow-500');
+          } else {
+            bar.classList.remove('bg-green-500', 'bg-yellow-500');
+            bar.classList.add('bg-blue-500');
+          }
+
+          // 達成状況を表示
+          document.getElementById('achievement-text').textContent = data.achievement_text;
+        }
+
+        // ローディング非表示、月次目標を表示
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('monthly-goal-container').classList.remove('hidden');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('error-message').textContent = '目標データの読み込みに失敗しました: ' + error.message;
+        document.getElementById('error-message').classList.remove('hidden');
+      });
+  }
+
+  // 初期ロード
+  document.addEventListener('DOMContentLoaded', function() {
+    // localStorageから保存された値をUIに反映
+    const graphTypeSelect = document.getElementById('graph-type');
+    graphTypeSelect.value = currentGraphType;
+
+    const genreFilter = document.getElementById('genre-filter');
+    genreFilter.value = currentGenre;
+
+    // 場所別インシデントの場合、ジャンルフィルタを表示
+    if (currentGraphType === 'incident_by_location') {
+      genreFilter.classList.remove('hidden');
+    }
+
+    // 週/月ボタンの状態を復元
+    const weekBtn = document.getElementById('btn-week');
+    const monthBtn = document.getElementById('btn-month');
+
+    if (currentPeriod === 'week') {
+      weekBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+      weekBtn.classList.remove('bg-white');
+      monthBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+      monthBtn.classList.add('bg-white');
+    } else {
+      monthBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+      monthBtn.classList.remove('bg-white');
+      weekBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+      weekBtn.classList.add('bg-white');
+    }
+
+    // 月次目標の場合は週/月ボタンを非表示
+    if (currentGraphType === 'monthly_goal') {
+      weekBtn.classList.add('hidden');
+      monthBtn.classList.add('hidden');
+      loadMonthlyGoal();
+    } else {
+      loadGraph();
+    }
+  });
+</script>
 {% endblock %}

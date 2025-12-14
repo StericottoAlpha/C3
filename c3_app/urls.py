@@ -24,6 +24,6 @@ urlpatterns = [
     path('stores/', include('stores.urls')),
     path('report/', include('reports.urls')),
     path('bbs/', include('bbs.urls')),
-    path('analytics/', include('analytics.urls')),
+    path('analysis/', include('analytics.urls')),
     path('ai/', include('ai_features.urls')),
 ]
