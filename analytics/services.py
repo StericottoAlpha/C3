@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 from reports.models import DailyReport, StoreDailyPerformance
+from stores.models import MonthlyGoal
 
 
 class AnalyticsService:
@@ -211,3 +212,114 @@ class AnalyticsService:
             end_date = base_date.replace(month=base_date.month + 1, day=1) - timedelta(days=1)
 
         return start_date, end_date
+
+    @staticmethod
+    def calculate_period_dates(period, offset):
+        """期間とオフセットから日付範囲とラベルを計算
+
+        Args:
+            period: 'week' または 'month'
+            offset: オフセット値（整数）
+
+        Returns:
+            tuple: (start_date, end_date, period_label)
+        """
+        base_date = datetime.now().date()
+
+        if period == 'week':
+            # 週単位でオフセット
+            base_date += timedelta(weeks=offset)
+            start_date, end_date = AnalyticsService.get_week_range(base_date)
+            period_label = f'{start_date.strftime("%Y年%m月%d日")} ~ {end_date.strftime("%m月%d日")}'
+        else:  # month
+            # 月単位でオフセット
+            year = base_date.year
+            month = base_date.month + offset
+            while month < 1:
+                month += 12
+                year -= 1
+            while month > 12:
+                month -= 12
+                year += 1
+            base_date = base_date.replace(year=year, month=month)
+            start_date, end_date = AnalyticsService.get_month_range(base_date)
+            period_label = f'{start_date.strftime("%Y年%m月")}'
+
+        return start_date, end_date, period_label
+
+    @staticmethod
+    def get_graph_data_by_type(graph_type, store, start_date, end_date, genre=None):
+        """グラフタイプに応じてデータを取得
+
+        Args:
+            graph_type: グラフの種類（'sales', 'customer_count', 'incident_by_location'）
+            store: 店舗オブジェクト
+            start_date: 開始日
+            end_date: 終了日
+            genre: ジャンル（incident_by_locationの場合のみ使用）
+
+        Returns:
+            dict: {title: str, chart_data: dict}
+
+        Raises:
+            ValueError: 不正なグラフタイプの場合
+        """
+        if graph_type == 'sales':
+            chart_data = AnalyticsService.get_sales_data(store, start_date, end_date)
+            title = '売上推移'
+        elif graph_type == 'customer_count':
+            chart_data = AnalyticsService.get_customer_count_data(store, start_date, end_date)
+            title = '客数推移'
+        elif graph_type == 'incident_by_location':
+            chart_data = AnalyticsService.get_incident_by_location_data(store, start_date, end_date, genre)
+            # ジャンル名のマッピング
+            genre_labels = {
+                'claim': 'クレーム',
+                'praise': '賞賛',
+                'accident': '事故',
+                'report': '報告',
+                'other': 'その他',
+            }
+            genre_label = genre_labels.get(genre, '全ジャンル') if genre else '全ジャンル'
+            title = f'場所別インシデント数（{genre_label}）'
+        else:
+            raise ValueError(f'不正なグラフタイプです: {graph_type}')
+
+        return {
+            'title': title,
+            'chart_data': chart_data,
+        }
+
+    @staticmethod
+    def get_monthly_goal_data(store, year=None, month=None):
+        """月次目標データを取得
+
+        Args:
+            store: 店舗オブジェクト
+            year: 年（Noneの場合は現在の年）
+            month: 月（Noneの場合は現在の月）
+
+        Returns:
+            dict: 月次目標データ
+        """
+        today = datetime.now().date()
+        year = year or today.year
+        month = month or today.month
+
+        try:
+            goal = MonthlyGoal.objects.get(store=store, year=year, month=month)
+            return {
+                'year': goal.year,
+                'month': goal.month,
+                'goal_text': goal.goal_text,
+                'achievement_rate': goal.achievement_rate,
+                'achievement_text': goal.achievement_text,
+            }
+        except MonthlyGoal.DoesNotExist:
+            return {
+                'year': year,
+                'month': month,
+                'goal_text': '目標が設定されていません',
+                'achievement_rate': 0,
+                'achievement_text': '',
+            }
