@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from django.db.models import Count, Q
-from reports.models import StoreDailyPerformance, DailyReport
+
+from reports.models import DailyReport, StoreDailyPerformance
 
 
 class AnalyticsService:
