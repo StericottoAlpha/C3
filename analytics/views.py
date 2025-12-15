@@ -1,10 +1,7 @@
-from datetime import datetime, timedelta
-
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from stores.models import MonthlyGoal
 from .services import AnalyticsService
 
 
@@ -17,61 +14,32 @@ def dashboard(request):
 @login_required
 def get_graph_data(request):
     """グラフデータを取得するAPI"""
+    # リクエストパラメータの取得
     graph_type = request.GET.get('graph_type', 'sales')
     period = request.GET.get('period', 'week')
     offset = int(request.GET.get('offset', 0))
     genre = request.GET.get('genre', None)
 
+    # ユーザーの所属店舗を取得
     store = request.user.store
-
     if not store:
         return JsonResponse({'error': '店舗が設定されていません'}, status=400)
 
-    # 基準日を計算（オフセット分を加算）
-    base_date = datetime.now().date()
-    if period == 'week':
-        base_date += timedelta(weeks=offset)
-        start_date, end_date = AnalyticsService.get_week_range(base_date)
-        period_label = f'{start_date.strftime("%Y年%m月%d日")} ~ {end_date.strftime("%m月%d日")}'
-    else:  # month
-        # 月単位でオフセット
-        year = base_date.year
-        month = base_date.month + offset
-        while month < 1:
-            month += 12
-            year -= 1
-        while month > 12:
-            month -= 12
-            year += 1
-        base_date = base_date.replace(year=year, month=month)
-        start_date, end_date = AnalyticsService.get_month_range(base_date)
-        period_label = f'{start_date.strftime("%Y年%m月")}'
+    # 期間の日付範囲とラベルを計算
+    start_date, end_date, period_label = AnalyticsService.calculate_period_dates(period, offset)
 
-    # グラフタイプに応じてデータ取得
-    if graph_type == 'sales':
-        chart_data = AnalyticsService.get_sales_data(store, start_date, end_date)
-        title = '売上推移'
-    elif graph_type == 'customer_count':
-        chart_data = AnalyticsService.get_customer_count_data(store, start_date, end_date)
-        title = '客数推移'
-    elif graph_type == 'incident_by_location':
-        chart_data = AnalyticsService.get_incident_by_location_data(store, start_date, end_date, genre)
-        # ジャンル名のマッピング
-        genre_labels = {
-            'claim': 'クレーム',
-            'praise': '賞賛',
-            'accident': '事故',
-            'report': '報告',
-            'other': 'その他',
-        }
-        genre_label = genre_labels.get(genre, '全ジャンル') if genre else '全ジャンル'
-        title = f'場所別インシデント数（{genre_label}）'
-    else:
-        return JsonResponse({'error': '不正なグラフタイプです'}, status=400)
+    # グラフデータを取得
+    try:
+        result = AnalyticsService.get_graph_data_by_type(
+            graph_type, store, start_date, end_date, genre
+        )
+    except ValueError as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
-    # レスポンスの形式を統一
+    # レスポンスの構築
+    chart_data = result['chart_data']
     response_data = {
-        'title': title,
+        'title': result['title'],
         'period_label': period_label,
         'labels': chart_data['labels'],
         'start_date': start_date.isoformat(),
@@ -89,39 +57,22 @@ def get_graph_data(request):
 
 @login_required
 def get_monthly_goal(request):
-    """月次目標を取得するAPI
-
-    Query Parameters:
-        - year: 年（省略時は現在の年）
-        - month: 月（省略時は現在の月）
-    """
-    # パラメータ取得
-    today = datetime.now().date()
-    year = int(request.GET.get('year', today.year))
-    month = int(request.GET.get('month', today.month))
+    """月次目標を取得するAPI"""
 
     # ユーザーの所属店舗を取得
-    user = request.user
-    store = user.store
-
+    store = request.user.store
     if not store:
         return JsonResponse({'error': '店舗が設定されていません'}, status=400)
 
-    # 月次目標を取得
-    try:
-        goal = MonthlyGoal.objects.get(store=store, year=year, month=month)
-        return JsonResponse({
-            'year': goal.year,
-            'month': goal.month,
-            'goal_text': goal.goal_text,
-            'achievement_rate': goal.achievement_rate,
-            'achievement_text': goal.achievement_text,
-        })
-    except MonthlyGoal.DoesNotExist:
-        return JsonResponse({
-            'year': year,
-            'month': month,
-            'goal_text': '目標が設定されていません',
-            'achievement_rate': 0,
-            'achievement_text': '',
-        })
+    # パラメータ取得
+    year = request.GET.get('year')
+    month = request.GET.get('month')
+
+    # 文字列から整数に変換（Noneの場合はNoneのまま）
+    year = int(year) if year else None
+    month = int(month) if month else None
+
+    # 月次目標データを取得
+    goal_data = AnalyticsService.get_monthly_goal_data(store, year, month)
+
+    return JsonResponse(goal_data)
