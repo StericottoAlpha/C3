@@ -57,6 +57,30 @@ cp .env.example .env
 
 `.env`ファイルを編集して、必要な環境変数を設定してください。
 
+#### AI機能の設定
+
+AI機能では、OpenAIまたはOllama（ローカルLLM）を使用できます。
+
+**OpenAIを使用する場合:**
+
+```bash
+# .envファイルに以下を設定
+OPENAI_API_KEY=your-openai-api-key-here
+USE_OPENAI=True
+OPENAI_MODEL=gpt-4o-mini
+```
+
+**Ollama（ローカル）を使用する場合:**
+
+```bash
+# .envファイルに以下を設定
+USE_OPENAI=False
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.2:3b
+```
+
+デフォルトではOllamaを使用する設定になっています。OpenAIを使用する場合は、[OpenAI Platform](https://platform.openai.com/)でAPIキーを取得してください。
+
 ### 3. 依存パッケージのインストール
 
 ```bash
@@ -225,6 +249,12 @@ Renderで以下の環境変数を設定してください:
 - `SUPABASE_DB_PASSWORD`: password
 - `SUPABASE_DB_HOST`: host
 - `CSRF_TRUSTED_ORIGINS`: `https://your-app.onrender.com`
+
+**AI機能（本番環境）:**
+
+- `OPENAI_API_KEY`: OpenAI APIキー（必須）
+- `USE_OPENAI`: `True`
+- `OPENAI_MODEL`: `gpt-4o-mini`（または他のモデル）
 
 ### GitHub Secrets
 
