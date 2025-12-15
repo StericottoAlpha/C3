@@ -1,9 +1,11 @@
-from django.shortcuts import render
+from datetime import datetime, timedelta
+
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from datetime import datetime, timedelta
-from .services import AnalyticsService
+from django.shortcuts import render
+
 from stores.models import MonthlyGoal
+from .services import AnalyticsService
 
 
 @login_required
@@ -14,23 +16,13 @@ def dashboard(request):
 
 @login_required
 def get_graph_data(request):
-    """グラフデータを取得するAPI
-
-    Query Parameters:
-        - graph_type: グラフ種類 (sales, customer_count, incident_count, incident_by_location)
-        - period: 期間 (week, month)
-        - offset: 期間オフセット（0=今週/今月、-1=先週/先月、1=来週/来月）
-        - genre: ジャンルフィルタ (incident_by_locationの場合のみ。claim, praise, accident, report, other)
-    """
-    # パラメータ取得
+    """グラフデータを取得するAPI"""
     graph_type = request.GET.get('graph_type', 'sales')
     period = request.GET.get('period', 'week')
     offset = int(request.GET.get('offset', 0))
-    genre = request.GET.get('genre', None)  # ジャンルフィルタ
+    genre = request.GET.get('genre', None)
 
-    # ユーザーの所属店舗を取得
-    user = request.user
-    store = user.store
+    store = request.user.store
 
     if not store:
         return JsonResponse({'error': '店舗が設定されていません'}, status=400)

@@ -4,10 +4,9 @@
 <div class="max-w-4xl mx-auto p-4 sm:p-6">
   <h1 class="text-2xl font-bold mb-6 text-gray-900">分析・グラフ</h1>
 
-  <!-- エラー表示エリア -->
   <div id="error-message" class="bg-red-100 text-red-800 p-3 rounded-lg mb-5 hidden"></div>
 
-  <!-- コントロール -->
+  <!-- グラフコントロール -->
   <div class="flex flex-wrap gap-3 mb-5">
     <!-- グラフ種類選択 -->
     <select id="graph-type" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -17,7 +16,6 @@
       <option value="monthly_goal">月次目標</option>
     </select>
 
-    <!-- ジャンル選択（場所別インシデントの場合のみ表示） -->
     <select id="genre-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent hidden">
       <option value="">全ジャンル</option>
       <option value="claim">クレーム</option>
@@ -225,7 +223,7 @@
     // データセットの準備
     let datasets;
     if (isStackedChart) {
-      // 積み上げグラフ用：スタイリッシュなグラデーション効果を追加
+      // 積み上げグラフ用
       datasets = data.datasets.map((dataset, index) => {
         // グラデーション作成
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -296,10 +294,6 @@
               font: {
                 size: 12,
                 weight: '500'
-              },
-              filter: function(legendItem, chartData) {
-                // ラベルに「(上)」「(下)」が含まれるものは凡例から除外
-                return !legendItem.text.includes('(上)') && !legendItem.text.includes('(下)');
               }
             }
           },
@@ -327,12 +321,7 @@
               size: 13
             },
             callbacks: {
-              // ツールチップのラベルをフィルタリング
               label: function(context) {
-                // ラベルに「(上)」「(下)」が含まれる場合は非表示
-                if (context.dataset.label && (context.dataset.label.includes('(上)') || context.dataset.label.includes('(下)'))) {
-                  return null;
-                }
                 let label = context.dataset.label || '';
                 if (label) {
                   label += ': ';
