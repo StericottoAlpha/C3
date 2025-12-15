@@ -31,12 +31,13 @@ class GraphDataAPITest(TestCase):
         self.client = Client()
 
     def create_test_data(self):
-        # 今週の月曜日から日曜日までのデータを作成
+        # 先週の月曜日から日曜日までのデータを作成（確実に過去のデータとするため）
         weekday = self.today.weekday()
-        monday = self.today - timedelta(days=weekday)
+        this_monday = self.today - timedelta(days=weekday)
+        last_monday = this_monday - timedelta(days=7)
 
         for i in range(7):
-            date = monday + timedelta(days=i)
+            date = last_monday + timedelta(days=i)
             StoreDailyPerformance.objects.create(
                 store=self.store_a,
                 date=date,
@@ -62,7 +63,7 @@ class GraphDataAPITest(TestCase):
         response = self.client.get(reverse('analytics:graph_data'), {
             'graph_type': 'sales',
             'period': 'week',
-            'offset': 0
+            'offset': -1
         })
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
@@ -76,7 +77,7 @@ class GraphDataAPITest(TestCase):
         response = self.client.get(reverse('analytics:graph_data'), {
             'graph_type': 'customer_count',
             'period': 'week',
-            'offset': 0
+            'offset': -1
         })
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
@@ -88,7 +89,7 @@ class GraphDataAPITest(TestCase):
         response = self.client.get(reverse('analytics:graph_data'), {
             'graph_type': 'incident_by_location',
             'period': 'week',
-            'offset': 0
+            'offset': -1
         })
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
