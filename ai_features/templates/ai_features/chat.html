@@ -21,6 +21,7 @@
       <button
         id="send-button"
         type="submit"
+        onClick="postHandler()"
         class="bg-green-500 text-white px-4 py-2 rounded-full opacity-50 cursor-not-allowed"
         disabled
       >
@@ -92,6 +93,26 @@ function setupInputHandler() {
       button.classList.add('opacity-50', 'cursor-not-allowed');
     }
   });
+}
+
+function postHandler(){
+
+  const input = document.getElementById("chat-input");
+  const button = document.getElementById("send-button");
+
+  const message = input.value.trim();
+
+  if (!message){
+    
+    input.value = "";
+    return;
+  }
+
+  input.value = "";
+  button.disabled = true;
+  button.classList.add('opacity-50', 'cursor-not-allowed');
+
+  appendMessage(message, "user");
 }
 </script>
 {% endblock %}
