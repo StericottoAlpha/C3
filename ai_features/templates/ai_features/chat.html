@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-screen bg-gray-100">
+
+  <!-- チャット全体 -->
+  <div class="flex flex-col w-full max-w-3xl h-[80vh] bg-white border rounded-lg">
+
+    <!-- メッセージ表示エリア -->
+    <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-100"></div>
+
+    <!-- 入力欄（下固定） -->
+    <div class="border-t p-3 flex items-center gap-2 bg-white">
+      <input
+        id="chat-input"
+        type="text"
+        placeholder="メッセージを入力"
+        class="flex-1 border rounded-full px-4 py-2 focus:outline-none"
+        disabled
+      />
+      <button
+        id="send-button"
+        type="submit"
+        class="bg-green-500 text-white px-4 py-2 rounded-full opacity-50 cursor-not-allowed"
+        disabled
+      >
+        送信
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  setupInputHandler();
+  loadChatHistory();
+});
+
+function loadChatHistory() {
+  fetch('/ai/api/chat/')
+    .then(res => res.json())
+    .then(data => {
+      data.history.forEach(item => {
+
+        appendMessage(item.content, item.role);
+      });
+    })
+    .catch(() => {
+      throw Error('履歴の取得に失敗しました');
+    });
+}
+
+function appendMessage(text, sender) {
+  const wrapper = document.createElement('div');
+  wrapper.className =
+    sender === 'user'
+      ? 'flex justify-end'
+      : 'flex justify-start';
+
+  const bubble = document.createElement('div');
+  bubble.className =
+    sender === 'user'
+      ? 'bg-green-500 text-white px-4 py-2 rounded-2xl max-w-xs'
+      : 'bg-white px-4 py-2 rounded-2xl max-w-xs border';
+
+  bubble.innerText = text;
+  wrapper.appendChild(bubble);
+  document.getElementById('chat-container').appendChild(wrapper);
+}
+
+function setupInputHandler() {
+  const input = document.getElementById('chat-input');
+  const button = document.getElementById('send-button');
+
+  // 将来有効化する前提で disabled を外す
+  input.disabled = false;
+
+  input.addEventListener('input', () => {
+    const hasText = input.value.trim().length > 0;
+
+    button.disabled = !hasText;
+
+    if (hasText) {
+      button.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+      button.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+  });
+}
+</script>
+{% endblock %}
