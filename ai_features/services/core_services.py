@@ -7,6 +7,7 @@ from typing import List, Optional, Dict
 import numpy as np
 
 from sentence_transformers import SentenceTransformer
+from pgvector.django import CosineDistance
 
 logger = logging.getLogger(__name__)
 
@@ -72,8 +73,8 @@ class VectorSearchService:
     @staticmethod
     def search_documents(
         query: str,
-        user,
-        source_types: List[str],
+        store_id: Optional[int] = None,
+        source_types: List[str] = None,
         filters: Optional[Dict] = None,
         top_k: int = 5
     ) -> List[Dict]:
@@ -82,7 +83,7 @@ class VectorSearchService:
 
         Args:
             query: 検索クエリ
-            user: ユーザーオブジェクト（user.storeでstore情報を取得）
+            store_id: 店舗ID（Noneの場合は全店舗検索）
             source_types: 検索対象タイプのリスト ['daily_report', 'bbs_post', 'bbs_comment']
             filters: フィルタ条件（date_from等）
             top_k: 取得件数
@@ -99,13 +100,16 @@ class VectorSearchService:
             if query_embedding is None:
                 return []
 
-            query_vector = np.array(query_embedding)
-
             # 基本フィルタ
             queryset = DocumentVector.objects.filter(
-                source_type__in=source_types,
-                metadata__store_id=user.store.store_id
+                source_type__in=source_types
             )
+
+            # 店舗フィルタ（指定がある場合のみ）
+            if store_id is not None:
+                queryset = queryset.filter(
+                    metadata__store_id=store_id
+                )
 
             # 日付フィルタ
             if filters and 'date_from' in filters:
@@ -113,15 +117,16 @@ class VectorSearchService:
                     metadata__date__gte=filters['date_from']
                 )
 
-            # ベクトル検索（コサイン類似度で計算）
+            # pgvectorでベクトル検索（DBレベルでコサイン類似度計算）
+            queryset = queryset.annotate(
+                distance=CosineDistance('embedding', query_embedding)
+            ).order_by('distance')[:top_k]
+
+            # 結果を整形
             results = []
             for doc in queryset:
-                doc_vector = np.array(doc.embedding)
-
-                # コサイン類似度を計算
-                similarity = np.dot(query_vector, doc_vector) / (
-                    np.linalg.norm(query_vector) * np.linalg.norm(doc_vector)
-                )
+                # 類似度 = 1 - コサイン距離
+                similarity = 1 - doc.distance
 
                 results.append({
                     'vector_id': doc.vector_id,
@@ -132,9 +137,7 @@ class VectorSearchService:
                     'similarity': float(similarity)
                 })
 
-            # 類似度でソートしてTop-Kを返す
-            results.sort(key=lambda x: x['similarity'], reverse=True)
-            return results[:top_k]
+            return results
 
         except Exception as e:
             logger.error(f"Error in vector search: {e}", exc_info=True)
@@ -165,8 +168,6 @@ class VectorSearchService:
             if query_embedding is None:
                 return []
 
-            query_vector = np.array(query_embedding)
-
             # 基本フィルタ
             queryset = KnowledgeVector.objects.all()
 
@@ -174,15 +175,16 @@ class VectorSearchService:
             if category:
                 queryset = queryset.filter(metadata__category=category)
 
-            # ベクトル検索
+            # pgvectorでベクトル検索（DBレベルでコサイン類似度計算）
+            queryset = queryset.annotate(
+                distance=CosineDistance('embedding', query_embedding)
+            ).order_by('distance')[:top_k]
+
+            # 結果を整形
             results = []
             for knowledge in queryset:
-                knowledge_vector = np.array(knowledge.embedding)
-
-                # コサイン類似度を計算
-                similarity = np.dot(query_vector, knowledge_vector) / (
-                    np.linalg.norm(query_vector) * np.linalg.norm(knowledge_vector)
-                )
+                # 類似度 = 1 - コサイン距離
+                similarity = 1 - knowledge.distance
 
                 results.append({
                     'vector_id': knowledge.vector_id,
@@ -192,9 +194,7 @@ class VectorSearchService:
                     'similarity': float(similarity)
                 })
 
-            # 類似度でソートしてTop-Kを返す
-            results.sort(key=lambda x: x['similarity'], reverse=True)
-            return results[:top_k]
+            return results
 
         except Exception as e:
             logger.error(f"Error in knowledge search: {e}", exc_info=True)

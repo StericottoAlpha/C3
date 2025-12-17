@@ -44,14 +44,26 @@ def get_claim_statistics(store_id: int, days: int = 30) -> str:
         claim_count = claim_reports.count()
         claim_rate = f"{(claim_count / total_reports * 100):.1f}%" if total_reports else "0%"
 
-        # 日別トレンド（最近7日）
+        # 日別トレンド（最近7日）- DBで集計
+        recent_days = min(7, days)
+        recent_start = end_date - timedelta(days=recent_days - 1)
+
+        daily_trend_qs = claim_reports.filter(
+            date__gte=recent_start
+        ).values('date').annotate(
+            count=Count('report_id')
+        ).order_by('-date')
+
+        # 日付をキーにした辞書を作成
+        trend_dict = {item['date']: item['count'] for item in daily_trend_qs}
+
+        # 全日付を網羅（データがない日は0件）
         daily_trend = []
-        for i in range(min(7, days)):
+        for i in range(recent_days):
             target_date = end_date - timedelta(days=i)
-            day_claims = claim_reports.filter(date=target_date).count()
             daily_trend.append({
                 "date": str(target_date),
-                "count": day_claims
+                "count": trend_dict.get(target_date, 0)
             })
 
         # カテゴリ別（location）
@@ -141,20 +153,24 @@ def get_sales_trend(store_id: int, days: int = 30) -> str:
             data_count=Count('performance_id')
         )
 
-        # 日別トレンド（最新7日分）
+        # 日別トレンド（最新7日分）- DBで一括取得
         recent_days = min(7, days)
-        daily_data = []
-        for i in range(recent_days):
-            target_date = end_date - timedelta(days=i)
-            day_record = queryset.filter(date=target_date).first()
+        recent_start = end_date - timedelta(days=recent_days - 1)
 
-            if day_record:
-                daily_data.append({
-                    "date": str(target_date),
-                    "sales": day_record.sales_amount,
-                    "customers": day_record.customer_count,
-                    "avg_per_customer": round(day_record.sales_amount / day_record.customer_count, 0) if day_record.customer_count > 0 else 0
-                })
+        daily_records = queryset.filter(
+            date__gte=recent_start
+        ).order_by('-date').values('date', 'sales_amount', 'customer_count')
+
+        daily_data = [
+            {
+                "date": str(record['date']),
+                "sales": record['sales_amount'],
+                "customers": record['customer_count'],
+                "avg_per_customer": round(record['sales_amount'] / record['customer_count'], 0)
+                    if record['customer_count'] > 0 else 0
+            }
+            for record in daily_records
+        ]
 
         # 週次比較（過去2週間）
         week_comparison = None
@@ -284,19 +300,22 @@ def get_cash_difference_analysis(store_id: int, days: int = 30) -> str:
         difference_occurred_count = queryset.exclude(cash_difference=0).count()
         difference_rate = f"{(difference_occurred_count / aggregates['data_count'] * 100):.1f}%" if aggregates['data_count'] > 0 else "0%"
 
-        # 日別トレンド（最近7日間で違算があった日）
+        # 日別トレンド（最近7日間で違算があった日）- DBで一括取得
         recent_days = min(7, days)
-        daily_data = []
-        for i in range(recent_days):
-            target_date = end_date - timedelta(days=i)
-            day_record = queryset.filter(date=target_date).first()
+        recent_start = end_date - timedelta(days=recent_days - 1)
 
-            if day_record and day_record.cash_difference != 0:
-                daily_data.append({
-                    "date": str(target_date),
-                    "difference": day_record.cash_difference,
-                    "type": "プラス" if day_record.cash_difference > 0 else "マイナス"
-                })
+        daily_records = queryset.filter(
+            date__gte=recent_start
+        ).exclude(cash_difference=0).order_by('-date').values('date', 'cash_difference')
+
+        daily_data = [
+            {
+                "date": str(record['date']),
+                "difference": record['cash_difference'],
+                "type": "プラス" if record['cash_difference'] > 0 else "マイナス"
+            }
+            for record in daily_records
+        ]
 
         result = {
             "status": "success",
@@ -411,15 +430,26 @@ def get_report_statistics(store_id: int, days: int = 30) -> str:
                 "percentage": f"{percentage:.1f}%"
             })
 
-        # 日別投稿頻度（最近7日間）
+        # 日別投稿頻度（最近7日間）- DBで集計
         recent_days = min(7, days)
+        recent_start = end_date - timedelta(days=recent_days - 1)
+
+        daily_submission_qs = queryset.filter(
+            date__gte=recent_start
+        ).values('date').annotate(
+            count=Count('report_id')
+        ).order_by('-date')
+
+        # 日付をキーにした辞書を作成
+        submission_dict = {item['date']: item['count'] for item in daily_submission_qs}
+
+        # 全日付を網羅（データがない日は0件）
         daily_submission = []
         for i in range(recent_days):
             target_date = end_date - timedelta(days=i)
-            day_count = queryset.filter(date=target_date).count()
             daily_submission.append({
                 "date": str(target_date),
-                "count": day_count
+                "count": submission_dict.get(target_date, 0)
             })
 
         result = {
@@ -588,26 +618,35 @@ def gather_topic_related_data(topic: str, store_id: int, days: int = 30) -> str:
             "items": reports_data
         }
 
-        # 2. 掲示板からの情報収集
+        # 2. 掲示板からの情報収集 - prefetch_relatedでN+1クエリ解消
+        from django.db.models import Prefetch
+
         bbs_posts = BBSPost.objects.filter(
             store_id=store_id,
             created_at__date__gte=start_date,
             created_at__date__lte=end_date
         ).filter(
             Q(title__icontains=topic) | Q(content__icontains=topic)
+        ).prefetch_related(
+            Prefetch(
+                'comments',
+                queryset=BBSComment.objects.select_related('user').order_by('created_at')[:5],
+                to_attr='recent_comments'
+            ),
+            'user'  # 投稿者も一緒に取得
         ).order_by('-created_at')[:15]
 
         bbs_data = []
         for post in bbs_posts:
-            # 関連コメントも取得
-            comments = BBSComment.objects.filter(post=post).order_by('created_at')[:5]
-            comment_list = []
-            for comment in comments:
-                comment_list.append({
+            # prefetchされたコメントを使用
+            comment_list = [
+                {
                     "author": comment.user.user_id if comment.user else "不明",
                     "content": comment.content[:200],
                     "created_at": comment.created_at.strftime("%Y-%m-%d %H:%M")
-                })
+                }
+                for comment in post.recent_comments
+            ]
 
             bbs_data.append({
                 "title": post.title,
@@ -920,4 +959,309 @@ def compare_periods(store_id: int, metric: str, period1_days: int = 7, period2_d
         return json.dumps({
             "status": "error",
             "message": f"期間比較エラー: {str(e)}"
+        }, ensure_ascii=False)
+
+
+# ============================================================
+# 全店舗統計ツール（All Stores）
+# ============================================================
+
+@tool
+def get_claim_statistics_all_stores(days: int = 30) -> str:
+    """
+    全店舗のクレーム統計を取得します。店舗間の比較や全体傾向を把握できます。
+
+    When to use this tool:
+    - When user wants to compare claims across all stores (全店舗のクレーム比較)
+    - When analyzing overall claim trends (全体的なクレーム傾向)
+    - When identifying stores with high/low claim rates
+
+    Args:
+        days: 集計期間（日数、デフォルト: 30日）
+
+    Returns:
+        全店舗のクレーム統計のJSON文字列
+    """
+    try:
+        from reports.models import DailyReport
+        from stores.models import Store
+        from django.db.models import Count, Q
+
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=days)
+
+        # 全店舗のデータ
+        all_reports = DailyReport.objects.filter(
+            date__gte=start_date,
+            date__lte=end_date
+        )
+
+        total_reports = all_reports.count()
+
+        # クレーム
+        claim_reports = all_reports.filter(
+            genre='claim',
+            content__isnull=False
+        ).exclude(content='')
+
+        claim_count = claim_reports.count()
+        claim_rate = f"{(claim_count / total_reports * 100):.1f}%" if total_reports else "0%"
+
+        # 店舗別クレーム数
+        claims_by_store = claim_reports.values(
+            'store__store_name'
+        ).annotate(
+            count=Count('report_id')
+        ).order_by('-count')[:10]
+
+        store_breakdown = [
+            {"store_name": item['store__store_name'], "count": item['count']}
+            for item in claims_by_store
+        ]
+
+        # カテゴリ別（location）
+        claim_by_location = claim_reports.values('location').annotate(
+            count=Count('report_id')
+        ).order_by('-count')[:5]
+
+        top_categories = [
+            {"category": item['location'], "count": item['count']}
+            for item in claim_by_location
+        ]
+
+        result = {
+            "status": "success",
+            "scope": "全店舗",
+            "period_days": days,
+            "summary": {
+                "total_reports": total_reports,
+                "claim_count": claim_count,
+                "claim_rate": claim_rate
+            },
+            "store_breakdown": store_breakdown,
+            "top_categories": top_categories
+        }
+
+        return json.dumps(result, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        logger.error(f"Error in get_claim_statistics_all_stores: {e}", exc_info=True)
+        return json.dumps({
+            "status": "error",
+            "message": f"全店舗クレーム統計取得エラー: {str(e)}"
+        }, ensure_ascii=False)
+
+
+@tool
+def get_report_statistics_all_stores(days: int = 30) -> str:
+    """
+    全店舗の日報統計を取得します。店舗間の活動量や傾向を比較できます。
+
+    When to use this tool:
+    - When comparing report submission across stores (店舗間の日報提出状況)
+    - When analyzing overall reporting trends (全体的な報告傾向)
+
+    Args:
+        days: 集計期間（日数、デフォルト: 30日）
+
+    Returns:
+        全店舗の日報統計のJSON文字列
+    """
+    try:
+        from reports.models import DailyReport
+        from django.db.models import Count
+
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=days)
+
+        # 全店舗の日報
+        queryset = DailyReport.objects.filter(
+            date__gte=start_date,
+            date__lte=end_date
+        )
+
+        total_reports = queryset.count()
+
+        if total_reports == 0:
+            return json.dumps({
+                "status": "no_data",
+                "message": f"指定期間（過去{days}日間）の日報データがありません。"
+            }, ensure_ascii=False)
+
+        # ジャンル別集計
+        genre_breakdown = queryset.values('genre').annotate(
+            count=Count('report_id')
+        ).order_by('-count')
+
+        genre_data = []
+        for item in genre_breakdown:
+            genre_display = dict(DailyReport.GENRE_CHOICES).get(item['genre'], item['genre'])
+            percentage = (item['count'] / total_reports * 100) if total_reports > 0 else 0
+            genre_data.append({
+                "genre": item['genre'],
+                "genre_display": genre_display,
+                "count": item['count'],
+                "percentage": f"{percentage:.1f}%"
+            })
+
+        # 店舗別集計
+        store_breakdown = queryset.values('store__store_name').annotate(
+            count=Count('report_id')
+        ).order_by('-count')[:10]
+
+        store_data = [
+            {"store_name": item['store__store_name'], "count": item['count']}
+            for item in store_breakdown
+        ]
+
+        result = {
+            "status": "success",
+            "scope": "全店舗",
+            "period_days": days,
+            "summary": {
+                "total_reports": total_reports,
+                "avg_per_day": round(total_reports / days, 1)
+            },
+            "genre_breakdown": genre_data,
+            "store_breakdown": store_data
+        }
+
+        return json.dumps(result, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        logger.error(f"Error in get_report_statistics_all_stores: {e}", exc_info=True)
+        return json.dumps({
+            "status": "error",
+            "message": f"全店舗日報統計取得エラー: {str(e)}"
+        }, ensure_ascii=False)
+
+
+@tool
+def gather_topic_related_data_all_stores(topic: str, days: int = 30) -> str:
+    """
+    全店舗から特定トピックに関連するデータを収集します。
+
+    When to use this tool:
+    - When analyzing a topic across all stores (全店舗でのトピック分析)
+    - When looking for best practices from any store
+    - When comprehensive data is needed
+
+    Args:
+        topic: トピックキーワード（例: "クレーム", "売上", "接客"）
+        days: 検索期間（日数、デフォルト: 30日）
+
+    Returns:
+        全店舗のトピック関連データのJSON文字列
+    """
+    try:
+        from reports.models import DailyReport
+        from bbs.models import BBSPost, BBSComment
+        from django.db.models import Q, Count
+
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=days)
+
+        result = {
+            "status": "success",
+            "topic": topic,
+            "scope": "全店舗",
+            "period_days": days,
+            "data_sources": {}
+        }
+
+        # 1. 日報からの情報収集（全店舗）
+        daily_reports = DailyReport.objects.filter(
+            date__gte=start_date,
+            date__lte=end_date
+        ).filter(
+            Q(title__icontains=topic) | Q(content__icontains=topic)
+        ).order_by('-date')[:30]
+
+        reports_data = []
+        for report in daily_reports:
+            reports_data.append({
+                "date": str(report.date),
+                "store_name": report.store.store_name if report.store else "不明",
+                "genre": dict(DailyReport.GENRE_CHOICES).get(report.genre, report.genre),
+                "location": dict(DailyReport.LOCATION_CHOICES).get(report.location, report.location),
+                "title": report.title,
+                "content": report.content[:300],
+                "author": report.user.user_id if report.user else "不明"
+            })
+
+        result["data_sources"]["daily_reports"] = {
+            "count": len(reports_data),
+            "items": reports_data
+        }
+
+        # 2. 掲示板からの情報収集（全店舗）
+        from django.db.models import Prefetch
+
+        bbs_posts = BBSPost.objects.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date
+        ).filter(
+            Q(title__icontains=topic) | Q(content__icontains=topic)
+        ).prefetch_related(
+            Prefetch(
+                'comments',
+                queryset=BBSComment.objects.select_related('user').order_by('created_at')[:5],
+                to_attr='recent_comments'
+            ),
+            'user',
+            'store'
+        ).order_by('-created_at')[:20]
+
+        bbs_data = []
+        for post in bbs_posts:
+            comment_list = [
+                {
+                    "author": comment.user.user_id if comment.user else "不明",
+                    "content": comment.content[:200],
+                    "created_at": comment.created_at.strftime("%Y-%m-%d %H:%M")
+                }
+                for comment in post.recent_comments
+            ]
+
+            bbs_data.append({
+                "store_name": post.store.store_name if post.store else "不明",
+                "title": post.title,
+                "content": post.content[:300],
+                "author": post.user.user_id if post.user else "不明",
+                "created_at": post.created_at.strftime("%Y-%m-%d"),
+                "comment_count": post.comment_count,
+                "comments": comment_list
+            })
+
+        result["data_sources"]["bbs_posts"] = {
+            "count": len(bbs_data),
+            "items": bbs_data
+        }
+
+        # 3. トピックに関連する統計（全店舗）
+        topic_lower = topic.lower()
+        statistics = {}
+
+        if any(keyword in topic_lower for keyword in ["クレーム", "苦情", "claim"]):
+            claim_reports = DailyReport.objects.filter(
+                genre='claim',
+                date__gte=start_date,
+                date__lte=end_date
+            )
+            statistics["claim_count"] = claim_reports.count()
+            statistics["claim_by_store"] = list(
+                claim_reports.values('store__store_name')
+                .annotate(count=Count('report_id'))
+                .order_by('-count')[:5]
+            )
+
+        result["data_sources"]["related_statistics"] = statistics
+
+        return json.dumps(result, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        logger.error(f"Error in gather_topic_related_data_all_stores: {e}", exc_info=True)
+        return json.dumps({
+            "status": "error",
+            "message": f"全店舗情報収集エラー: {str(e)}"
         }, ensure_ascii=False)

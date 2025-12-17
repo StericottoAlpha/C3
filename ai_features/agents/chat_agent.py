@@ -13,11 +13,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# シンプルなメモリキャッシュ（TTL付き）
-_cache = {}
-_cache_timestamps = {}
-
-
 class ChatAgent:
     """
     LangChain ReAct Chat Agent
@@ -41,21 +36,6 @@ class ChatAgent:
 
         # LLMの初期化
         self.llm = self._initialize_llm()
-
-        # ストリーミング用LLMの初期化
-        self.llm_streaming = self._initialize_llm_streaming()
-
-    def _initialize_llm_streaming(self):
-        """ストリーミング用LLMを初期化"""
-
-        llm = ChatOpenAI(
-            model=self.model_name,
-            temperature=self.temperature,
-            api_key=self.openai_api_key,
-            streaming=True  # ストリーミング有効化
-        )
-        return llm
-
 
     def _initialize_llm(self):
         """LLMを初期化"""
@@ -82,7 +62,11 @@ class ChatAgent:
             search_bbs_posts as _search_bbs_posts,
             search_manual,
             search_by_genre as _search_by_genre,
-            search_by_location as _search_by_location
+            search_by_location as _search_by_location,
+            search_daily_reports_all_stores,
+            search_bbs_posts_all_stores,
+            search_by_genre_all_stores,
+            search_by_location_all_stores
         )
         from ai_features.tools.analytics_tools import (
             get_claim_statistics as _get_claim_statistics,
@@ -91,12 +75,15 @@ class ChatAgent:
             get_report_statistics as _get_report_statistics,
             get_monthly_goal_status as _get_monthly_goal_status,
             gather_topic_related_data as _gather_topic_related_data,
-            compare_periods as _compare_periods
+            compare_periods as _compare_periods,
+            get_claim_statistics_all_stores,
+            get_report_statistics_all_stores,
+            gather_topic_related_data_all_stores
         )
 
         # Create tool functions with store_id bound via closure
         @tool
-        def search_daily_reports(query: str, days: int = 30) -> str:
+        def search_daily_reports(query: str = "", days: int = 30) -> str:
             """
             Search daily reports database for claims, compliments, accidents, and report contents.
 
@@ -112,7 +99,7 @@ class ChatAgent:
             return _search_daily_reports.invoke({"query": query, "store_id": store_id, "days": days})
 
         @tool
-        def search_bbs_posts(query: str, days: int = 30) -> str:
+        def search_bbs_posts(query: str = "", days: int = 30) -> str:
             """
             Search bulletin board posts and comments for discussions and opinions among staff.
 
@@ -272,10 +259,153 @@ class ChatAgent:
             """
             return _compare_periods.invoke({"store_id": store_id, "metric": metric, "period1_days": period1_days, "period2_days": period2_days})
 
+        # ============================================================
+        # 全店舗ツール（All Stores）
+        # ============================================================
+
+        @tool
+        def search_daily_reports_all_stores_tool(query: str = "", days: int = 60) -> str:
+            """
+            Search daily reports across ALL stores for best practices and cross-store learning.
+
+            When to use this tool:
+            - When user explicitly mentions other stores (他店舗, 他の店, 他店)
+            - When looking for best practices across all stores (全店舗, ベストプラクティス)
+            - When user asks "how do other stores handle this?" (他店ではどう対応)
+            - When comparing issues or solutions across multiple stores
+            - Keywords: 全店舗, 他店舗, 他の店, 他店, ベストプラクティス, 事例を参考
+
+            Args:
+                query: Search keyword (e.g., "クレーム対応", "接客改善")
+                days: Search period in days (default: 60)
+
+            Returns:
+                Search results from all stores with store names included
+            """
+            return search_daily_reports_all_stores.invoke({"query": query, "days": days})
+
+        @tool
+        def search_bbs_posts_all_stores_tool(query: str = "", days: int = 30) -> str:
+            """
+            Search BBS posts and comments across ALL stores for discussions and solutions.
+
+            When to use this tool:
+            - When user wants to see discussions from other stores (他店の意見, 他店舗の議論)
+            - When looking for solutions implemented in other stores
+            - When user asks about how other stores discuss topics
+            - Keywords: 全店舗, 他店舗の意見, 他店の議論
+
+            Args:
+                query: Search keyword (e.g., "シフト改善", "メニュー工夫")
+                days: Search period in days (default: 30)
+
+            Returns:
+                BBS posts from all stores with store names included
+            """
+            return search_bbs_posts_all_stores.invoke({"query": query, "days": days})
+
+        @tool
+        def search_by_genre_all_stores_tool(query: str, genre: str, days: int = 60) -> str:
+            """
+            Search daily reports by genre across ALL stores.
+
+            When to use this tool:
+            - When user wants to see how other stores handle specific genre issues
+            - When comparing genre-specific patterns across stores
+            - Keywords: 全店舗の + (クレーム/賞賛/事故/報告)
+
+            Args:
+                query: Search keyword
+                genre: Genre filter (claim/praise/accident/report/other)
+                days: Search period in days (default: 60)
+
+            Returns:
+                Genre-filtered results from all stores
+            """
+            return search_by_genre_all_stores.invoke({"query": query, "genre": genre, "days": days})
+
+        @tool
+        def search_by_location_all_stores_tool(query: str, location: str, days: int = 60) -> str:
+            """
+            Search daily reports by location across ALL stores.
+
+            When to use this tool:
+            - When analyzing location-specific issues across multiple stores
+            - When comparing how different stores handle the same location issues
+            - Keywords: 全店舗の + (キッチン/ホール/レジ/トイレ)
+
+            Args:
+                query: Search keyword
+                location: Location filter (kitchen/hall/cashier/toilet/other)
+                days: Search period in days (default: 60)
+
+            Returns:
+                Location-filtered results from all stores
+            """
+            return search_by_location_all_stores.invoke({"query": query, "location": location, "days": days})
+
+        @tool
+        def get_claim_statistics_all_stores_tool(days: int = 30) -> str:
+            """
+            Get claim statistics across ALL stores for comparison and trend analysis.
+
+            When to use this tool:
+            - When user asks to compare claims across all stores (全店舗のクレーム比較)
+            - When analyzing overall company-wide claim trends
+            - When identifying stores with high/low claim rates
+            - Keywords: 全店舗のクレーム, 店舗間比較, クレーム率の比較
+
+            Args:
+                days: Aggregation period in days (default: 30)
+
+            Returns:
+                Claim statistics with store breakdown and overall trends
+            """
+            return get_claim_statistics_all_stores.invoke({"days": days})
+
+        @tool
+        def get_report_statistics_all_stores_tool(days: int = 30) -> str:
+            """
+            Get report statistics across ALL stores for activity comparison.
+
+            When to use this tool:
+            - When comparing report submission activity across stores
+            - When analyzing overall reporting patterns company-wide
+            - Keywords: 全店舗の日報統計, 店舗間の活動量比較
+
+            Args:
+                days: Aggregation period in days (default: 30)
+
+            Returns:
+                Report statistics with store breakdown and genre analysis
+            """
+            return get_report_statistics_all_stores.invoke({"days": days})
+
+        @tool
+        def gather_topic_related_data_all_stores_tool(topic: str, days: int = 30) -> str:
+            """
+            Gather comprehensive data about a topic from ALL stores.
+
+            When to use this tool:
+            - When user asks for advice based on all available data (全店舗の事例から)
+            - When analyzing a topic comprehensively across the entire company
+            - When looking for best practices from any store
+            - Keywords: 全店舗で + トピック, 他店の事例も含めて
+
+            Args:
+                topic: Topic keyword (e.g., "クレーム", "売上", "接客")
+                days: Search period in days (default: 30)
+
+            Returns:
+                Comprehensive data from reports, BBS, and statistics across all stores
+            """
+            return gather_topic_related_data_all_stores.invoke({"topic": topic, "days": days})
+
         tools = [
+            # 自店舗ツール
             search_daily_reports,
             search_bbs_posts,
-            search_manual,  # store_id不要なのでそのまま
+            search_manual,  # 全店舗共通（ナレッジベース）
             search_by_genre,
             search_by_location,
             get_claim_statistics,
@@ -283,8 +413,16 @@ class ChatAgent:
             get_cash_difference_analysis,
             get_report_statistics,
             get_monthly_goal_status,
-            gather_topic_related_data,  # PDCA support
-            compare_periods,  # PDCA support
+            gather_topic_related_data, 
+            compare_periods, 
+            # 全店舗ツール
+            search_daily_reports_all_stores_tool,
+            search_bbs_posts_all_stores_tool,
+            search_by_genre_all_stores_tool,
+            search_by_location_all_stores_tool,
+            get_claim_statistics_all_stores_tool,
+            get_report_statistics_all_stores_tool,
+            gather_topic_related_data_all_stores_tool,
         ]
 
         return tools
@@ -324,7 +462,6 @@ class ChatAgent:
 
 ## Current Context
 - Date/Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-- User: {user_name}
 - Store: {store_name} (ID: {store_id or "Unknown"})
 
 ## Your Mission: PDCA Cycle Support
@@ -444,19 +581,44 @@ Example: "今月の目標" → get_monthly_goal_status()
                 tools = self._create_tools_for_store(store_id)
 
                 # ReActループの実装
-                response_text, intermediate_steps = self._react_loop(
+                response_text, intermediate_steps = self._react_loop_parallel(
                     query=query,
                     tools=tools,
                     system_info=system_info,
+                    chat_history=chat_history,
                     max_iterations=5
                 )
 
             else:
                 # ツールなしで直接LLM呼び出し
                 logger.info(f"Invoking LLM without tools")
-                prompt = f"{system_info}\n\n質問: {query}"
-                response_text = self.llm.invoke(prompt)
+                from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+
+                messages = [SystemMessage(content=system_info)]
+
+                # Add chat history if provided
+                if chat_history:
+                    for msg in chat_history:
+                        if msg['role'] == 'user':
+                            messages.append(HumanMessage(content=msg['content']))
+                        elif msg['role'] == 'assistant':
+                            messages.append(AIMessage(content=msg['content']))
+
+                # Add current query
+                messages.append(HumanMessage(content=query))
+
+                llm_response = self.llm.invoke(messages)
+                # AIMessageの場合、contentを取得
+                if hasattr(llm_response, 'content'):
+                    response_text = llm_response.content
+                else:
+                    response_text = str(llm_response)
                 intermediate_steps = []
+
+            # 空の応答をチェック
+            if not response_text or response_text.strip() in ['-', '', 'None']:
+                response_text = "申し訳ございません。回答を生成できませんでした。別の質問をお試しください。"
+                logger.warning(f"Empty or invalid response generated")
 
             # 結果を整形
             response = {
@@ -482,6 +644,7 @@ Example: "今月の目標" → get_monthly_goal_status()
         query: str,
         tools: List,
         system_info: str,
+        chat_history: Optional[List[Dict]] = None,
         max_iterations: int = 5
     ) -> tuple[str, List[Dict]]:
         """
@@ -491,6 +654,7 @@ Example: "今月の目標" → get_monthly_goal_status()
             query: ユーザーの質問
             tools: 利用可能なツールリスト
             system_info: システムプロンプト
+            chat_history: チャット履歴
             max_iterations: 最大反復回数
 
         Returns:
@@ -498,7 +662,7 @@ Example: "今月の目標" → get_monthly_goal_status()
         """
         try:
             # Manual ReAct implementation with tool binding
-            from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
+            from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
 
             # System message with tool usage guidance
             system_message = SystemMessage(content=f"""{system_info}
@@ -538,8 +702,19 @@ REMEMBER:
             # Bind tools to the LLM
             llm_with_tools = self.llm.bind_tools(tools)
 
-            # Create messages
-            messages = [system_message, HumanMessage(content=query)]
+            # Create messages with chat history
+            messages = [system_message]
+
+            # Add chat history if provided
+            if chat_history:
+                for msg in chat_history:
+                    if msg['role'] == 'user':
+                        messages.append(HumanMessage(content=msg['content']))
+                    elif msg['role'] == 'assistant':
+                        messages.append(AIMessage(content=msg['content']))
+
+            # Add current query
+            messages.append(HumanMessage(content=query))
 
             # Invoke LLM with tools
             logger.info(f"Invoking LLM with tools for query: {query}")
@@ -679,6 +854,7 @@ REMEMBER:
         query: str,
         tools: List,
         system_info: str,
+        chat_history: Optional[List[Dict]] = None,
         max_iterations: int = 5
     ) -> tuple[str, List[Dict]]:
         """
@@ -688,13 +864,14 @@ REMEMBER:
             query: ユーザーの質問
             tools: 利用可能なツールリスト
             system_info: システムプロンプト
+            chat_history: チャット履歴
             max_iterations: 最大反復回数
 
         Returns:
             (最終回答, 中間ステップリスト)
         """
         try:
-            from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
+            from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
 
             # System message
             system_message = SystemMessage(content=f"""{system_info}
@@ -734,8 +911,19 @@ REMEMBER:
             # Bind tools to LLM
             llm_with_tools = self.llm.bind_tools(tools)
 
-            # Create messages
-            messages = [system_message, HumanMessage(content=query)]
+            # Create messages with chat history
+            messages = [system_message]
+
+            # Add chat history if provided
+            if chat_history:
+                for msg in chat_history:
+                    if msg['role'] == 'user':
+                        messages.append(HumanMessage(content=msg['content']))
+                    elif msg['role'] == 'assistant':
+                        messages.append(AIMessage(content=msg['content']))
+
+            # Add current query
+            messages.append(HumanMessage(content=query))
 
             # Invoke LLM with tools
             logger.info(f"Invoking LLM with tools (parallel mode) for query: {query}")
@@ -803,35 +991,3 @@ REMEMBER:
             else:
                 fallback_text = str(fallback_response)
             return fallback_text, []
-
-    @staticmethod
-    def _generate_cache_key(query: str, store_id: int, days: int = None) -> str:
-        """キャッシュキーを生成"""
-        key_data = f"{query}_{store_id}_{days if days else 'default'}"
-        return hashlib.md5(key_data.encode()).hexdigest()
-
-    @staticmethod
-    def _get_from_cache(cache_key: str, ttl_seconds: int = 3600) -> Optional[str]:
-        """キャッシュから取得（TTLチェック付き）"""
-        global _cache, _cache_timestamps
-
-        if cache_key in _cache:
-            timestamp = _cache_timestamps.get(cache_key)
-            if timestamp and datetime.now() - timestamp < timedelta(seconds=ttl_seconds):
-                logger.info(f"Cache hit: {cache_key}")
-                return _cache[cache_key]
-            else:
-                # 期限切れキャッシュを削除
-                del _cache[cache_key]
-                del _cache_timestamps[cache_key]
-                logger.info(f"Cache expired: {cache_key}")
-
-        return None
-
-    @staticmethod
-    def _set_to_cache(cache_key: str, value: str):
-        """キャッシュに保存"""
-        global _cache, _cache_timestamps
-        _cache[cache_key] = value
-        _cache_timestamps[cache_key] = datetime.now()
-        logger.info(f"Cache set: {cache_key}")

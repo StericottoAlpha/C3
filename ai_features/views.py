@@ -14,6 +14,7 @@ from django.db import transaction
 
 from ai_features.agents.chat_agent import ChatAgent
 from ai_features.models import AIChatHistory
+from ai_features.services.agent_cache import ChatAgentCache
 
 logger = logging.getLogger(__name__)
 
@@ -80,14 +81,14 @@ class ChatView(View):
             openai_api_key = os.environ.get('OPENAI_API_KEY', '')
             openai_model = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
 
-            # Agentを初期化
+            # Agentをキャッシュから取得または新規作成
             if openai_api_key:
-                agent = ChatAgent(
+                agent = ChatAgentCache.get_agent(
                     model_name=openai_model,
                     temperature=0.0,  # GPTは0.0推奨（決定論的）
-                    openai_api_key=openai_api_key
+                    api_key=openai_api_key
                 )
-                
+
             else:
                 return JsonResponse(
                     {"error": "API KEY ERROR"},
@@ -185,7 +186,9 @@ class ChatView(View):
 
             excess_count = qs.count() - max_chat_history
             if excess_count > 0:
-                qs.reverse()[:excess_count].delete()
+                # スライスしたクエリセットは直接削除できないので、IDを取得してから削除
+                ids_to_delete = list(qs.reverse()[:excess_count].values_list('chat_id', flat=True))
+                AIChatHistory.objects.filter(chat_id__in=ids_to_delete).delete()
 
 
 @login_required

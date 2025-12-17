@@ -79,3 +79,49 @@ class DocumentVector(models.Model):
 
     def __str__(self):
         return f"{self.get_source_type_display()} - ID:{self.source_id}"
+
+
+class KnowledgeVector(models.Model):
+    """ナレッジベースベクトルモデル"""
+
+    DOCUMENT_TYPE_CHOICES = [
+        ('manual', 'マニュアル'),
+        ('faq', 'FAQ'),
+        ('policy', 'ポリシー'),
+        ('guide', 'ガイド'),
+        ('other', 'その他'),
+    ]
+
+    vector_id = models.AutoField(primary_key=True, verbose_name='ベクトルID')
+    document_type = models.CharField(
+        max_length=20,
+        choices=DOCUMENT_TYPE_CHOICES,
+        verbose_name='ドキュメント種別',
+        db_index=True
+    )
+    title = models.CharField(max_length=200, verbose_name='タイトル')
+    content = models.TextField(verbose_name='コンテンツ')
+    metadata = models.JSONField(
+        default=dict,
+        verbose_name='メタデータ',
+        help_text='category, tags, author などの追加情報'
+    )
+    embedding = VectorField(
+        dimensions=384,
+        verbose_name='埋め込みベクトル'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時', db_index=True)
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新日時')
+
+    class Meta:
+        db_table = 'knowledge_vectors'
+        verbose_name = 'ナレッジベクトル'
+        verbose_name_plural = 'ナレッジベクトル'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['document_type']),
+            models.Index(fields=['created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.get_document_type_display()} - {self.title}"
