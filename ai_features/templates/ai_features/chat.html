@@ -41,7 +41,20 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Marked.js for Markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- DOMPurify for XSS protection -->
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
 <script>
+// Marked.js設定
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+  headerIds: false,
+  mangle: false
+});
+
 // CSRFトークンを取得
 function getCookie(name) {
   let cookieValue = null;
@@ -87,12 +100,24 @@ function appendMessage(text, sender) {
   const bubble = document.createElement('div');
   bubble.className =
     sender === 'user'
-      ? 'bg-green-500 text-white px-4 py-2 rounded-2xl max-w-xs'
-      : 'bg-white px-4 py-2 rounded-2xl max-w-xs border';
+      ? 'bg-green-500 text-white px-4 py-2 rounded-2xl max-w-xl break-words'
+      : 'bg-white px-4 py-2 rounded-2xl max-w-xl border prose prose-sm';
 
-  bubble.innerText = text;
+  // AIメッセージの場合はマークダウンをレンダリング
+  if (sender === 'assistant') {
+    const rawHtml = marked.parse(text);
+    const cleanHtml = DOMPurify.sanitize(rawHtml);
+    bubble.innerHTML = cleanHtml;
+  } else {
+    bubble.innerText = text;
+  }
+
   wrapper.appendChild(bubble);
   document.getElementById('chat-container').appendChild(wrapper);
+
+  // スクロールを最下部に
+  const container = document.getElementById('chat-container');
+  container.scrollTop = container.scrollHeight;
 }
 
 function setupInputHandler() {
