@@ -92,6 +92,12 @@ class ChatView(View):
                     status = 401
                 )
 
+            # チャット履歴をDB保存
+            self._save_chat_history(
+                user=request.user,
+                message=message,
+                response=response['message']
+            )
 
             # チャット実行
             # logger.info(f"User {request.user.username} asked: {message}")
@@ -101,12 +107,6 @@ class ChatView(View):
                 chat_history=chat_history
             )
 
-            # チャット履歴をDB保存
-            self._save_chat_history(
-                user=request.user,
-                message=message,
-                response=response['message']
-            )
 
             return JsonResponse(response)
 

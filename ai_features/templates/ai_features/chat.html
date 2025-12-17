@@ -11,6 +11,10 @@
 
     <!-- 入力欄（下固定） -->
     <div class="border-t p-3 flex items-center gap-2 bg-white">
+      <div
+        id="chat-error"
+        class="hidden text-sm text-red-600 px-4 py-2 bg-red-50 border-t"
+      ></div>
       <input
         id="chat-input"
         type="text"
@@ -53,7 +57,7 @@ function loadChatHistory() {
       });
     })
     .catch(() => {
-      throw Error('履歴の取得に失敗しました');
+      showChatError('エラーが発生しました。しばらくしてから再度お試しください。');
     });
 }
 
@@ -97,6 +101,7 @@ function setupInputHandler() {
 
 function postHandler(){
 
+  clearChatError();
   const input = document.getElementById("chat-input");
   const button = document.getElementById("send-button");
 
@@ -113,6 +118,61 @@ function postHandler(){
   button.classList.add('opacity-50', 'cursor-not-allowed');
 
   appendMessage(message, "user");
+
+  const loadingId = appendLoadingMessage();
+
+  fetch('/ai/api/chat/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      message: message,
+      include_history: true
+    })
+    .then(res => res.json())
+    .then(data => {
+      removeLoadingMessage(loadingId);
+      appendMessage(data.message, 'assistant');
+    })
+    .catch(() => {
+      removeLoadingMessage(loadingId);
+      showChatError('エラーが発生しました。しばらくしてから再度お試しください。');
+    })
+  })
+}
+
+function showChatError(message) {
+  const errorEl = document.getElementById('chat-error');
+  errorEl.innerText = message;
+  errorEl.classList.remove('hidden');
+}
+
+function clearChatError() {
+  const errorEl = document.getElementById('chat-error');
+  errorEl.innerText = '';
+  errorEl.classList.add('hidden');
+}
+
+function appendLoadingMessage() {
+  const id = 'loading-' + Date.now();
+  const wrapper = document.createElement('div');
+  wrapper.id = id;
+  wrapper.className = 'flex justify-start';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bg-white px-4 py-2 rounded-2xl max-w-xs border text-gray-400';
+  bubble.innerText = '入力中…';
+
+  wrapper.appendChild(bubble);
+  document.getElementById('chat-container').appendChild(wrapper);
+
+  return id;
+}
+
+function removeLoadingMessage(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
 }
 </script>
 {% endblock %}
