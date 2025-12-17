@@ -6,7 +6,7 @@ app_name = 'ai_features'
 
 urlpatterns = [
 
-    path('ai/chat/', views.chat_page_view, name="chat_page"),
+    path('chat/', views.chat_page_view, name="chat_page"),
     # Chat endpoints
     path('api/chat/', views.ChatView.as_view(), name='chat'),
     #path('api/chat/stream/', views.chat_stream_view, name='chat_stream'),  # ストリーミング対応
