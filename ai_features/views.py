@@ -10,9 +10,12 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
+from django.db import transaction
 
 from ai_features.agents.chat_agent import ChatAgent
 from ai_features.models import AIChatHistory
+
+logger = logging.getLogger(__name__)
 
 @login_required
 def chat_page_view(request):
@@ -82,7 +85,6 @@ class ChatView(View):
                 agent = ChatAgent(
                     model_name=openai_model,
                     temperature=0.0,  # GPTは0.0推奨（決定論的）
-                    use_openai=True,
                     openai_api_key=openai_api_key
                 )
                 
@@ -92,19 +94,19 @@ class ChatView(View):
                     status = 401
                 )
 
-            # チャット履歴をDB保存
-            self._save_chat_history(
-                user=request.user,
-                message=message,
-                response=response['message']
-            )
-
             # チャット実行
             # logger.info(f"User {request.user.username} asked: {message}")
             response = agent.chat(
                 query=message,
                 user=request.user,
                 chat_history=chat_history
+            )
+
+            # チャット履歴をDB保存
+            self._save_chat_history(
+                user=request.user,
+                message=message,
+                response=response['message']
             )
 
 
@@ -161,7 +163,7 @@ class ChatView(View):
             response: AIの応答
         """
 
-        max_chat_history = os.environ.get('MAX_CHAT_HISTORY', 14)
+        max_chat_history = int(os.environ.get('MAX_CHAT_HISTORY', '14'))
 
         with transaction.atomic():
             # ユーザー発言
