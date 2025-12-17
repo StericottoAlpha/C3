@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import BBSPost, BBSComment
 from .forms import BBSPostForm, BBSCommentForm
+from django.db.models import Q
 
 
 @login_required
@@ -27,9 +28,26 @@ def bbs_register(request):
 
 @login_required
 def bbs_list(request):
-    """掲示板一覧ビュー"""
-    posts = BBSPost.objects.select_related('user', 'store').all()
-    return render(request, 'bbs/list.html', {'posts': posts})
+    """掲示板一覧ビュー（検索・ソート機能付き）"""
+    posts = BBSPost.objects.select_related('user', 'store')
+
+    query = request.GET.get('query')
+    if query:
+        posts = posts.filter(
+            Q(title__icontains=query) | Q(content__icontains=query)
+        )
+
+    sort_option = request.GET.get('sort')
+    if sort_option == 'oldest':
+        posts = posts.order_by('created_at')
+    else:
+        posts = posts.order_by('-created_at')
+    context = {
+        'posts': posts,
+        'query': query,
+        'sort': sort_option,
+    }
+    return render(request, 'bbs/list.html', context)
 
 
 @login_required
