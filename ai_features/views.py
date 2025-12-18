@@ -14,7 +14,6 @@ from django.db import transaction
 
 from ai_features.agents.chat_agent import ChatAgent
 from ai_features.models import AIChatHistory
-from ai_features.services.agent_cache import ChatAgentCache
 
 logger = logging.getLogger(__name__)
 
@@ -81,14 +80,13 @@ class ChatView(View):
             openai_api_key = os.environ.get('OPENAI_API_KEY', '')
             openai_model = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
 
-            # Agentをキャッシュから取得または新規作成
+            # Agentを新規作成
             if openai_api_key:
-                agent = ChatAgentCache.get_agent(
+                agent = ChatAgent(
                     model_name=openai_model,
                     temperature=0.0,  # GPTは0.0推奨（決定論的）
-                    api_key=openai_api_key
+                    openai_api_key=openai_api_key
                 )
-
             else:
                 return JsonResponse(
                     {"error": "API KEY ERROR"},

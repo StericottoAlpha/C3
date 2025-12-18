@@ -1,7 +1,7 @@
 import hashlib
 import json
 import asyncio
-from typing import List, Dict, Optional, Iterator
+from typing import List, Dict, Optional, Iterator, Tuple
 from datetime import datetime, timedelta
 from functools import lru_cache
 
@@ -11,6 +11,390 @@ from langchain_openai import ChatOpenAI
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+# ツール生成をキャッシュする（グローバル関数として定義）
+@lru_cache(maxsize=100)
+def _get_cached_tools_for_store(store_id: int) -> Tuple:
+    """
+    store_idをバインドしたツールリストを作成（キャッシュ対応）
+
+    Args:
+        store_id: 店舗ID
+
+    Returns:
+        ツールのタプル（lru_cacheのためにタプルで返す）
+    """
+    from ai_features.tools.search_tools import (
+        search_daily_reports as _search_daily_reports,
+        search_bbs_posts as _search_bbs_posts,
+        search_manual,
+        search_by_genre as _search_by_genre,
+        search_by_location as _search_by_location,
+        search_daily_reports_all_stores,
+        search_bbs_posts_all_stores,
+        search_by_genre_all_stores,
+        search_by_location_all_stores
+    )
+    from ai_features.tools.analytics_tools import (
+        get_claim_statistics as _get_claim_statistics,
+        get_sales_trend as _get_sales_trend,
+        get_cash_difference_analysis as _get_cash_difference_analysis,
+        get_report_statistics as _get_report_statistics,
+        get_monthly_goal_status as _get_monthly_goal_status,
+        gather_topic_related_data as _gather_topic_related_data,
+        compare_periods as _compare_periods,
+        get_claim_statistics_all_stores,
+        get_report_statistics_all_stores,
+        gather_topic_related_data_all_stores
+    )
+
+    # Create tool functions with store_id bound via closure
+    @tool
+    def search_daily_reports(query: str = "", days: int = 30) -> str:
+        """
+        Search daily reports database for claims, compliments, accidents, and report contents.
+
+        When to use this tool:
+        - When investigating specific incidents like claims (クレーム), compliments (賞賛), accidents (事故), troubles
+        - When searching with time periods like "last week" (先週), "this month" (今月)
+        - When searching by category like customer service (接客), food service (提供)
+
+        Args:
+            query: Search keyword (e.g., "クレーム", "接客", "提供時間")
+            days: Search period in days (default: 30)
+        """
+        return _search_daily_reports.invoke({"query": query, "store_id": store_id, "days": days})
+
+    @tool
+    def search_bbs_posts(query: str = "", days: int = 30) -> str:
+        """
+        Search bulletin board posts and comments for discussions and opinions among staff.
+
+        When to use this tool:
+        - When checking discussions or opinions among staff members
+        - When searching for posts about specific topics
+
+        Args:
+            query: Search keyword (e.g., "シフト", "メニュー改善")
+            days: Search period in days (default: 30)
+        """
+        return _search_bbs_posts.invoke({"query": query, "store_id": store_id, "days": days})
+
+    @tool
+    def get_claim_statistics(days: int = 30) -> str:
+        """
+        Get claim statistics (count, trends, breakdown by category).
+
+        When to use this tool:
+        - When you need total number of claims or occurrence rate
+        - When trend analysis of claims is needed
+        - When numerical information is requested like "how many" (何件), "how much" (どのくらい)
+
+        Args:
+            days: Aggregation period in days (default: 30)
+        """
+        return _get_claim_statistics.invoke({"store_id": store_id, "days": days})
+
+    @tool
+    def get_sales_trend(days: int = 30) -> str:
+        """
+        Get sales trend data (total, average, trend, weekly breakdown).
+
+        When to use this tool:
+        - When checking sales trends or patterns
+        - When comparison with previous week/month is needed
+        - When checking sales goal achievement status
+
+        Args:
+            days: Aggregation period in days (default: 30)
+        """
+        return _get_sales_trend.invoke({"store_id": store_id, "days": days})
+
+    @tool
+    def get_cash_difference_analysis(days: int = 30) -> str:
+        """
+        Get cash difference analysis data (amount, count, plus/minus breakdown).
+
+        When to use this tool:
+        - When checking cash register discrepancy status
+        - When analyzing cash management issues
+
+        Args:
+            days: Aggregation period in days (default: 30)
+        """
+        return _get_cash_difference_analysis.invoke({"store_id": store_id, "days": days})
+
+    @tool
+    def get_report_statistics(days: int = 30) -> str:
+        """
+        Get daily report statistics including genre breakdown and location analysis.
+
+        When to use this tool:
+        - When user wants an overview of daily reports (日報の全体像)
+        - When analyzing report submission patterns
+        - When checking genre or location distribution
+
+        Args:
+            days: Aggregation period in days (default: 30)
+        """
+        return _get_report_statistics.invoke({"store_id": store_id, "days": days})
+
+    @tool
+    def get_monthly_goal_status() -> str:
+        """
+        Get monthly goal information including current month's goal and achievement rate.
+
+        When to use this tool:
+        - When user asks about monthly goals or targets (月次目標, 目標達成)
+        - When checking goal achievement status
+
+        Returns:
+            JSON string with current goal status and past goals
+        """
+        return _get_monthly_goal_status.invoke({"store_id": store_id})
+
+    @tool
+    def search_by_genre(query: str, genre: str, days: int = 60) -> str:
+        """
+        Search daily reports filtered by specific genre.
+
+        When to use this tool:
+        - When user specifically wants to search within a particular genre
+        - When narrowing search to only claims (クレームのみ), only praise (賞賛のみ), etc.
+        - Valid genres: claim, praise, accident, report, other
+
+        Args:
+            query: Search keyword
+            genre: Genre filter (claim/praise/accident/report/other)
+            days: Search period in days (default: 60)
+        """
+        return _search_by_genre.invoke({"query": query, "store_id": store_id, "genre": genre, "days": days})
+
+    @tool
+    def search_by_location(query: str, location: str, days: int = 60) -> str:
+        """
+        Search daily reports filtered by specific location.
+
+        When to use this tool:
+        - When user wants to search within a specific location
+        - When analyzing problems in a particular area (キッチンだけ, ホールのみ, etc.)
+        - Valid locations: kitchen, hall, cashier, toilet, other
+
+        Args:
+            query: Search keyword
+            location: Location filter (kitchen/hall/cashier/toilet/other)
+            days: Search period in days (default: 60)
+        """
+        return _search_by_location.invoke({"query": query, "store_id": store_id, "location": location, "days": days})
+
+    @tool
+    def gather_topic_related_data(topic: str, days: int = 30) -> str:
+        """
+        Gather comprehensive data about a topic from multiple sources (reports, BBS, statistics).
+
+        When to use this tool:
+        - When user asks for advice or recommendations (アドバイス頂戴, 改善策)
+        - When you need full context about an issue from multiple sources
+        - When analyzing a specific topic comprehensively
+
+        Args:
+            topic: Topic keyword (e.g., "クレーム", "売上", "接客")
+            days: Search period in days (default: 30)
+
+        Returns:
+            Comprehensive data from daily reports, BBS, and relevant statistics
+        """
+        return _gather_topic_related_data.invoke({"topic": topic, "store_id": store_id, "days": days})
+
+    @tool
+    def compare_periods(metric: str, period1_days: int = 7, period2_days: int = 14) -> str:
+        """
+        Compare metrics between two time periods with statistical calculations.
+
+        When to use this tool:
+        - When user asks about changes or trends (先週と比べて, 変化, 推移)
+        - When comparing current vs previous performance
+        - Valid metrics: sales, claims, accidents, reports, cash_difference
+
+        Args:
+            metric: Metric to compare (sales/claims/accidents/reports/cash_difference)
+            period1_days: Recent period days (default: 7)
+            period2_days: Comparison period days (default: 14, means 8-14 days ago)
+
+        Returns:
+            Side-by-side comparison with calculated change rates
+        """
+        return _compare_periods.invoke({"store_id": store_id, "metric": metric, "period1_days": period1_days, "period2_days": period2_days})
+
+    # ============================================================
+    # 全店舗ツール（All Stores）
+    # ============================================================
+
+    @tool
+    def search_daily_reports_all_stores_tool(query: str = "", days: int = 60) -> str:
+        """
+        Search daily reports across ALL stores for best practices and cross-store learning.
+
+        When to use this tool:
+        - When user explicitly mentions other stores (他店舗, 他の店, 他店)
+        - When looking for best practices across all stores (全店舗, ベストプラクティス)
+        - When user asks "how do other stores handle this?" (他店ではどう対応)
+        - When comparing issues or solutions across multiple stores
+        - Keywords: 全店舗, 他店舗, 他の店, 他店, ベストプラクティス, 事例を参考
+
+        Args:
+            query: Search keyword (e.g., "クレーム対応", "接客改善")
+            days: Search period in days (default: 60)
+
+        Returns:
+            Search results from all stores with store names included
+        """
+        return search_daily_reports_all_stores.invoke({"query": query, "days": days})
+
+    @tool
+    def search_bbs_posts_all_stores_tool(query: str = "", days: int = 30) -> str:
+        """
+        Search BBS posts and comments across ALL stores for discussions and solutions.
+
+        When to use this tool:
+        - When user wants to see discussions from other stores (他店の意見, 他店舗の議論)
+        - When looking for solutions implemented in other stores
+        - When user asks about how other stores discuss topics
+        - Keywords: 全店舗, 他店舗の意見, 他店の議論
+
+        Args:
+            query: Search keyword (e.g., "シフト改善", "メニュー工夫")
+            days: Search period in days (default: 30)
+
+        Returns:
+            BBS posts from all stores with store names included
+        """
+        return search_bbs_posts_all_stores.invoke({"query": query, "days": days})
+
+    @tool
+    def search_by_genre_all_stores_tool(query: str, genre: str, days: int = 60) -> str:
+        """
+        Search daily reports by genre across ALL stores.
+
+        When to use this tool:
+        - When user wants to see how other stores handle specific genre issues
+        - When comparing genre-specific patterns across stores
+        - Keywords: 全店舗の + (クレーム/賞賛/事故/報告)
+
+        Args:
+            query: Search keyword
+            genre: Genre filter (claim/praise/accident/report/other)
+            days: Search period in days (default: 60)
+
+        Returns:
+            Genre-filtered results from all stores
+        """
+        return search_by_genre_all_stores.invoke({"query": query, "genre": genre, "days": days})
+
+    @tool
+    def search_by_location_all_stores_tool(query: str, location: str, days: int = 60) -> str:
+        """
+        Search daily reports by location across ALL stores.
+
+        When to use this tool:
+        - When analyzing location-specific issues across multiple stores
+        - When comparing how different stores handle the same location issues
+        - Keywords: 全店舗の + (キッチン/ホール/レジ/トイレ)
+
+        Args:
+            query: Search keyword
+            location: Location filter (kitchen/hall/cashier/toilet/other)
+            days: Search period in days (default: 60)
+
+        Returns:
+            Location-filtered results from all stores
+        """
+        return search_by_location_all_stores.invoke({"query": query, "location": location, "days": days})
+
+    @tool
+    def get_claim_statistics_all_stores_tool(days: int = 30) -> str:
+        """
+        Get claim statistics across ALL stores for comparison and trend analysis.
+
+        When to use this tool:
+        - When user asks to compare claims across all stores (全店舗のクレーム比較)
+        - When analyzing overall company-wide claim trends
+        - When identifying stores with high/low claim rates
+        - Keywords: 全店舗のクレーム, 店舗間比較, クレーム率の比較
+
+        Args:
+            days: Aggregation period in days (default: 30)
+
+        Returns:
+            Claim statistics with store breakdown and overall trends
+        """
+        return get_claim_statistics_all_stores.invoke({"days": days})
+
+    @tool
+    def get_report_statistics_all_stores_tool(days: int = 30) -> str:
+        """
+        Get report statistics across ALL stores for activity comparison.
+
+        When to use this tool:
+        - When comparing report submission activity across stores
+        - When analyzing overall reporting patterns company-wide
+        - Keywords: 全店舗の日報統計, 店舗間の活動量比較
+
+        Args:
+            days: Aggregation period in days (default: 30)
+
+        Returns:
+            Report statistics with store breakdown and genre analysis
+        """
+        return get_report_statistics_all_stores.invoke({"days": days})
+
+    @tool
+    def gather_topic_related_data_all_stores_tool(topic: str, days: int = 30) -> str:
+        """
+        Gather comprehensive data about a topic from ALL stores.
+
+        When to use this tool:
+        - When user asks for advice based on all available data (全店舗の事例から)
+        - When analyzing a topic comprehensively across the entire company
+        - When looking for best practices from any store
+        - Keywords: 全店舗で + トピック, 他店の事例も含めて
+
+        Args:
+            topic: Topic keyword (e.g., "クレーム", "売上", "接客")
+            days: Search period in days (default: 30)
+
+        Returns:
+            Comprehensive data from reports, BBS, and statistics across all stores
+        """
+        return gather_topic_related_data_all_stores.invoke({"topic": topic, "days": days})
+
+    tools = (
+        # 自店舗ツール
+        search_daily_reports,
+        search_bbs_posts,
+        search_manual,  # 全店舗共通（ナレッジベース）
+        search_by_genre,
+        search_by_location,
+        get_claim_statistics,
+        get_sales_trend,
+        get_cash_difference_analysis,
+        get_report_statistics,
+        get_monthly_goal_status,
+        gather_topic_related_data,
+        compare_periods,
+        # 全店舗ツール
+        search_daily_reports_all_stores_tool,
+        search_bbs_posts_all_stores_tool,
+        search_by_genre_all_stores_tool,
+        search_by_location_all_stores_tool,
+        get_claim_statistics_all_stores_tool,
+        get_report_statistics_all_stores_tool,
+        gather_topic_related_data_all_stores_tool,
+    )
+
+    logger.info(f"Created and cached {len(tools)} tools for store_id={store_id}")
+    return tools
 
 
 class ChatAgent:
@@ -49,7 +433,7 @@ class ChatAgent:
 
     def _create_tools_for_store(self, store_id: int) -> List:
         """
-        store_idをバインドしたツールリストを作成
+        store_idをバインドしたツールリストを作成（キャッシュ使用）
 
         Args:
             store_id: 店舗ID
@@ -57,375 +441,9 @@ class ChatAgent:
         Returns:
             ツールのリスト
         """
-        from ai_features.tools.search_tools import (
-            search_daily_reports as _search_daily_reports,
-            search_bbs_posts as _search_bbs_posts,
-            search_manual,
-            search_by_genre as _search_by_genre,
-            search_by_location as _search_by_location,
-            search_daily_reports_all_stores,
-            search_bbs_posts_all_stores,
-            search_by_genre_all_stores,
-            search_by_location_all_stores
-        )
-        from ai_features.tools.analytics_tools import (
-            get_claim_statistics as _get_claim_statistics,
-            get_sales_trend as _get_sales_trend,
-            get_cash_difference_analysis as _get_cash_difference_analysis,
-            get_report_statistics as _get_report_statistics,
-            get_monthly_goal_status as _get_monthly_goal_status,
-            gather_topic_related_data as _gather_topic_related_data,
-            compare_periods as _compare_periods,
-            get_claim_statistics_all_stores,
-            get_report_statistics_all_stores,
-            gather_topic_related_data_all_stores
-        )
+        # キャッシュされたグローバル関数を使用
+        return list(_get_cached_tools_for_store(store_id))
 
-        # Create tool functions with store_id bound via closure
-        @tool
-        def search_daily_reports(query: str = "", days: int = 30) -> str:
-            """
-            Search daily reports database for claims, compliments, accidents, and report contents.
-
-            When to use this tool:
-            - When investigating specific incidents like claims (クレーム), compliments (賞賛), accidents (事故), troubles
-            - When searching with time periods like "last week" (先週), "this month" (今月)
-            - When searching by category like customer service (接客), food service (提供)
-
-            Args:
-                query: Search keyword (e.g., "クレーム", "接客", "提供時間")
-                days: Search period in days (default: 30)
-            """
-            return _search_daily_reports.invoke({"query": query, "store_id": store_id, "days": days})
-
-        @tool
-        def search_bbs_posts(query: str = "", days: int = 30) -> str:
-            """
-            Search bulletin board posts and comments for discussions and opinions among staff.
-
-            When to use this tool:
-            - When checking discussions or opinions among staff members
-            - When searching for posts about specific topics
-
-            Args:
-                query: Search keyword (e.g., "シフト", "メニュー改善")
-                days: Search period in days (default: 30)
-            """
-            return _search_bbs_posts.invoke({"query": query, "store_id": store_id, "days": days})
-
-        @tool
-        def get_claim_statistics(days: int = 30) -> str:
-            """
-            Get claim statistics (count, trends, breakdown by category).
-
-            When to use this tool:
-            - When you need total number of claims or occurrence rate
-            - When trend analysis of claims is needed
-            - When numerical information is requested like "how many" (何件), "how much" (どのくらい)
-
-            Args:
-                days: Aggregation period in days (default: 30)
-            """
-            return _get_claim_statistics.invoke({"store_id": store_id, "days": days})
-
-        @tool
-        def get_sales_trend(days: int = 30) -> str:
-            """
-            Get sales trend data (total, average, trend, weekly breakdown).
-
-            When to use this tool:
-            - When checking sales trends or patterns
-            - When comparison with previous week/month is needed
-            - When checking sales goal achievement status
-
-            Args:
-                days: Aggregation period in days (default: 30)
-            """
-            return _get_sales_trend.invoke({"store_id": store_id, "days": days})
-
-        @tool
-        def get_cash_difference_analysis(days: int = 30) -> str:
-            """
-            Get cash difference analysis data (amount, count, plus/minus breakdown).
-
-            When to use this tool:
-            - When checking cash register discrepancy status
-            - When analyzing cash management issues
-
-            Args:
-                days: Aggregation period in days (default: 30)
-            """
-            return _get_cash_difference_analysis.invoke({"store_id": store_id, "days": days})
-
-        @tool
-        def get_report_statistics(days: int = 30) -> str:
-            """
-            Get daily report statistics including genre breakdown and location analysis.
-
-            When to use this tool:
-            - When user wants an overview of daily reports (日報の全体像)
-            - When analyzing report submission patterns
-            - When checking genre or location distribution
-
-            Args:
-                days: Aggregation period in days (default: 30)
-            """
-            return _get_report_statistics.invoke({"store_id": store_id, "days": days})
-
-        @tool
-        def get_monthly_goal_status() -> str:
-            """
-            Get monthly goal information including current month's goal and achievement rate.
-
-            When to use this tool:
-            - When user asks about monthly goals or targets (月次目標, 目標達成)
-            - When checking goal achievement status
-
-            Returns:
-                JSON string with current goal status and past goals
-            """
-            return _get_monthly_goal_status.invoke({"store_id": store_id})
-
-        @tool
-        def search_by_genre(query: str, genre: str, days: int = 60) -> str:
-            """
-            Search daily reports filtered by specific genre.
-
-            When to use this tool:
-            - When user specifically wants to search within a particular genre
-            - When narrowing search to only claims (クレームのみ), only praise (賞賛のみ), etc.
-            - Valid genres: claim, praise, accident, report, other
-
-            Args:
-                query: Search keyword
-                genre: Genre filter (claim/praise/accident/report/other)
-                days: Search period in days (default: 60)
-            """
-            return _search_by_genre.invoke({"query": query, "store_id": store_id, "genre": genre, "days": days})
-
-        @tool
-        def search_by_location(query: str, location: str, days: int = 60) -> str:
-            """
-            Search daily reports filtered by specific location.
-
-            When to use this tool:
-            - When user wants to search within a specific location
-            - When analyzing problems in a particular area (キッチンだけ, ホールのみ, etc.)
-            - Valid locations: kitchen, hall, cashier, toilet, other
-
-            Args:
-                query: Search keyword
-                location: Location filter (kitchen/hall/cashier/toilet/other)
-                days: Search period in days (default: 60)
-            """
-            return _search_by_location.invoke({"query": query, "store_id": store_id, "location": location, "days": days})
-
-        @tool
-        def gather_topic_related_data(topic: str, days: int = 30) -> str:
-            """
-            Gather comprehensive data about a topic from multiple sources (reports, BBS, statistics).
-
-            When to use this tool:
-            - When user asks for advice or recommendations (アドバイス頂戴, 改善策)
-            - When you need full context about an issue from multiple sources
-            - When analyzing a specific topic comprehensively
-
-            Args:
-                topic: Topic keyword (e.g., "クレーム", "売上", "接客")
-                days: Search period in days (default: 30)
-
-            Returns:
-                Comprehensive data from daily reports, BBS, and relevant statistics
-            """
-            return _gather_topic_related_data.invoke({"topic": topic, "store_id": store_id, "days": days})
-
-        @tool
-        def compare_periods(metric: str, period1_days: int = 7, period2_days: int = 14) -> str:
-            """
-            Compare metrics between two time periods with statistical calculations.
-
-            When to use this tool:
-            - When user asks about changes or trends (先週と比べて, 変化, 推移)
-            - When comparing current vs previous performance
-            - Valid metrics: sales, claims, accidents, reports, cash_difference
-
-            Args:
-                metric: Metric to compare (sales/claims/accidents/reports/cash_difference)
-                period1_days: Recent period days (default: 7)
-                period2_days: Comparison period days (default: 14, means 8-14 days ago)
-
-            Returns:
-                Side-by-side comparison with calculated change rates
-            """
-            return _compare_periods.invoke({"store_id": store_id, "metric": metric, "period1_days": period1_days, "period2_days": period2_days})
-
-        # ============================================================
-        # 全店舗ツール（All Stores）
-        # ============================================================
-
-        @tool
-        def search_daily_reports_all_stores_tool(query: str = "", days: int = 60) -> str:
-            """
-            Search daily reports across ALL stores for best practices and cross-store learning.
-
-            When to use this tool:
-            - When user explicitly mentions other stores (他店舗, 他の店, 他店)
-            - When looking for best practices across all stores (全店舗, ベストプラクティス)
-            - When user asks "how do other stores handle this?" (他店ではどう対応)
-            - When comparing issues or solutions across multiple stores
-            - Keywords: 全店舗, 他店舗, 他の店, 他店, ベストプラクティス, 事例を参考
-
-            Args:
-                query: Search keyword (e.g., "クレーム対応", "接客改善")
-                days: Search period in days (default: 60)
-
-            Returns:
-                Search results from all stores with store names included
-            """
-            return search_daily_reports_all_stores.invoke({"query": query, "days": days})
-
-        @tool
-        def search_bbs_posts_all_stores_tool(query: str = "", days: int = 30) -> str:
-            """
-            Search BBS posts and comments across ALL stores for discussions and solutions.
-
-            When to use this tool:
-            - When user wants to see discussions from other stores (他店の意見, 他店舗の議論)
-            - When looking for solutions implemented in other stores
-            - When user asks about how other stores discuss topics
-            - Keywords: 全店舗, 他店舗の意見, 他店の議論
-
-            Args:
-                query: Search keyword (e.g., "シフト改善", "メニュー工夫")
-                days: Search period in days (default: 30)
-
-            Returns:
-                BBS posts from all stores with store names included
-            """
-            return search_bbs_posts_all_stores.invoke({"query": query, "days": days})
-
-        @tool
-        def search_by_genre_all_stores_tool(query: str, genre: str, days: int = 60) -> str:
-            """
-            Search daily reports by genre across ALL stores.
-
-            When to use this tool:
-            - When user wants to see how other stores handle specific genre issues
-            - When comparing genre-specific patterns across stores
-            - Keywords: 全店舗の + (クレーム/賞賛/事故/報告)
-
-            Args:
-                query: Search keyword
-                genre: Genre filter (claim/praise/accident/report/other)
-                days: Search period in days (default: 60)
-
-            Returns:
-                Genre-filtered results from all stores
-            """
-            return search_by_genre_all_stores.invoke({"query": query, "genre": genre, "days": days})
-
-        @tool
-        def search_by_location_all_stores_tool(query: str, location: str, days: int = 60) -> str:
-            """
-            Search daily reports by location across ALL stores.
-
-            When to use this tool:
-            - When analyzing location-specific issues across multiple stores
-            - When comparing how different stores handle the same location issues
-            - Keywords: 全店舗の + (キッチン/ホール/レジ/トイレ)
-
-            Args:
-                query: Search keyword
-                location: Location filter (kitchen/hall/cashier/toilet/other)
-                days: Search period in days (default: 60)
-
-            Returns:
-                Location-filtered results from all stores
-            """
-            return search_by_location_all_stores.invoke({"query": query, "location": location, "days": days})
-
-        @tool
-        def get_claim_statistics_all_stores_tool(days: int = 30) -> str:
-            """
-            Get claim statistics across ALL stores for comparison and trend analysis.
-
-            When to use this tool:
-            - When user asks to compare claims across all stores (全店舗のクレーム比較)
-            - When analyzing overall company-wide claim trends
-            - When identifying stores with high/low claim rates
-            - Keywords: 全店舗のクレーム, 店舗間比較, クレーム率の比較
-
-            Args:
-                days: Aggregation period in days (default: 30)
-
-            Returns:
-                Claim statistics with store breakdown and overall trends
-            """
-            return get_claim_statistics_all_stores.invoke({"days": days})
-
-        @tool
-        def get_report_statistics_all_stores_tool(days: int = 30) -> str:
-            """
-            Get report statistics across ALL stores for activity comparison.
-
-            When to use this tool:
-            - When comparing report submission activity across stores
-            - When analyzing overall reporting patterns company-wide
-            - Keywords: 全店舗の日報統計, 店舗間の活動量比較
-
-            Args:
-                days: Aggregation period in days (default: 30)
-
-            Returns:
-                Report statistics with store breakdown and genre analysis
-            """
-            return get_report_statistics_all_stores.invoke({"days": days})
-
-        @tool
-        def gather_topic_related_data_all_stores_tool(topic: str, days: int = 30) -> str:
-            """
-            Gather comprehensive data about a topic from ALL stores.
-
-            When to use this tool:
-            - When user asks for advice based on all available data (全店舗の事例から)
-            - When analyzing a topic comprehensively across the entire company
-            - When looking for best practices from any store
-            - Keywords: 全店舗で + トピック, 他店の事例も含めて
-
-            Args:
-                topic: Topic keyword (e.g., "クレーム", "売上", "接客")
-                days: Search period in days (default: 30)
-
-            Returns:
-                Comprehensive data from reports, BBS, and statistics across all stores
-            """
-            return gather_topic_related_data_all_stores.invoke({"topic": topic, "days": days})
-
-        tools = [
-            # 自店舗ツール
-            search_daily_reports,
-            search_bbs_posts,
-            search_manual,  # 全店舗共通（ナレッジベース）
-            search_by_genre,
-            search_by_location,
-            get_claim_statistics,
-            get_sales_trend,
-            get_cash_difference_analysis,
-            get_report_statistics,
-            get_monthly_goal_status,
-            gather_topic_related_data, 
-            compare_periods, 
-            # 全店舗ツール
-            search_daily_reports_all_stores_tool,
-            search_bbs_posts_all_stores_tool,
-            search_by_genre_all_stores_tool,
-            search_by_location_all_stores_tool,
-            get_claim_statistics_all_stores_tool,
-            get_report_statistics_all_stores_tool,
-            gather_topic_related_data_all_stores_tool,
-        ]
-
-        return tools
 
     def chat(
         self,
@@ -500,18 +518,10 @@ You are NOT just a data retrieval assistant. You are a **strategic advisor** hel
 - **gather_topic_related_data**: Comprehensive data collection from multiple sources (for advice/analysis)
 - **compare_periods**: Period-to-period comparison with change rates (for trend analysis)
 
-CRITICAL: You do NOT have any prior knowledge about this restaurant's data.
-You MUST use the provided tools to answer ALL questions about claims, sales, reports, etc.
-
 ## Tool Selection Guidelines
 
 ### When user asks for ADVICE or RECOMMENDATIONS (アドバイス, 改善策, 提案): 🎯
-→ Use **gather_topic_related_data** to get comprehensive context, then analyze
-Example: "今月の目標達成のためにアドバイス頂戴"
-1. gather_topic_related_data(topic="目標達成")
-2. get_monthly_goal_status()
-3. get_sales_trend(days=30)
-4. Analyze gaps and recommend actions
+→ Use **gather_topic_related_data** + multiple analytics tools (see detailed steps below)
 
 ### When user asks about CHANGES or TRENDS (変化, 推移, 比較): 📊
 → Use **compare_periods** for quantitative comparison
@@ -577,17 +587,67 @@ Example: "今月の目標" → get_monthly_goal_status()
             if use_tools and store_id:
                 logger.info(f"Creating ReAct agent for store_id={store_id}")
 
-                # ツール作成
+                # ツール作成（キャッシュから取得）
                 tools = self._create_tools_for_store(store_id)
 
-                # ReActループの実装
-                response_text, intermediate_steps = self._react_loop_parallel(
-                    query=query,
-                    tools=tools,
-                    system_info=system_info,
-                    chat_history=chat_history,
-                    max_iterations=5
+                # create_react_agentを使用
+                from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+
+                # メッセージリストの作成（システムメッセージを先頭に追加）
+                messages = [SystemMessage(content=system_info)]
+
+                # チャット履歴を追加
+                if chat_history:
+                    for msg in chat_history:
+                        if msg['role'] == 'user':
+                            messages.append(HumanMessage(content=msg['content']))
+                        elif msg['role'] == 'assistant':
+                            messages.append(AIMessage(content=msg['content']))
+
+                # 現在のクエリを追加
+                messages.append(HumanMessage(content=query))
+
+                # ReActエージェント作成
+                agent = create_react_agent(
+                    model=self.llm,
+                    tools=tools
                 )
+
+                # エージェント実行
+                import time
+                start_time = time.time()
+                logger.info(f"Invoking create_react_agent for query: {query}")
+                result = agent.invoke({"messages": messages})
+                agent_time = time.time() - start_time
+                logger.info(f"create_react_agent completed in {agent_time:.2f}s")
+
+                # 結果を取得
+                response_text = result["messages"][-1].content
+
+                # intermediate_stepsの取得（LangGraphではメッセージ履歴から構築）
+                intermediate_steps = []
+                total_tool_result_size = 0
+                for msg in result["messages"]:
+                    if hasattr(msg, 'tool_calls') and msg.tool_calls:
+                        for tool_call in msg.tool_calls:
+                            tool_name = tool_call.get('name', '')
+                            logger.info(f"Tool called: {tool_name}")
+                            intermediate_steps.append({
+                                "thought": "",
+                                "action": tool_name,
+                                "action_input": str(tool_call.get('args', {})),
+                                "observation": ""
+                            })
+                    elif msg.__class__.__name__ == 'ToolMessage':
+                        # ToolMessageの場合は観測結果を記録
+                        result_size = len(msg.content)
+                        total_tool_result_size += result_size
+                        if intermediate_steps:
+                            intermediate_steps[-1]["observation"] = msg.content[:200]  # 最初の200文字
+                            logger.info(f"  → Result size: {result_size:,} chars")
+
+                logger.info(f"Total tools called: {len(intermediate_steps)}")
+                logger.info(f"Total tool result size: {total_tool_result_size:,} chars ({total_tool_result_size/1024:.1f} KB)")
 
             else:
                 # ツールなしで直接LLM呼び出し
@@ -639,6 +699,8 @@ Example: "今月の目標" → get_monthly_goal_status()
                 "token_count": 0,
             }
 
+    # DEPRECATED: Replaced by create_react_agent
+    '''
     def _react_loop(
         self,
         query: str,
@@ -776,11 +838,14 @@ REMEMBER:
             else:
                 fallback_text = str(fallback_response)
             return fallback_text, []
+    '''
 
     def _estimate_tokens(self, text: str) -> int:
         """トークン数を推定"""
         return len(str(text)) // 4
 
+    # DEPRECATED: Replaced by create_react_agent
+    '''
     async def _execute_tools_parallel(self, tool_calls: List, tools: List) -> tuple[List, List[Dict]]:
         """
         ツールを並列実行
@@ -848,7 +913,10 @@ REMEMBER:
                     ))
 
         return tool_results, intermediate_steps
+    '''
 
+    # DEPRECATED: Replaced by create_react_agent
+    '''
     def _react_loop_parallel(
         self,
         query: str,
@@ -991,3 +1059,4 @@ REMEMBER:
             else:
                 fallback_text = str(fallback_response)
             return fallback_text, []
+    '''
