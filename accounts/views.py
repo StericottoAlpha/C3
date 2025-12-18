@@ -4,8 +4,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.http import Http404
 
-from .forms import LoginForm
-from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.contrib import messages
+from .forms import LoginForm ,SignupForm
 
 # ユーザーモデルを取得
 User = get_user_model()
@@ -67,3 +68,22 @@ def profile_view(request):
         # デバッグ用にコンソール出力（本番運用時はロガー推奨）
         print(f"Profile Error: {e}")
         raise Http404("ユーザー情報の取得に失敗しました")
+
+       
+@login_required
+@require_http_methods(["GET", "POST"])
+def signup_view(request):
+    "  管理者によるユーザー追加機能"
+    if request.user.user_type not in ['admin','manager'] and not request.user.is_superuser:
+        raise PermissionDenied("このページにアクセスする権限がありません。")
+
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"ユーザー {form.cleaned_data['user_id']} を登録しました。")
+            return redirect('accounts:signup')
+    else:
+        form = SignupForm()
+
+    return render(request, 'accounts/signup.html', {'form': form})
