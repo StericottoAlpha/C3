@@ -12,7 +12,6 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.db import transaction
 
-from ai_features.agents.chat_agent import ChatAgent
 from ai_features.models import AIChatHistory
 
 logger = logging.getLogger(__name__)
@@ -61,6 +60,7 @@ class ChatView(View):
         }
         """
         try:
+            from ai_features.agents.chat_agent import ChatAgent
             data = json.loads(request.body)
 
             # バリデーション
@@ -257,6 +257,7 @@ def chat_stream_view(request):
     Server-Sent Events (SSE) を使用してリアルタイムで回答を送信
     """
     try:
+        from ai_features.agents.chat_agent import ChatAgent
         data = json.loads(request.body)
         message = data.get('message', '').strip()
 
