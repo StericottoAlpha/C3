@@ -8,7 +8,7 @@ urlpatterns = [
 
     path('chat/', views.chat_page_view, name="chat_page"),
     # Chat endpoints
-    # path('api/chat/', views.ChatView.as_view(), name='chat'),
+    path('api/chat/', views.ChatView.as_view(), name='chat'),
     path('api/chat/stream/', views.chat_stream_view, name='chat_stream'),  # ストリーミング対応
     #path('api/chat/parallel/', views.ChatParallelView.as_view(), name='chat_parallel'),  # 並列ツール実行
     path('api/chat/history/', views.chat_history_view, name='chat_history'),
