@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from functools import lru_cache
 
 from langchain_core.tools import tool
-from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
 
 import logging
@@ -608,7 +607,8 @@ Example: "今月の目標" → get_monthly_goal_status()
                 # 現在のクエリを追加
                 messages.append(HumanMessage(content=query))
 
-                # ReActエージェント作成
+                # ReActエージェント作成（遅延インポート）
+                from langgraph.prebuilt import create_react_agent
                 agent = create_react_agent(
                     model=self.llm,
                     tools=tools
