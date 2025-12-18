@@ -102,12 +102,14 @@ class ChatView(View):
             )
 
             # チャット履歴をDB保存
+            if(response['message'] == ""):
+               response=response['message'] = "ERROR: invalid response"
+
             self._save_chat_history(
                 user=request.user,
                 message=message,
                 response=response['message']
             )
-
 
             return JsonResponse(response)
 
@@ -242,3 +244,114 @@ def chat_history_view(request):
             {"error": f"エラーが発生しました: {str(e)}"},
             status=500
         )
+
+
+@login_required
+@require_http_methods(["POST"])
+@csrf_exempt
+def chat_stream_view(request):
+    """
+    ストリーミングチャットエンドポイント
+    POST /api/ai/chat/stream/
+
+    Server-Sent Events (SSE) を使用してリアルタイムで回答を送信
+    """
+    try:
+        data = json.loads(request.body)
+        message = data.get('message', '').strip()
+
+        if not message:
+            # エラーをSSE形式で返す
+            def error_stream():
+                yield f"data: {json.dumps({'type': 'error', 'content': 'メッセージが空です'})}\n\n"
+            return StreamingHttpResponse(error_stream(), content_type='text/event-stream')
+
+        # 環境変数からAI設定を取得
+        openai_api_key = os.environ.get('OPENAI_API_KEY', '')
+        openai_model = os.environ.get('OPENAI_MODEL', 'gpt-4o-mini')
+
+        if not openai_api_key:
+            def error_stream():
+                yield f"data: {json.dumps({'type': 'error', 'content': 'API KEY ERROR'})}\n\n"
+            return StreamingHttpResponse(error_stream(), content_type='text/event-stream')
+
+        # ストリーミング生成関数
+        def event_stream():
+            try:
+                # Agent作成
+                agent = ChatAgent(
+                    model_name=openai_model,
+                    temperature=0.0,
+                    openai_api_key=openai_api_key
+                )
+
+                # チャット履歴取得（オプション）
+                chat_history = None
+                if data.get('include_history', False):
+                    history = AIChatHistory.objects.filter(user=request.user).order_by('-created_at')[:10]
+                    chat_history = [
+                        {
+                            "role": chat.role,
+                            "content": chat.message,
+                        }
+                        for chat in reversed(history)
+                    ]
+
+                # ストリーミングチャット実行
+
+                # ステータス送信: 開始
+                yield f"data: {json.dumps({'type': 'start', 'content': 'チャットを開始します...'})}\n\n"
+
+                # エージェントからストリーミングで回答を取得
+                full_response = ""
+                for chunk in agent.chat_stream(
+                    query=message,
+                    user=request.user,
+                    chat_history=chat_history
+                ):
+                    # チャンクを送信
+                    yield f"data: {json.dumps({'type': 'content', 'content': chunk})}\n\n"
+                    full_response += chunk
+
+                # 完了通知
+                yield f"data: {json.dumps({'type': 'done', 'content': ''})}\n\n"
+
+                # チャット履歴を保存
+                with transaction.atomic():
+                    AIChatHistory.objects.create(
+                        user=request.user,
+                        role='user',
+                        message=message
+                    )
+                    AIChatHistory.objects.create(
+                        user=request.user,
+                        role='assistant',
+                        message=full_response
+                    )
+
+                    # 件数超過分を削除
+                    max_chat_history = int(os.environ.get('MAX_CHAT_HISTORY', '14'))
+                    qs = AIChatHistory.objects.filter(user=request.user).order_by('-created_at')
+                    excess_count = qs.count() - max_chat_history
+                    if excess_count > 0:
+                        ids_to_delete = list(qs.reverse()[:excess_count].values_list('chat_id', flat=True))
+                        AIChatHistory.objects.filter(chat_id__in=ids_to_delete).delete()
+
+            except Exception as e:
+                logger.error(f"Error in streaming chat: {e}", exc_info=True)
+                yield f"data: {json.dumps({'type': 'error', 'content': f'エラーが発生しました: {str(e)}'})}\n\n"
+
+        return StreamingHttpResponse(
+            event_stream(),
+            content_type='text/event-stream'
+        )
+
+    except json.JSONDecodeError:
+        def error_stream():
+            yield f"data: {json.dumps({'type': 'error', 'content': '無効なJSONフォーマットです'})}\n\n"
+        return StreamingHttpResponse(error_stream(), content_type='text/event-stream')
+    except Exception as e:
+        logger.error(f"Error in chat_stream_view: {e}", exc_info=True)
+        def error_stream():
+            yield f"data: {json.dumps({'type': 'error', 'content': f'エラーが発生しました: {str(e)}'})}\n\n"
+        return StreamingHttpResponse(error_stream(), content_type='text/event-stream')

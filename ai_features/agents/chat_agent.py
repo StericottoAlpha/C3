@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from functools import lru_cache
 
 from langchain_core.tools import tool
-from langgraph.prebuilt import create_react_agent
 from langchain_openai import ChatOpenAI
 
 import logging
@@ -431,6 +430,7 @@ class ChatAgent:
         )
         return llm
 
+
     def _create_tools_for_store(self, store_id: int) -> List:
         """
         store_idをバインドしたツールリストを作成（キャッシュ使用）
@@ -514,16 +514,16 @@ You are NOT just a data retrieval assistant. You are a **strategic advisor** hel
 - **get_report_statistics**: Overall daily report statistics by genre/location
 - **get_monthly_goal_status**: Current month's goal and achievement rate
 
-### PDCA Support Tools (2 tools) 🎯
+### PDCA Support Tools (2 tools)
 - **gather_topic_related_data**: Comprehensive data collection from multiple sources (for advice/analysis)
 - **compare_periods**: Period-to-period comparison with change rates (for trend analysis)
 
 ## Tool Selection Guidelines
 
-### When user asks for ADVICE or RECOMMENDATIONS (アドバイス, 改善策, 提案): 🎯
+### When user asks for ADVICE or RECOMMENDATIONS (アドバイス, 改善策, 提案):
 → Use **gather_topic_related_data** + multiple analytics tools (see detailed steps below)
 
-### When user asks about CHANGES or TRENDS (変化, 推移, 比較): 📊
+### When user asks about CHANGES or TRENDS (変化, 推移, 比較):
 → Use **compare_periods** for quantitative comparison
 Example: "先週と比べてクレームは増えた?" → compare_periods(metric="claims", period1_days=7, period2_days=14)
 
@@ -585,7 +585,7 @@ Example: "今月の目標" → get_monthly_goal_status()
 
             # ツールを使用する場合（ReActエージェント）
             if use_tools and store_id:
-                logger.info(f"Creating ReAct agent for store_id={store_id}")
+                # logger.info(f"Creating ReAct agent for store_id={store_id}")
 
                 # ツール作成（キャッシュから取得）
                 tools = self._create_tools_for_store(store_id)
@@ -607,25 +607,22 @@ Example: "今月の目標" → get_monthly_goal_status()
                 # 現在のクエリを追加
                 messages.append(HumanMessage(content=query))
 
-                # ReActエージェント作成
+                # ReActエージェント作成（遅延インポート）
+                from langgraph.prebuilt import create_react_agent
                 agent = create_react_agent(
                     model=self.llm,
                     tools=tools
                 )
 
                 # エージェント実行
-                import time
-                start_time = time.time()
-                logger.info(f"Invoking create_react_agent for query: {query}")
                 result = agent.invoke({"messages": messages})
-                agent_time = time.time() - start_time
-                logger.info(f"create_react_agent completed in {agent_time:.2f}s")
 
                 # 結果を取得
                 response_text = result["messages"][-1].content
 
                 # intermediate_stepsの取得（LangGraphではメッセージ履歴から構築）
                 intermediate_steps = []
+                """
                 total_tool_result_size = 0
                 for msg in result["messages"]:
                     if hasattr(msg, 'tool_calls') and msg.tool_calls:
@@ -645,9 +642,7 @@ Example: "今月の目標" → get_monthly_goal_status()
                         if intermediate_steps:
                             intermediate_steps[-1]["observation"] = msg.content[:200]  # 最初の200文字
                             logger.info(f"  → Result size: {result_size:,} chars")
-
-                logger.info(f"Total tools called: {len(intermediate_steps)}")
-                logger.info(f"Total tool result size: {total_tool_result_size:,} chars ({total_tool_result_size/1024:.1f} KB)")
+                """
 
             else:
                 # ツールなしで直接LLM呼び出し
@@ -698,6 +693,277 @@ Example: "今月の目標" → get_monthly_goal_status()
                 "intermediate_steps": [],
                 "token_count": 0,
             }
+
+    def _react_loop_stream(
+        self,
+        query: str,
+        tools: List,
+        system_info: str,
+        chat_history: Optional[List[Dict]] = None
+    ):
+        """
+        ReActループのストリーミング版（最終回答のみトークン単位でストリーム）
+
+        Args:
+            query: ユーザーの質問
+            tools: 利用可能なツールリスト
+            system_info: システムプロンプト
+            chat_history: チャット履歴
+
+        Yields:
+            str: レスポンスのトークンチャンク
+        """
+        try:
+            from langchain_core.messages import SystemMessage, HumanMessage, AIMessage, ToolMessage
+
+            # System message
+            system_message = SystemMessage(content=system_info)
+
+            # Bind tools to the LLM
+            llm_with_tools = self.llm.bind_tools(tools)
+
+            # Create messages with chat history
+            messages = [system_message]
+
+            # Add chat history if provided
+            if chat_history:
+                for msg in chat_history:
+                    if msg['role'] == 'user':
+                        messages.append(HumanMessage(content=msg['content']))
+                    elif msg['role'] == 'assistant':
+                        messages.append(AIMessage(content=msg['content']))
+
+            # Add current query
+            messages.append(HumanMessage(content=query))
+
+            # Invoke LLM with tools
+            logger.info(f"[Stream] Invoking LLM with tools for query: {query}")
+            response = llm_with_tools.invoke(messages)
+
+            # Check if tools were called
+            if hasattr(response, 'tool_calls') and response.tool_calls:
+                logger.info(f"[Stream] Tools called: {len(response.tool_calls)}")
+
+                # Execute tool calls (non-streaming)
+                tool_results = []
+                for tool_call in response.tool_calls:
+                    tool_name = tool_call['name']
+                    tool_args = tool_call['args']
+                    logger.info(f"[Stream] Executing tool: {tool_name}")
+
+                    # Find and execute the tool
+                    for tool in tools:
+                        if tool.name == tool_name:
+                            result_text = tool.invoke(tool_args)
+                            tool_results.append(ToolMessage(
+                                content=str(result_text),
+                                tool_call_id=tool_call['id']
+                            ))
+                            break
+
+                # Get final response with tool results - STREAMING
+                messages.append(response)
+                messages.extend(tool_results)
+
+                logger.info(f"[Stream] Generating final response with streaming...")
+                # 重要: 最終回答生成時はツールなしのLLMを使用
+                # llm_with_tools を使うとLLMがまたツールを呼ぼうとしてしまう
+                for chunk in self.llm.stream(messages):
+                    if hasattr(chunk, 'content') and chunk.content:
+                        yield chunk.content
+                logger.info(f"[Stream] Final response streaming completed")
+            else:
+                logger.info("[Stream] No tools called, streaming direct response")
+                # ツールが呼ばれなかった場合もストリーミング
+                if hasattr(response, 'content') and response.content:
+                    logger.info(f"[Stream] Direct response length: {len(response.content)}")
+                    # トークン単位でストリーミング
+                    for chunk in self.llm.stream(messages):
+                        if hasattr(chunk, 'content') and chunk.content:
+                            yield chunk.content
+                else:
+                    logger.error(f"[Stream] No content in response! Response type: {type(response)}, has content: {hasattr(response, 'content')}")
+                    yield "エラー: 応答が空です"
+
+        except Exception as e:
+            logger.error(f"[Stream] Error in _react_loop_stream: {e}", exc_info=True)
+            yield f"エラーが発生しました: {str(e)}"
+
+    def chat_stream(
+        self,
+        query: str,
+        user,
+        chat_history: Optional[List[Dict]] = None,
+        use_tools: bool = True
+    ):
+        """
+        ストリーミングチャット実行（Generator）
+
+        Args:
+            query: ユーザーの質問
+            user: Djangoユーザーオブジェクト
+            chat_history: チャット履歴（オプション）
+            use_tools: ツールを使用するか（デフォルト: True）
+
+        Yields:
+            str: レスポンスのチャンク（トークンごと）
+        """
+        try:
+            # ユーザー情報を収集
+            store_id = user.store.store_id if hasattr(user, 'store') and user.store else None
+            store_name = user.store.store_name if hasattr(user, 'store') and user.store else "不明"
+
+            # System prompt (same as chat method)
+            system_info = f"""You are a restaurant operations support AI assistant. You help store managers and staff by retrieving accurate information from the database.
+
+## Current Context
+- Date/Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+- Store: {store_name} (ID: {store_id or "Unknown"})
+
+## Your Mission: PDCA Cycle Support
+
+You are NOT just a data retrieval assistant. You are a **strategic advisor** helping managers improve operations through the PDCA cycle:
+- **Plan**: Help set realistic goals and create action plans
+- **Do**: Monitor execution and provide real-time guidance
+- **Check**: Analyze results and identify issues
+- **Act**: Recommend specific improvements based on data
+
+## Critical Rules
+1. **ALWAYS use tools**: You have NO knowledge about this restaurant's data. You MUST use tools to retrieve ALL information.
+2. **NEVER guess or assume**: Base your answers ONLY on actual data retrieved from tools.
+3. **Check tool results carefully**:
+   - If tool returns `"status": "success"` AND `"results"` has items → Data EXISTS, provide the information
+   - If tool returns `"status": "no_data"` OR `"results": []` → Data does NOT exist, say "データがありません"
+   - NEVER say "データがありません" when results actually contain data
+
+## Available Tools (12 tools)
+
+### Search Tools (5 tools)
+- **search_daily_reports**: General search across all daily reports (best for exploratory queries)
+- **search_by_genre**: Search within specific genre (claim/praise/accident/report/other)
+- **search_by_location**: Search within specific location (kitchen/hall/cashier/toilet/other)
+- **search_bbs_posts**: Search bulletin board posts and comments
+- **search_manual**: Search manuals and guidelines
+
+### Analytics Tools (5 tools)
+- **get_claim_statistics**: Claim counts, trends, category breakdown
+- **get_sales_trend**: Sales data, customer count, daily/weekly trends
+- **get_cash_difference_analysis**: Register discrepancies, plus/minus breakdown
+- **get_report_statistics**: Overall daily report statistics by genre/location
+- **get_monthly_goal_status**: Current month's goal and achievement rate
+
+### PDCA Support Tools (2 tools)
+- **gather_topic_related_data**: Comprehensive data collection from multiple sources (for advice/analysis)
+- **compare_periods**: Period-to-period comparison with change rates (for trend analysis)
+
+## Tool Selection Guidelines
+
+### When user asks for ADVICE or RECOMMENDATIONS (アドバイス, 改善策, 提案):
+→ Use **gather_topic_related_data** + multiple analytics tools (see detailed steps below)
+
+### When user asks about CHANGES or TRENDS (変化, 推移, 比較):
+→ Use **compare_periods** for quantitative comparison
+Example: "先週と比べてクレームは増えた?" → compare_periods(metric="claims", period1_days=7, period2_days=14)
+
+### When user asks about SPECIFIC CONTENT or DETAILS:
+→ Use **search_daily_reports** or **search_bbs_posts** for general queries
+→ Use **search_by_genre** when user asks specifically about a genre (クレーム/賞賛/事故/報告)
+Example (general): "先週の問題" → search_daily_reports(query="問題", days=7)
+Example (specific genre): "先週の事故" → search_by_genre(query="事故", genre="accident", days=7)
+Example (specific genre): "クレームの内容" → search_by_genre(query="", genre="claim", days=30)
+
+### When user asks about STATISTICS or COUNTS:
+→ Use **analytics tools** (get_claim_statistics, get_sales_trend, etc.)
+Example: "先週のクレーム件数" → get_claim_statistics(days=7)
+
+### When user specifies GENRE or LOCATION filter:
+→ Use **search_by_genre** or **search_by_location**
+Example: "キッチンのクレーム" → search_by_location(query="クレーム", location="kitchen")
+
+### When user asks about GOALS or TARGETS:
+→ Use **get_monthly_goal_status**
+Example: "今月の目標" → get_monthly_goal_status()
+
+## Response Style
+- Respond in Japanese (日本語で回答)
+- Be concise and use bullet points
+- Include specific numbers from tool results
+- State conclusions first, then supporting details
+
+## When Providing ADVICE (アドバイス・提案モード):
+
+**Step 1: GATHER DATA** - Use multiple tools for comprehensive context
+- gather_topic_related_data() for cross-source information
+- Relevant analytics tools (get_sales_trend, get_claim_statistics, etc.)
+- compare_periods() if trend analysis is needed
+
+**Step 2: ANALYZE** - Identify patterns, gaps, root causes
+- Calculate gaps: 目標 - 現状 = ギャップ
+- Find correlations: クレーム↑ → 売上↓?
+- Spot trends: 増加傾向 or 減少傾向?
+- Check BBS for staff perspectives
+
+**Step 3: RECOMMEND** - Provide specific, actionable advice
+
+**Japanese Response Format:**
+
+**📊 現状分析**
+- [データから分かった現状を簡潔に]
+
+**⚠️ 課題・ギャップ**
+- [目標とのギャップ、問題点]
+
+**💡 推奨アクション（優先度順）**
+1. **[最優先]** [具体的な行動] → [期待される効果]
+2. **[重要]** [具体的な行動] → [期待される効果]
+3. [その他の施策]
+
+**📈 根拠となるデータ**
+- [使用したデータの要点]"""
+
+            # ツールを使用する場合（ReActエージェント）
+            if use_tools and store_id:
+                logger.debug(f"[Stream] Using manual ReAct loop with token streaming for store_id={store_id}")
+
+                # ツール作成（キャッシュから取得）
+                tools = self._create_tools_for_store(store_id)
+
+                # 自作のReActループ（ストリーミング版）を使用
+                # ツール実行後の最終回答生成時にトークン単位でストリーミング
+                for token in self._react_loop_stream(
+                    query=query,
+                    tools=tools,
+                    system_info=system_info,
+                    chat_history=chat_history
+                ):
+                    yield token
+
+                logger.debug(f"[Stream] Token streaming completed")
+
+            else:
+                # ツールなしで直接LLM呼び出し（ストリーミング）
+                logger.debug(f"Streaming LLM without tools")
+                from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+
+                messages = [SystemMessage(content=system_info)]
+
+                if chat_history:
+                    for msg in chat_history:
+                        if msg['role'] == 'user':
+                            messages.append(HumanMessage(content=msg['content']))
+                        elif msg['role'] == 'assistant':
+                            messages.append(AIMessage(content=msg['content']))
+
+                messages.append(HumanMessage(content=query))
+
+                # ストリーミング実行
+                for chunk in self.llm.stream(messages):
+                    if hasattr(chunk, 'content') and chunk.content:
+                        yield chunk.content
+
+        except Exception as e:
+            logger.error(f"Error in chat_stream: {e}", exc_info=True)
+            yield f"エラーが発生しました: {str(e)}"
 
     # DEPRECATED: Replaced by create_react_agent
     '''

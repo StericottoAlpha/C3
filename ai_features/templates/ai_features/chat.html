@@ -211,6 +211,7 @@ function getCookie(name) {
   return cookieValue;
 }
 
+<!-- 初期ロード -->
 document.addEventListener('DOMContentLoaded', () => {
   setupInputHandler();
   loadChatHistory();
@@ -321,7 +322,7 @@ function postHandler(){
   const message = input.value.trim();
 
   if (!message){
-    
+
     input.value = "";
     return;
   }
@@ -335,9 +336,27 @@ function postHandler(){
 
   appendMessage(message, "user");
 
-  const loadingId = appendLoadingMessage();
+  // ストリーミングレスポンスを受信
+  handleStreamingChat(message, button);
+}
 
-  fetch('/ai/api/chat/', {
+function handleStreamingChat(message, button) {
+  // AI応答用のバブルを作成
+  const responseId = 'streaming-' + Date.now();
+  const wrapper = document.createElement('div');
+  wrapper.id = responseId;
+  wrapper.className = 'flex justify-start';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bg-white px-4 py-2 rounded-2xl max-w-xl border markdown-content';
+  bubble.innerText = ''; // 空で開始
+
+  wrapper.appendChild(bubble);
+  document.getElementById('chat-container').appendChild(wrapper);
+
+  let fullResponse = '';
+
+  fetch('/ai/api/chat/stream/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -348,15 +367,74 @@ function postHandler(){
       include_history: true
     })
   })
-  .then(res => res.json())
-  .then(data => {
-    removeLoadingMessage(loadingId);
-    appendMessage(data.message, 'assistant');
+  .then(response => {
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    function readStream() {
+      reader.read().then(({ done, value }) => {
+        if (done) {
+          // ストリーミング完了 - マークダウンをレンダリング
+          const rawHtml = marked.parse(fullResponse);
+          const cleanHtml = DOMPurify.sanitize(rawHtml);
+          bubble.innerHTML = cleanHtml;
+
+          // コードブロックにシンタックスハイライトを適用
+          bubble.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+          });
+
+          button.disabled = false;
+          button.classList.remove('opacity-50', 'cursor-not-allowed');
+          return;
+        }
+
+        // SSE データをパース
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const jsonStr = line.substring(6);
+            try {
+              const data = JSON.parse(jsonStr);
+
+              if (data.type === 'content') {
+                fullResponse += data.content;
+                bubble.innerText = fullResponse; // リアルタイムで表示
+              } else if (data.type === 'error') {
+                bubble.innerText = 'エラー: ' + data.content;
+                button.disabled = false;
+                button.classList.remove('opacity-50', 'cursor-not-allowed');
+                return;
+              }
+            } catch (e) {
+              // JSONパースエラーは無視（不完全なチャンクの可能性）
+            }
+          }
+        }
+
+        // スクロールを最下部に
+        const container = document.getElementById('chat-container');
+        container.scrollTop = container.scrollHeight;
+
+        // 次のチャンクを読む
+        readStream();
+      });
+    }
+
+    readStream();
   })
-  .catch(() => {
-    removeLoadingMessage(loadingId);
+  .catch(error => {
+    console.error('Streaming error:', error);
+    const wrapper = document.getElementById(responseId);
+    if (wrapper) {
+      wrapper.remove();
+    }
     appendMessage('エラーが発生しました。しばらくしてから再度お試しください。', 'assistant');
-  })
+    button.disabled = false;
+    button.classList.remove('opacity-50', 'cursor-not-allowed');
+  });
 }
 
 function clearChatError() {
