@@ -13,5 +13,5 @@ langchain>=0.3.0
 langchain-openai>=0.2.0
 langchain-core>=0.3.0
 langgraph>=0.2.0
-sentence-transformers>=3.0.0
+# sentence-transformers>=3.0.0  # メモリ削減のためOpenAI Embeddingsに変更
 openai>=1.0.0

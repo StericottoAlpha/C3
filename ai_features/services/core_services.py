@@ -1,20 +1,49 @@
 """
 AI Features Core Services
-ベクトル検索、埋め込み生成、ベクトル化などのコアサービス
+ ベクトル検索、埋め込み生成、ベクトル化などのコアサービス
 """
 import logging
+import os
 from typing import List, Optional, Dict
 import numpy as np
 
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer  # メモリ削減のためコメントアウト
 from pgvector.django import CosineDistance
 
 logger = logging.getLogger(__name__)
 
 
 class EmbeddingService:
-    """埋め込みベクトル生成サービス"""
+    """埋め込みベクトル生成サービス（OpenAI Embeddings使用）"""
 
+    _client = None
+
+    @classmethod
+    def get_client(cls):
+        """OpenAI クライアントを取得（シングルトン）"""
+        if cls._client is None:
+            from openai import OpenAI
+            cls._client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
+        return cls._client
+
+    @classmethod
+    def generate_embedding(cls, text: str) -> Optional[List[float]]:
+        """テキストから埋め込みベクトルを生成（OpenAI text-embedding-3-small）"""
+        try:
+            client = cls.get_client()
+            response = client.embeddings.create(
+                model="text-embedding-3-small",
+                input=text,
+                dimensions=384  # sentence-transformersと同じ次元数
+            )
+            return response.data[0].embedding
+        except Exception as e:
+            logger.error(f"Error generating embedding: {e}", exc_info=True)
+            return None
+
+    # ========== 旧実装（sentence-transformers）==========
+    # メモリ削減のためコメントアウト（torch依存削除）
+    '''
     _model = None
 
     @classmethod
@@ -34,6 +63,7 @@ class EmbeddingService:
         except Exception as e:
             logger.error(f"Error generating embedding: {e}", exc_info=True)
             return None
+    '''
 
 
 class QueryClassifier:
