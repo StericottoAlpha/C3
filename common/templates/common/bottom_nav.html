@@ -125,10 +125,21 @@
           <span class="text-gray-400">準備中</span>
         </button>
 
+        {% if user.user_type == 'manager' or user.user_type == 'admin' %}
+        <a href="{% url 'accounts:staff_list' %}" data-drawer-close="1" class="flex flex-col items-center gap-3">
+          <div class="w-24 h-24 rounded-2xl bg-teal-100 flex items-center justify-center">
+            <svg class="w-10 h-10 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </div>
+          <span class="text-gray-700">スタッフ編集</span>
+        </a>
+        {% else %}
         <button type="button" disabled class="flex flex-col items-center gap-3 opacity-60 cursor-not-allowed">
           <div class="w-24 h-24 rounded-2xl bg-gray-200"></div>
           <span class="text-gray-400">準備中</span>
         </button>
+        {% endif %}
 
         <button type="button" disabled class="flex flex-col items-center gap-3 opacity-60 cursor-not-allowed">
           <div class="w-24 h-24 rounded-2xl bg-gray-200"></div>
