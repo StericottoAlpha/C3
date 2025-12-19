@@ -5,7 +5,7 @@ AI Features Core Services
 import logging
 import os
 from typing import List, Optional, Dict
-import numpy as np
+from django.conf import settings
 
 # from sentence_transformers import SentenceTransformer  # メモリ削減のためコメントアウト
 from pgvector.django import CosineDistance
@@ -16,30 +16,90 @@ logger = logging.getLogger(__name__)
 class EmbeddingService:
     """埋め込みベクトル生成サービス（OpenAI Embeddings使用）"""
 
-    _client = None
+    _openai_client = None
+    _local_model = None
 
+    # ===== OpenAI client =====
     @classmethod
-    def get_client(cls):
-        """OpenAI クライアントを取得（シングルトン）"""
-        if cls._client is None:
+    def get_openai_client(cls):
+        if cls._openai_client is None:
             from openai import OpenAI
-            cls._client = OpenAI(api_key=os.environ.get('OPENAI_API_KEY'))
-        return cls._client
+            cls._openai_client = OpenAI(
+                api_key=os.environ.get("OPENAI_API_KEY")
+            )
+        return cls._openai_client
 
+    # ===== Local transformer model =====
+    @classmethod
+    def get_local_model(cls):
+        if cls._local_model is None:
+            
+            try:
+                from sentence_transformers import SentenceTransformer
+
+            except ImportError:
+                # ===== ここで自動 install =====
+                if not settings.DEBUG:
+                    raise RuntimeError(
+                        "sentence-transformers is not installed (DEBUG=False). "
+                        "Install it explicitly in this environment."
+                    )
+
+                import subprocess
+                import sys
+
+                subprocess.check_call([
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "sentence-transformers",
+                    "--break-system-packages"
+                ])
+
+                # install 後に再 import
+                from sentence_transformers import SentenceTransformer
+
+            cls._local_model = SentenceTransformer(
+                "paraphrase-multilingual-MiniLM-L12-v2"
+            )
+        return cls._local_model
+
+    # ===== Public API =====
     @classmethod
     def generate_embedding(cls, text: str) -> Optional[List[float]]:
-        """テキストから埋め込みベクトルを生成（OpenAI text-embedding-3-small）"""
+        """
+        settings.DEBUG に応じて埋め込み方式を切り替える
+        """
         try:
-            client = cls.get_client()
-            response = client.embeddings.create(
-                model="text-embedding-3-small",
-                input=text,
-                dimensions=384  # sentence-transformersと同じ次元数
-            )
-            return response.data[0].embedding
+            if settings.DEBUG:
+                return cls._generate_local_embedding(text)
+            else:
+                return cls._generate_openai_embedding(text)
+
         except Exception as e:
-            logger.error(f"Error generating embedding: {e}", exc_info=True)
+            logger.error(
+                f"Error generating embedding (DEBUG={settings.DEBUG}): {e}",
+                exc_info=True
+            )
             return None
+
+    # ===== Implementations =====
+    @classmethod
+    def _generate_local_embedding(cls, text: str) -> List[float]:
+        model = cls.get_local_model()
+        embedding = model.encode(text)
+        return embedding.tolist()
+
+    @classmethod
+    def _generate_openai_embedding(cls, text: str) -> List[float]:
+        client = cls.get_openai_client()
+        response = client.embeddings.create(
+            model="text-embedding-3-small",
+            input=text,
+            dimensions=384,  # local と合わせる
+        )
+        return response.data[0].embedding
 
     # ========== 旧実装（sentence-transformers）==========
     # メモリ削減のためコメントアウト（torch依存削除）
