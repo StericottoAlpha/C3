@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-10">
+    <div class="flex justify-center">
+        <div class="w-full max-w-lg">
+            
+            <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                <div class="bg-teal-600 text-white px-6 py-4">
+                    <h4 class="text-xl font-bold m-0">ユーザー新規登録</h4>
+                </div>
+                
+                <div class="p-6">
+                    <p class="text-sm text-gray-600 mb-6">
+                        新しいスタッフのアカウントを作成します。<br>
+                        登録ボタンを押すとフォームがリセットされ、続けて登録できます。
+                    </p>
+
+                    <form method="post" class="space-y-4 custom-form-style">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+                                {% for error in form.non_field_errors %}
+                                    <span class="block sm:inline">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        {% for field in form %}
+                            <div>
+                                <label for="{{ field.id_for_label }}" class="block text-gray-700 text-sm font-bold mb-2">
+                                    {{ field.label }}
+                                </label>
+                                
+                                {{ field }}
+
+                                {% if field.errors %}
+                                    <div class="text-red-500 text-xs italic mt-1">
+                                        {{ field.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                
+                                {% if field.help_text %}
+                                    <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="mt-8 pt-4 border-t border-gray-200 flex flex-col gap-3">
+                            <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg shadow transition duration-200">
+                                登録する
+                            </button>
+                            <a href="{% url 'accounts:profile' %}" class="block w-full text-center bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-lg transition duration-200">
+                                キャンセル（戻る）
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="mb-10"></div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* フォーム内の input タグと select タグすべてに枠線を適用 */
+    .custom-form-style input[type="text"],
+    .custom-form-style input[type="password"],
+    .custom-form-style input[type="email"],
+    .custom-form-style select {
+        width: 100%;                /* 幅いっぱい */
+        padding: 0.75rem;           /* 内側の余白 */
+        border: 1px solid #d1d5db;  /* グレーの枠線 (Tailwindのgray-300相当) */
+        border-radius: 0.5rem;      /* 角丸 (rounded-lg相当) */
+        background-color: #fff;     /* 背景白 */
+        font-size: 1rem;
+        box-sizing: border-box;     /* 枠線を含めて幅計算 */
+    }
+
+    /* フォーカス（選択）したときの色 */
+    .custom-form-style input:focus,
+    .custom-form-style select:focus {
+        outline: none;
+        border-color: #0d9488;      /* 濃い緑 (teal-600相当) */
+        box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.2);
+    }
+</style>
+{% endblock %}
