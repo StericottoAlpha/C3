@@ -12,7 +12,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17-alpine
+        image: pgvector/pgvector:pg17  # pgvector拡張対応
         env:
           POSTGRES_DB: c3_app_test
           POSTGRES_USER: c3
