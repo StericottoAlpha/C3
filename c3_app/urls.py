@@ -26,4 +26,5 @@ urlpatterns = [
     path('bbs/', include('bbs.urls')),
     path('analysis/', include('analytics.urls')),
     path('ai/', include('ai_features.urls')),
+
 ]
