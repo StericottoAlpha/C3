@@ -5,6 +5,14 @@ from django.conf import settings
 class BBSPost(models.Model):
     """掲示板投稿モデル"""
 
+    GENRE_CHOICES = [
+        ('claim', 'クレーム'),
+        ('praise', '賞賛'),
+        ('accident', '事故'),
+        ('report', '報告'),
+        ('other', 'その他'),
+    ]
+
     post_id = models.AutoField(primary_key=True, verbose_name='投稿ID')
     store = models.ForeignKey(
         'stores.Store',
@@ -26,6 +34,12 @@ class BBSPost(models.Model):
         related_name='bbs_post',
         verbose_name='日報ID'
     )
+    genre = models.CharField(
+        max_length=20, 
+        choices=GENRE_CHOICES, 
+        default='report' 
+    )
+
     title = models.CharField(max_length=200, verbose_name='タイトル')
     content = models.TextField(verbose_name='本文')
     comment_count = models.IntegerField(default=0, verbose_name='コメント数')
@@ -43,12 +57,11 @@ class BBSPost(models.Model):
 
 
 class BBSReaction(models.Model):
-    """掲示板リアクションモデル"""
+    """掲示板リアクションモデル（投稿へのリアクション）"""
 
     REACTION_CHOICES = [
         ('naruhodo', 'なるほど'),
-        ('soudane', 'そうだね'),
-        ('arigatou', 'ありがとう'),
+        ('iine', 'いいね'),
     ]
 
     reaction_id = models.AutoField(primary_key=True, verbose_name='リアクションID')
@@ -110,3 +123,42 @@ class BBSComment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.user} on {self.post.title}"
+
+
+# 【追加】コメントへのリアクションモデル
+class BBSCommentReaction(models.Model):
+    """掲示板コメントリアクションモデル"""
+
+    # 投稿用と同じ選択肢を使用（必要に応じて変更可）
+    REACTION_CHOICES = [
+        ('naruhodo', 'なるほど'),
+        ('iine', 'いいね'),
+    ]
+
+    reaction_id = models.AutoField(primary_key=True, verbose_name='リアクションID')
+    comment = models.ForeignKey(
+        BBSComment,
+        on_delete=models.CASCADE,
+        related_name='reactions', # viewで使う related_name='reactions' と一致させる
+        verbose_name='コメントID'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='comment_reactions',
+        verbose_name='ユーザーID'
+    )
+    reaction_type = models.CharField(
+        max_length=20,
+        choices=REACTION_CHOICES,
+        verbose_name='リアクション種別'
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
+
+    class Meta:
+        db_table = 'bbs_comment_reactions'
+        verbose_name = '掲示板コメントリアクション'
+        verbose_name_plural = '掲示板コメントリアクション'
+        unique_together = [['comment', 'user', 'reaction_type']]
+    def __str__(self):
+        return f"{self.user} - {self.get_reaction_type_display()} (Comment)"

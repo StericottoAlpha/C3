@@ -185,3 +185,8 @@ AUTH_USER_MODEL = 'accounts.User'
 # Media files (uploaded files)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Streaming API URL (for ASGI streaming server)
+# デフォルトは空文字列（同じサーバーを使用）
+# Renderでは別サービスのURLを設定（例: https://c3-app-stream.onrender.com）
+STREAM_API_URL = os.getenv('STREAM_API_URL', '')
