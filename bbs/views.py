@@ -28,7 +28,7 @@ def bbs_register(request):
 
 @login_required
 def bbs_list(request):
-    """掲示板一覧ビュー（検索・ソート機能付き）"""
+    """掲示板一覧ビュー"""
     posts = BBSPost.objects.select_related('user', 'store')
     
     genre = request.GET.get('genre')
@@ -37,15 +37,24 @@ def bbs_list(request):
 
     query = request.GET.get('query')
     if query:
-        posts = posts.filter(
-            Q(title__icontains=query) | Q(content__icontains=query)
-        )
+
+        keywords = query.replace('　', ' ').split()
+
+        if keywords:
+            query_condition = Q()
+
+            for word in keywords:
+        
+                query_condition |= Q(title__icontains=word) | Q(content__icontains=word)
+
+            posts = posts.filter(query_condition)
 
     sort_option = request.GET.get('sort')
     if sort_option == 'oldest':
         posts = posts.order_by('created_at')
     else:
         posts = posts.order_by('-created_at')
+
     context = {
         'posts': posts,
         'query': query,
