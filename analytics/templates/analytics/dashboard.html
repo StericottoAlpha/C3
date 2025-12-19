@@ -298,11 +298,18 @@
             ...dataset,
             backgroundColor: gradientApplied ? gradient : baseColor,
             borderWidth: 0,
-            // borderRadius を削除し、代わりに以下を追加
-            borderRadius: 6,      // 全体に適用
-            borderSkipped: 'bottom', // 下側の角を丸くしない設定
-            barPercentage: 0.8,
-            categoryPercentage: 0.9
+            // 角丸のデザインを綺麗にするための修正
+            borderRadius: {
+              topLeft: 5,
+              topRight: 5,
+              bottomLeft: 5,
+              bottomRight: 5
+            },
+            borderSkipped: false, 
+  
+            // --- ここを調整します ---
+            barPercentage: 0.9,      // 1.0 に近づけるほど棒が太くなります（デフォルト 0.9）
+            categoryPercentage: 0.7, // 1.0 に近づけるほど日付ごとの隙間が狭くなります（デフォルト 1.0）
           };
         });
       } else {
