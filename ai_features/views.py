@@ -12,6 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.db import transaction
 
+
 from ai_features.models import AIChatHistory
 
 logger = logging.getLogger(__name__)
@@ -23,9 +24,11 @@ def chat_page_view(request):
         pass
 
     elif request.method == "GET":
+        from django.conf import settings
 
         context = {
             "username": request.user.first_name,
+            "stream_api_url": settings.STREAM_API_URL,
         }
         return render(request, "ai_features/chat.html", context)
 

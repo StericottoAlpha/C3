@@ -187,6 +187,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
 <script>
+// ストリーミングAPIのベースURL
+const STREAM_API_URL = "{{ stream_api_url }}";
+
 // Marked.js設定
 marked.setOptions({
   breaks: true,
@@ -356,12 +359,16 @@ function handleStreamingChat(message, button) {
 
   let fullResponse = '';
 
-  fetch('/ai/api/chat/stream/', {
+  // ストリーミングAPIのURL（環境変数で設定されていれば別サーバー、なければ同じサーバー）
+  const streamUrl = STREAM_API_URL ? `${STREAM_API_URL}/api/ai/chat/stream/` : '/ai/api/chat/stream/';
+
+  fetch(streamUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'X-CSRFToken': getCookie('csrftoken')
     },
+    credentials: 'include',  // Cookie送信を有効化
     body: JSON.stringify({
       message: message,
       include_history: true
