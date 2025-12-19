@@ -111,10 +111,12 @@ def calendar_view(request):
 
     def make_cell(d: date):
         c = counts_map.get(d, {})
+        sales = sales_map.get(d)
         return {
             "date": d,
             "in_month": (d.month == month),
             "sales_yen": sales_map.get(d),
+            "sales_yen_str": f"{int(sales):,}" if sales is not None else None,
             "claim": c.get("claim", 0),
             "trouble": c.get("trouble", 0),
             "praise": c.get("praise", 0),

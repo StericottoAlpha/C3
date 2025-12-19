@@ -106,7 +106,7 @@
               <div class="cal-daynum">{{ cell.date|date:"j" }}</div>
 
               {% if cell.sales_yen %}
-                <div class="cal-sales">¥{{ cell.sales_yen }}</div>
+                <div class="cal-sales">¥{{ cell.sales_yen_str }}</div>
               {% else %}
                 <div class="cal-sales muted">&nbsp;</div>
               {% endif %}
