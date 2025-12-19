@@ -24,9 +24,11 @@ def chat_page_view(request):
         pass
 
     elif request.method == "GET":
+        from django.conf import settings
 
         context = {
             "username": request.user.first_name,
+            "stream_api_url": settings.STREAM_API_URL,
         }
         return render(request, "ai_features/chat.html", context)
 

@@ -15,3 +15,7 @@ langchain-core>=0.3.0
 langgraph>=0.2.0
 # sentence-transformers>=3.0.0  # メモリ削減のためOpenAI Embeddingsに変更
 openai>=1.0.0
+
+# ASGI Streaming
+fastapi>=0.115.0
+uvicorn>=0.32.0
