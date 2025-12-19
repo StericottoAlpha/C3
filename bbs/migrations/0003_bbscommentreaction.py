@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('bbs', '0001_initial'),
+        ('bbs', '0002_alter_bbspost_genre'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
