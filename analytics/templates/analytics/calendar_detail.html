@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .dwrap{ max-width:700px; margin:18px auto; padding:0 14px; }
+  .back{ font-size:22px; text-decoration:none; color:#333; }
+  .card{ background:#f3f6f6; border-radius:14px; padding:18px; margin-top:10px; }
+  .avatar{ width:70px; height:70px; border-radius:50%; background:#ddd; margin:0 auto 10px; }
+  .genre{ text-align:center; font-weight:900; margin-bottom:8px; }
+  .genre.claim{ color:#e74c3c; }
+  .genre.trouble{ color:#f1c40f; }
+  .genre.praise{ color:#2ecc71; }
+  .genre.report{ color:#3498db; }
+  .genre.other{ color:#9b59b6; }
+
+  .title{ text-align:center; font-size:22px; font-weight:900; margin:6px 0; }
+  .place{ text-align:center; color:#666; margin-bottom:10px; }
+  .body{ background:#fff; border:1px solid #cfd8d8; border-radius:10px; padding:12px; color:#333; }
+  .dt{ text-align:center; color:#777; margin-top:10px; }
+</style>
+
+<div class="dwrap">
+  <a class="back" href="javascript:history.back()">←</a>
+
+  <div class="card">
+    <div class="avatar"></div>
+
+    <div class="genre {{ genre_key }}">{{ genre_label }}</div>
+
+    <div class="title">
+      {{ report.title|default:"（タイトル未設定）" }}
+    </div>
+
+    <div class="place">
+      場所：{{ report.place|default:"-" }}
+    </div>
+
+    <div class="body">
+      {{ report.body|default:report.content|default:"（本文なし）" }}
+    </div>
+
+    <div class="dt">{{ dt_label }}</div>
+  </div>
+</div>
+{% endblock %}
