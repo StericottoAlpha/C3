@@ -60,7 +60,7 @@ docker-start:
 				-p 5433:5432 \
 				-v postgres_data:/var/lib/postgresql/data \
 				--restart unless-stopped \
-				postgres:17-alpine; \
+				pgvector/pgvector:pg17; \
 		fi \
 	else \
 		echo "PostgreSQL container is already running"; \
@@ -82,7 +82,7 @@ docker-reset:
 		-p 5433:5432 \
 		-v postgres_data:/var/lib/postgresql/data \
 		--restart unless-stopped \
-		postgres:17-alpine
+		pgvector/pgvector:pg17
 	@echo "Waiting for PostgreSQL to be ready..."
 	@sleep 5
 	@echo "Running migrations..."
