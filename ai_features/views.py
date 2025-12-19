@@ -12,6 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.db import transaction
 
+
 from ai_features.models import AIChatHistory
 
 logger = logging.getLogger(__name__)
