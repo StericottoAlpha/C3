@@ -247,6 +247,7 @@ class Command(BaseCommand):
         # 直接投稿
         direct_posts_data = [
             {
+                'genre': 'claim',
                 'store': stores['A店'], 'user': users['staff001'],
                 'title': 'ピーク時の動線改善案',
                 'content': 'ランチタイムの混雑緩和のため、テーブルレイアウトを変更してはどうでしょうか？入口から奥に向かう一方通行の動線を作ることで、お客様の流れがスムーズになると思います。',
