@@ -30,6 +30,10 @@ def bbs_register(request):
 def bbs_list(request):
     """掲示板一覧ビュー（検索・ソート機能付き）"""
     posts = BBSPost.objects.select_related('user', 'store')
+    
+    genre = request.GET.get('genre')
+    if genre:
+        posts = posts.filter(genre=genre)
 
     query = request.GET.get('query')
     if query:
@@ -46,6 +50,8 @@ def bbs_list(request):
         'posts': posts,
         'query': query,
         'sort': sort_option,
+        'genre_choices': BBSPost.GENRE_CHOICES,
+        'current_genre': genre,
     }
     return render(request, 'bbs/list.html', context)
 

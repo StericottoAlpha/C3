@@ -5,6 +5,14 @@ from django.conf import settings
 class BBSPost(models.Model):
     """掲示板投稿モデル"""
 
+    GENRE_CHOICES = [
+        ('claim', 'クレーム'),
+        ('praise', '賞賛'),
+        ('accident', '事故'),
+        ('report', '報告'),
+        ('other', 'その他'),
+    ]
+
     post_id = models.AutoField(primary_key=True, verbose_name='投稿ID')
     store = models.ForeignKey(
         'stores.Store',
@@ -26,6 +34,12 @@ class BBSPost(models.Model):
         related_name='bbs_post',
         verbose_name='日報ID'
     )
+    genre = models.CharField(
+        max_length=20, 
+        choices=GENRE_CHOICES, 
+        default='report' 
+    )
+
     title = models.CharField(max_length=200, verbose_name='タイトル')
     content = models.TextField(verbose_name='本文')
     comment_count = models.IntegerField(default=0, verbose_name='コメント数')
