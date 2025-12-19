@@ -3,10 +3,12 @@ from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from django.http import Http404
+from django.contrib import messages
 
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
-from .forms import LoginForm ,SignupForm
+from .forms import LoginForm ,SignupForm, StaffEditForm
+from django.contrib.auth.decorators import login_required
 
 # ユーザーモデルを取得
 User = get_user_model()
@@ -87,3 +89,42 @@ def signup_view(request):
         form = SignupForm()
 
     return render(request, 'accounts/signup.html', {'form': form})
+    
+
+@login_required
+def staff_list_view(request):
+    """スタッフ一覧画面（管理者・店長用）"""
+    # 権限チェック：管理者か店長以外ならホームに戻す
+    if request.user.user_type not in ['manager', 'admin']:
+        return redirect('common:index')
+
+    # 全ユーザーを取得（店舗ごと、ID順に並べる）
+    users = User.objects.select_related('store').all().order_by('store', 'user_type', 'user_id')
+    
+    return render(request, 'accounts/staff_list.html', {'users': users})
+
+
+@login_required
+def staff_edit_view(request, user_id):
+    """スタッフ情報の編集画面（管理者・店長用）"""
+    # 権限チェック
+    if request.user.user_type not in ['manager', 'admin']:
+        return redirect('common:index')
+
+    # 編集対象のユーザーを取得（見つからなければ404エラー）
+    target_user = get_object_or_404(User, user_id=user_id)
+
+    if request.method == 'POST':
+        form = StaffEditForm(request.POST, instance=target_user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"{target_user.last_name} {target_user.first_name} さんの情報を更新しました。")
+            return redirect('accounts:staff_list')
+    else:
+        form = StaffEditForm(instance=target_user)
+
+    context = {
+        'form': form,
+        'target_user': target_user,
+    }
+    return render(request, 'accounts/staff_edit.html', context)

@@ -74,3 +74,22 @@ class SignupForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+
+class StaffEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        # 編集できる項目：氏名、権限、所属店舗
+        fields = ('last_name', 'first_name', 'user_type', 'store')
+        labels = {
+            'last_name': '姓',
+            'first_name': '名',
+            'user_type': '権限',
+            'store': '所属店舗',
+        }
+        widgets = {
+            'last_name': forms.TextInput(attrs={'class': 'border border-gray-300 rounded px-3 py-2 w-full'}),
+            'first_name': forms.TextInput(attrs={'class': 'border border-gray-300 rounded px-3 py-2 w-full'}),
+            'user_type': forms.Select(attrs={'class': 'border border-gray-300 rounded px-3 py-2 w-full'}),
+            'store': forms.Select(attrs={'class': 'border border-gray-300 rounded px-3 py-2 w-full'}),
+        }

@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  :root{
+    --teal:#7fa7a5;
+    --dark:#4f4f4f;
+    --grid:#6e6e6e;
+    --date:#7fa7a5;
+
+    --red:#e74c3c;
+    --yellow:#f1c40f;
+    --green:#2ecc71;
+    --blue:#3498db;
+    --purple:#9b59b6;
+  }
+
+  .cal-wrap{ max-width: 1100px; margin: 18px auto; padding: 0 14px; }
+  .cal-head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    gap: 16px; margin-bottom: 10px;
+  }
+  .cal-year{ font-size:72px; font-weight:800; color:var(--teal); line-height:1; }
+  .cal-month{ font-size:64px; font-weight:500; color:#444; line-height:1; }
+  .cal-nav{ display:flex; gap:10px; margin-top:8px; }
+  .cal-nav a{
+    text-decoration:none; color:#333; border:1px solid #ddd;
+    padding:6px 10px; border-radius:10px; background:#fff;
+  }
+
+  .cal-table{ width:100%; border-collapse:collapse; table-layout:fixed; background:#fff; }
+  .cal-table th, .cal-table td{ border:2px solid var(--grid); }
+  .cal-table th{ color:#fff; padding:10px 0; font-weight:700; }
+  .cal-table th.sun, .cal-table th.sat{ background:var(--teal); }
+  .cal-table th.wd{ background:var(--dark); }
+
+  .cal-table td{ height:120px; vertical-align:top; position:relative; padding:10px; }
+  .cal-table td:hover{ background:#f8fafc; }
+
+  .cal-daynum{
+    position:absolute; top:8px; right:10px;
+    color:var(--date); font-weight:800; font-size:14px;
+  }
+  .cal-sales{ margin-top:18px; font-size:22px; text-align:center; color:#333; }
+  .cal-sales.muted{ color:#bbb; }
+
+  .cal-icons{
+    margin-top:10px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+  }
+  .cal-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    font-weight:800; font-size:16px; color:#333;
+  }
+  .dot{
+    width:22px; height:22px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    color:#fff; font-size:14px; line-height:1;
+  }
+  .r{ background:var(--red); }
+  .y{ background:var(--yellow); color:#333; }
+  .g{ background:var(--green); }
+  .b{ background:var(--blue); }
+  .p{ background:var(--purple); }
+
+  .out-month{ background:#fafafa; }
+  .out-month .cal-daynum{ color:#bbb; }
+  .out-month .cal-sales, .out-month .cal-icons{ opacity:.25; }
+
+  .cal-legend{
+    display:flex; gap:18px; align-items:center; flex-wrap:wrap;
+    margin-top:12px; font-size:22px; color:#444;
+  }
+  .cal-legend .item{ display:flex; align-items:center; gap:8px; }
+
+  /* =========================
+     ✅ 日付セル全面クリック用
+     ========================= */
+  .day-hit{
+    position:absolute; inset:0;
+    border:none; background:transparent;
+    cursor:pointer;
+  }
+  /* 表示は残しつつ、クリックはボタンが拾う */
+  .cal-daynum, .cal-sales, .cal-icons{ pointer-events:none; }
+
+  /* =========================
+     ✅ Bottom Sheet
+     ========================= */
+  .day-sheet-overlay{
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.35);
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s;
+    z-index: 9998;
+  }
+  .day-sheet{
+    position: fixed; left: 0; right: 0; bottom: 0;
+    background: #fff;
+    border-radius: 18px 18px 0 0;
+    transform: translateY(100%);
+    transition: transform .25s;
+    z-index: 9999;
+
+    height: 88vh;      
+    max-height: none;  
+    box-shadow: 0 -10px 30px rgba(0,0,0,.15);
+  } 
+
+  .day-sheet.is-open{ transform: translateY(0); }
+  .day-sheet-overlay.is-open{ opacity: 1; pointer-events: auto; }
+
+  .day-sheet__handle{
+    width: 48px; height: 5px; border-radius: 999px;
+    background: #ddd; margin: 10px auto 6px;
+  }
+  .day-sheet__header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid #eee;
+  }
+  .day-sheet__date{ font-weight: 800; font-size: 18px; }
+  .day-sheet__sales{ color:#666; font-size: 14px; margin-top:2px; }
+  .day-sheet__close{
+    border:none; background:transparent; font-size: 26px; line-height: 1;
+    padding: 6px 10px; cursor: pointer;
+  }
+  .day-sheet__body{ overflow:auto; padding: 10px 12px 16px; }
+
+  .day-item{
+    display:flex; align-items:center; gap:10px;
+    padding: 10px 10px;
+    border-radius: 10px;
+    text-decoration:none; color: inherit;
+  }
+  .day-item:hover{ background:#f6f6f6; }
+  .day-item__bar{ width:4px; height: 40px; border-radius: 999px; background:#999; }
+  .day-item__meta{ font-size: 12px; color:#777; }
+  .day-item__title{ font-weight: 800; }
+  .day-sheet__loading{ color:#666; padding: 10px; }
+</style>
+
+<div class="cal-wrap">
+  <div class="cal-head">
+    <div>
+      <div class="cal-year">{{ year }}</div>
+      <div class="cal-nav">
+        <a href="?year={{ prev.year }}&month={{ prev.month }}">← Prev</a>
+        <a href="?year={{ next.year }}&month={{ next.month }}">Next →</a>
+      </div>
+    </div>
+    <div class="cal-month">{{ month_name }}</div>
+  </div>
+
+  <table class="cal-table">
+    <thead>
+      <tr>
+        <th class="sun">Sunday</th>
+        <th class="wd">Monday</th>
+        <th class="wd">Tuesday</th>
+        <th class="wd">Wednesday</th>
+        <th class="wd">Thursday</th>
+        <th class="wd">Friday</th>
+        <th class="sat">Saturday</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for week in calendar_grid %}
+        <tr>
+          {% for cell in week %}
+            <td class="{% if not cell.in_month %}out-month{% endif %}">
+              <!-- ✅セル全面クリック（当月だけ反応させる） -->
+              <button type="button"
+                      class="day-hit js-open-day"
+                      data-ymd="{{ cell.date|date:'Y-m-d' }}"
+                      data-inmonth="{% if cell.in_month %}1{% else %}0{% endif %}"
+                      aria-label="Open day detail"></button>
+
+              <div class="cal-daynum">{{ cell.date|date:"j" }}</div>
+
+              {% if cell.sales_yen %}
+                <div class="cal-sales">¥{{ cell.sales_yen_str }}</div>
+              {% else %}
+                <div class="cal-sales muted">&nbsp;</div>
+              {% endif %}
+
+              <div class="cal-icons">
+                {% if cell.claim %}
+                  <span class="cal-badge"><span class="dot r">!</span>{{ cell.claim }}</span>
+                {% endif %}
+                {% if cell.trouble %}
+                  <span class="cal-badge"><span class="dot y">!</span>{{ cell.trouble }}</span>
+                {% endif %}
+                {% if cell.praise %}
+                  <span class="cal-badge"><span class="dot g">!</span>{{ cell.praise }}</span>
+                {% endif %}
+                {% if cell.report %}
+                  <span class="cal-badge"><span class="dot b">💬</span>{{ cell.report }}</span>
+                {% endif %}
+                {% if cell.other %}
+                  <span class="cal-badge"><span class="dot p">…</span>{{ cell.other }}</span>
+                {% endif %}
+              </div>
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="cal-legend">
+    <div class="item"><span class="dot r">!</span>クレーム</div>
+    <div class="item"><span class="dot y">!</span>故障</div>
+    <div class="item"><span class="dot g">!</span>賞賛</div>
+    <div class="item"><span class="dot b">💬</span>報告</div>
+    <div class="item"><span class="dot p">…</span>その他</div>
+  </div>
+</div>
+
+<!-- =========================
+     ✅ Bottom Sheet 本体
+     ========================= -->
+<div id="daySheetOverlay" class="day-sheet-overlay"></div>
+
+<div id="daySheet" class="day-sheet" aria-hidden="true">
+  <div class="day-sheet__handle"></div>
+
+  <div class="day-sheet__header">
+    <div>
+      <div id="daySheetDate" class="day-sheet__date">----</div>
+      <div id="daySheetSales" class="day-sheet__sales"></div>
+    </div>
+    <button type="button" id="daySheetClose" class="day-sheet__close">×</button>
+  </div>
+
+  <div id="daySheetBody" class="day-sheet__body">
+    <div class="day-sheet__loading">読み込み中…</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const sheet = document.getElementById("daySheet");
+  const overlay = document.getElementById("daySheetOverlay");
+  const closeBtn = document.getElementById("daySheetClose");
+  const dateEl = document.getElementById("daySheetDate");
+  const salesEl = document.getElementById("daySheetSales");
+  const bodyEl = document.getElementById("daySheetBody");
+
+  // ✅ Django reverse を使って API URL を安全に作る（__YMD__ を置換）
+  const dayApiTemplate = "{% url 'analytics:calendar_day_api' ymd='__YMD__' %}";
+
+  const openSheet = () => {
+    sheet.classList.add("is-open");
+    overlay.classList.add("is-open");
+    sheet.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  };
+  const closeSheet = () => {
+    sheet.classList.remove("is-open");
+    overlay.classList.remove("is-open");
+    sheet.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  };
+
+  closeBtn.addEventListener("click", closeSheet);
+  overlay.addEventListener("click", closeSheet);
+
+  const genreToLabel = (k) => ({
+    claim:"クレーム", trouble:"故障", praise:"賞賛", report:"報告", other:"その他"
+  }[k] || "その他");
+
+  const genreToColor = (k) => ({
+    claim:"#e74c3c", trouble:"#f1c40f", praise:"#2ecc71", report:"#3498db", other:"#9b59b6"
+  }[k] || "#9b59b6");
+
+  async function loadDay(ymd){
+    openSheet();
+    bodyEl.innerHTML = '<div class="day-sheet__loading">読み込み中…</div>';
+    salesEl.textContent = "";
+
+    try{
+      const url = dayApiTemplate.replace("__YMD__", ymd);
+      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
+      const data = await res.json();
+      if(!data.ok) throw new Error(data.error || "failed");
+
+      dateEl.textContent = data.date_label || ymd;
+
+      if (data.sales_yen !== null && data.sales_yen !== undefined){
+        salesEl.textContent = `売上：¥${data.sales_yen}`;
+      } else {
+        salesEl.textContent = "";
+      }
+
+      if(!data.items || data.items.length === 0){
+        bodyEl.innerHTML = '<div class="day-sheet__loading">この日の記録はありません</div>';
+        return;
+      }
+
+      bodyEl.innerHTML = data.items.map(item => {
+        const bar = genreToColor(item.genre_key);
+        const meta = `${genreToLabel(item.genre_key)}${item.place ? "｜" + item.place : ""}｜${item.time || ""}`;
+        return `
+          <a class="day-item" href="${item.detail_url}">
+            <div class="day-item__bar" style="background:${bar}"></div>
+            <div style="flex:1">
+              <div class="day-item__meta">${meta}</div>
+              <div class="day-item__title">${(item.title || "（タイトル未設定）")}</div>
+            </div>
+          </a>
+        `;
+      }).join("");
+
+    }catch(e){
+      console.error(e);
+      bodyEl.innerHTML = `<div class="day-sheet__loading">取得に失敗しました</div>`;
+    }
+  }
+
+  document.querySelectorAll(".js-open-day").forEach(btn => {
+    btn.addEventListener("click", () => {
+      // 当月以外は開かない（必要なら外してOK）
+      if (btn.dataset.inmonth === "0") return;
+
+      const ymd = btn.dataset.ymd;
+      if(ymd) loadDay(ymd);
+    });
+  });
+})();
+</script>
+{% endblock %}
