@@ -30,7 +30,7 @@ class UserManager(BaseUserManager):
             # デフォルトの本部店舗を取得または作成
             store, created = Store.objects.get_or_create(
                 store_name='本部',
-                defaults={'address': '本部所在地', 'sales_target': ''}
+                defaults={'address': '本部所在地'}
             )
             extra_fields['store'] = store
 

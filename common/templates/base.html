@@ -32,7 +32,7 @@
 
     <!-- ボトムナビ（ログイン時のみ・全画面共通） -->
     {% if user.is_authenticated %}
-        {% include "common/bottom_nav.html" %}
+        {% include "common/components/bottom_nav.html" %}
     {% endif %}
 
     {% block extra_js %}{% endblock %}
