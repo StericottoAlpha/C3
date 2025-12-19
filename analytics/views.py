@@ -6,9 +6,9 @@ from .services import AnalyticsService
 
 
 @login_required
-def dashboard(request):
+def dashboard(request, default_scope='own'):
     """分析ダッシュボード画面"""
-    return render(request, 'analytics/dashboard.html')
+    return render(request, 'analytics/dashboard.html', {'default_scope': default_scope})
 
 
 @login_required
@@ -20,18 +20,30 @@ def get_graph_data(request):
     offset = int(request.GET.get('offset', 0))
     genre = request.GET.get('genre', None)
 
-    # ユーザーの所属店舗を取得
-    store = request.user.store
-    if not store:
-        return JsonResponse({'error': '店舗が設定されていません'}, status=400)
+    # スコープ（own/all）を取得
+    scope = request.GET.get('scope', 'own')
+    if scope == 'all':
+        store = None
+    else:
+        # ユーザーの所属店舗を取得
+        store = request.user.store
+        if not store:
+            return JsonResponse({'error': '店舗が設定されていません'}, status=400)
 
     # 期間の日付範囲とラベルを計算
     start_date, end_date, period_label = AnalyticsService.calculate_period_dates(period, offset)
 
+    # 全店舗のときは場所別インシデントに限り自動的に比較モード（自店舗 vs 他店平均）にする
+    base_store = None
+    if scope == 'all' and graph_type == 'incident_by_location':
+        base_store = request.user.store
+        if not base_store:
+            return JsonResponse({'error': '店舗が設定されていません'}, status=400)
+
     # グラフデータを取得
     try:
         result = AnalyticsService.get_graph_data_by_type(
-            graph_type, store, start_date, end_date, genre
+            graph_type, store, start_date, end_date, genre, base_store
         )
     except ValueError as e:
         return JsonResponse({'error': str(e)}, status=400)
@@ -46,11 +58,15 @@ def get_graph_data(request):
         'end_date': end_date.isoformat(),
     }
 
-    # datasetsがある場合（積み上げグラフ）とない場合（折れ線グラフ）で分岐
+    # datasetsがある場合（積み上げグラフ or 複数ライン）とない場合（単一折れ線）で分岐
     if 'datasets' in chart_data:
         response_data['datasets'] = chart_data['datasets']
     else:
         response_data['data'] = chart_data['data']
+
+    # chart_kind があればクライアントに返す（例: 'line'）
+    if 'chart_kind' in chart_data:
+        response_data['chart_kind'] = chart_data['chart_kind']
 
     return JsonResponse(response_data)
 
