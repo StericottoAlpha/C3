@@ -118,7 +118,7 @@ def staff_edit_view(request, user_id):
         form = StaffEditForm(request.POST, instance=target_user)
         if form.is_valid():
             form.save()
-            messages.success(request, f"{target_user.last_name} {target_user.first_name} さんの情報を更新しました。")
+            messages.success(request, f"{target_user.user_id} の編集を保存しました。")
             return redirect('accounts:staff_list')
     else:
         form = StaffEditForm(instance=target_user)
