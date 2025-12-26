@@ -55,13 +55,6 @@
                 </form>
             </div>
             
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
 
             {% if posts %}
                 <div class="space-y-4">
@@ -94,33 +87,25 @@
                         <div class="flex items-center justify-between text-sm text-gray-500">
                             <div class="flex items-center gap-4">
                                 
-                                <!-- ユーザー -->
                                 <div class="flex items-center gap-1">
-                                    <!-- icon -->
                                     <span>{{ post.user.username }}</span>
                                 </div>
 
-                                <!-- 店舗 -->
                                 <div class="flex items-center gap-1">
-                                    <!-- icon -->
                                     <span>{{ post.store.store_name }}</span>
                                 </div>
 
-                                <!-- コメント数 -->
                                 <div class="flex items-center gap-1">
-                                    <!-- icon -->
                                     <span>{{ post.comment_count }}件</span>
                                 </div>
 
                                 {% if post.report %}
                                     <div class="flex items-center gap-1">
-                                        <!-- icon -->
                                         <span>日報関連</span>
                                     </div>
                                 {% endif %}
                             </div>
 
-                            <!-- リアクション -->
                             <div class="flex gap-2">
                                 {% is_reacted post user 'naruhodo' as is_naruhodo %}
                                 {% count_reactions post 'naruhodo' as naruhodo_count %}
