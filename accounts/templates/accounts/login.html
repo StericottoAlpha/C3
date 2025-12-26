@@ -1,87 +1,112 @@
 {% extends 'accounts/base_auth.html' %}
-
-{% block title %}Login - C3 ステリコットα{% endblock %}
-
-{% block error_messages %}
-    {% if form.non_field_errors %}
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center">
-            <span class="mr-2">⚠️</span>
-            <span class="text-sm">{{ form.non_field_errors.0 }}</span>
-        </div>
-    {% endif %}
-{% endblock %}
+{% block title %}Login - GenbaNote{% endblock %}
+{% block error_messages %}{% endblock %}
 
 {% block auth_content %}
 <form method="post" novalidate>
-    {% csrf_token %}
+  {% csrf_token %}
 
-    <!-- User ID Field -->
-    <div class="mb-6">
-        <label for="id_username" class="flex items-center text-gray-600 text-sm font-medium mb-2">
-            <span class="mr-2">🆔</span>
-            User ID
-        </label>
-        <input
-            type="text"
-            name="username"
-            id="id_username"
-            class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg text-base transition-all focus:outline-none focus:border-primary focus:bg-white"
-            placeholder="sample"
-            value="{{ form.username.value|default:'' }}"
-            required
-        >
-        <p class="text-xs text-gray-400 mt-1">Half-width alphanumeric characters</p>
+  {% if form.non_field_errors %}
+    <div class="mb-4 text-sm" style="color:#b91c1c;">
+      {{ form.non_field_errors.0 }}
     </div>
+  {% endif %}
 
-    <!-- Password Field -->
-    <div class="mb-8">
-        <label for="id_password" class="flex items-center text-gray-600 text-sm font-medium mb-2">
-            <span class="mr-2">🔒</span>
-            Password
-        </label>
-        <div class="relative">
-            <input
-                type="password"
-                name="password"
-                id="id_password"
-                class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-lg text-base transition-all focus:outline-none focus:border-primary focus:bg-white pr-12"
-                placeholder="********"
-                required
-            >
-            <button
-                type="button"
-                onclick="togglePassword()"
-                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 text-xl"
-            >
-                <span id="password-toggle-icon">👁️</span>
-            </button>
-        </div>
-        <p class="text-xs text-gray-400 mt-1">Half-width alphanumeric characters</p>
-    </div>
-
-    <!-- Login Button -->
-    <button
-        type="submit"
-        class="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 rounded-lg transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+  <!-- User ID -->
+  <div class="mb-5">
+    <label for="id_username" class="block text-sm font-medium mb-2" style="color:#111827;">
+      ユーザーID
+    </label>
+    <input
+      type="text"
+      name="username"
+      id="id_username"
+      value="{{ form.username.value|default:'' }}"
+      placeholder="sample"
+      required
+      class="w-full h-12 px-4 rounded-xl bg-white border focus:outline-none"
+      style="
+        border-color: {{ form.username.errors|yesno:'#ef4444,#cbd5e1' }};
+        box-shadow: 0 0 0 0 rgba(0,0,0,0);
+      "
+      autocomplete="username"
     >
-        Login
-    </button>
+    <p class="mt-2 text-xs" style="color:#64748b;">半角英数字のみ</p>
+    {% if form.username.errors %}
+      <p class="mt-2 text-xs" style="color:#ef4444;">{{ form.username.errors.0 }}</p>
+    {% endif %}
+  </div>
+
+  <!-- Password -->
+  <div class="mb-6">
+    <label for="id_password" class="block text-sm font-medium mb-2" style="color:#111827;">
+      パスワード
+    </label>
+
+    <div class="relative">
+      <input
+        type="password"
+        name="password"
+        id="id_password"
+        placeholder="Password"
+        required
+        class="w-full h-12 px-4 pr-12 rounded-xl bg-white border focus:outline-none"
+        style="border-color: {{ form.password.errors|yesno:'#ef4444,#cbd5e1' }};"
+        autocomplete="current-password"
+      >
+      <button
+        type="button"
+        class="absolute right-3 top-1/2 -translate-y-1/2"
+        style="color:#475569;"
+        onclick="togglePassword()"
+        aria-label="パスワード表示切替"
+      >
+        <svg id="eye-open" width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <svg id="eye-closed" class="hidden" width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M10.6 10.6a2.5 2.5 0 0 0 3.5 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M2 12s3.5-7 10-7c2 0 3.7.6 5.1 1.5M22 12s-3.5 7-10 7c-2 0-3.7-.6-5.1-1.5"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <p class="mt-2 text-xs" style="color:#64748b;">半角英数字のみ</p>
+    {% if form.password.errors %}
+      <p class="mt-2 text-xs" style="color:#ef4444;">{{ form.password.errors.0 }}</p>
+    {% endif %}
+  </div>
+
+  <!-- Submit -->
+  <button
+    type="submit"
+    class="w-full h-12 rounded-xl font-semibold text-white transition"
+    style="background:#0f766e;"
+    onmouseover="this.style.background='#115e59'"
+    onmouseout="this.style.background='#0f766e'"
+  >
+    ログイン
+  </button>
+
+  <div class="mt-5 text-center text-xs" style="color:#64748b;">
+    ※ID・パスワードを忘れた場合は管理者に連絡してください
+  </div>
 </form>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    function togglePassword() {
-        const passwordInput = document.getElementById('id_password');
-        const toggleIcon = document.getElementById('password-toggle-icon');
-
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            toggleIcon.textContent = '🙈';
-        } else {
-            passwordInput.type = 'password';
-            toggleIcon.textContent = '👁️';
-        }
-    }
+  function togglePassword(){
+    const input = document.getElementById('id_password');
+    const open = document.getElementById('eye-open');
+    const closed = document.getElementById('eye-closed');
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    open.classList.toggle('hidden', isPassword);
+    closed.classList.toggle('hidden', !isPassword);
+  }
 </script>
 {% endblock %}

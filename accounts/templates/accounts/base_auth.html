@@ -1,16 +1,52 @@
 {% extends 'base.html' %}
 
-{% block body_class %}bg-gradient-to-br from-teal-200 to-teal-400 min-h-screen flex items-center justify-center p-5{% endblock %}
+{% block body_class %}
+bg-gradient-to-br from-teal-200 to-teal-400 min-h-screen flex items-center justify-center p-5
+{% endblock %}
 
 {% block body %}
-<div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
-    <!-- Logo Section -->
-    <div class="text-center mb-10">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-full mb-3">
-            <span class="text-white text-2xl font-bold">C3</span>
+{# headを触らなくてもフォントが効くように body内で読み込み #}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+</style>
+
+<div class="bg-slate-50 border border-slate-200 rounded-3xl shadow-2xl w-full max-w-md p-8"
+     style="font-family: Inter, 'Noto Sans JP', system-ui, -apple-system, Segoe UI, sans-serif;">
+
+    <!-- Logo + Wordmark（Chatwork風：左アイコン / 右タイトル） -->
+    <div class="flex items-center justify-center gap-3 mb-3">
+        <!-- Logo mark（PDCAサイクル） -->
+        <div class="w-11 h-11 rounded-2xl grid place-items-center"
+             style="background: rgba(15,118,110,.12); border:1px solid rgba(15,118,110,.22);">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <!-- P/D/C/A（四点） -->
+              <circle cx="12" cy="5" r="2.1" fill="#0f766e"/>   <!-- P -->
+              <circle cx="19" cy="12" r="2.1" fill="#14b8a6"/>  <!-- D -->
+              <circle cx="12" cy="19" r="2.1" fill="#22c55e"/>  <!-- C -->
+              <circle cx="5" cy="12" r="2.1" fill="#0ea5e9"/>   <!-- A -->
+
+              <!-- サイクル矢印（円弧） -->
+              <path d="M6.5 9.5A7 7 0 0 1 12 5" stroke="#111827" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M14.5 5.5A7 7 0 0 1 19 10.5" stroke="#111827" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M18.5 14.5A7 7 0 0 1 13.5 19" stroke="#111827" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M9.5 18.5A7 7 0 0 1 5 13.5" stroke="#111827" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
         </div>
-        <h1 class="text-3xl font-bold text-gray-800">TitleApp</h1>
+
+        <!-- Wordmark -->
+        <div class="leading-none">
+            <span class="text-4xl sm:text-5xl font-extrabold tracking-tight" style="letter-spacing:-0.02em;">
+                <span class="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
+                    GenbaNote
+                </span>
+            </span>
+        </div>
     </div>
+
+    <!-- Subtitle（職場改善×日報活用） -->
+    <p class="text-center mt-3 mb-8 text-sm sm:text-base text-gray-500">
+        日報活用で、職場改善をはじめよう。
+    </p>
 
     <!-- Error Messages Block -->
     {% block error_messages %}{% endblock %}
@@ -19,3 +55,4 @@
     {% block auth_content %}{% endblock %}
 </div>
 {% endblock %}
+
