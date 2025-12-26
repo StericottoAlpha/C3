@@ -133,3 +133,239 @@ class BBSServiceTests(TestCase):
         
         # モックは呼ばれている
         mock_vectorize.assert_called_once()
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_bbs_comment')
+    def test_update_comment(self, mock_vectorize):
+        """コメント更新のテスト"""
+        mock_vectorize.return_value = True
+
+        # 投稿とコメントを作成
+        post = BBSPost.objects.create(
+            store=self.store,
+            user=self.user,
+            title="投稿",
+            content="内容",
+            genre="claim"
+        )
+
+        comment = BBSComment.objects.create(
+            post=post,
+            user=self.user,
+            content="古いコメント"
+        )
+
+        # 更新内容
+        update_fields = {
+            'content': '新しいコメント',
+            'is_best_answer': True
+        }
+
+        # サービスの実行
+        updated_comment = BBSService.update_comment(comment, update_fields)
+
+        # 1. DBが更新されたか確認
+        comment.refresh_from_db()
+        self.assertEqual(comment.content, '新しいコメント')
+        self.assertTrue(comment.is_best_answer)
+
+        # 2. ベクトル化（再生成）が呼ばれたか確認
+        mock_vectorize.assert_called_once_with(comment.comment_id)
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_bbs_post')
+    def test_revectorize_post_success(self, mock_vectorize):
+        """投稿の再ベクトル化が成功することを確認"""
+        mock_vectorize.return_value = True
+
+        post = BBSPost.objects.create(
+            store=self.store,
+            user=self.user,
+            title="投稿",
+            content="内容",
+            genre="claim"
+        )
+
+        result = BBSService.revectorize_post(post.post_id)
+
+        self.assertTrue(result)
+        mock_vectorize.assert_called_once_with(post.post_id)
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_bbs_post')
+    def test_revectorize_post_failure(self, mock_vectorize):
+        """投稿の再ベクトル化が失敗した場合Falseを返すことを確認"""
+        mock_vectorize.return_value = False
+
+        post = BBSPost.objects.create(
+            store=self.store,
+            user=self.user,
+            title="投稿",
+            content="内容",
+            genre="claim"
+        )
+
+        result = BBSService.revectorize_post(post.post_id)
+
+        self.assertFalse(result)
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_bbs_post')
+    def test_revectorize_post_exception(self, mock_vectorize):
+        """投稿の再ベクトル化でエラーが発生した場合Falseを返すことを確認"""
+        mock_vectorize.side_effect = Exception("Vectorization error")
+
+        post = BBSPost.objects.create(
+            store=self.store,
+            user=self.user,
+            title="投稿",
+            content="内容",
+            genre="claim"
+        )
+
+        result = BBSService.revectorize_post(post.post_id)
+
+        self.assertFalse(result)
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_bbs_comment')
+    def test_revectorize_comment_success(self, mock_vectorize):
+        """コメントの再ベクトル化が成功することを確認"""
+        mock_vectorize.return_value = True
+
+        post = BBSPost.objects.create(
+            store=self.store,
+            user=self.user,
+            title="投稿",
+            content="内容",
+            genre="claim"
+        )
+
+        comment = BBSComment.objects.create(
+            post=post,
+            user=self.user,
+            content="コメント"
+        )
+
+        result = BBSService.revectorize_comment(comment.comment_id)
+
+        self.assertTrue(result)
+        mock_vectorize.assert_called_once_with(comment.comment_id)
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_bbs_comment')
+    def test_revectorize_comment_failure(self, mock_vectorize):
+        """コメントの再ベクトル化が失敗した場合Falseを返すことを確認"""
+        mock_vectorize.return_value = False
+
+        post = BBSPost.objects.create(
+            store=self.store,
+            user=self.user,
+            title="投稿",
+            content="内容",
+            genre="claim"
+        )
+
+        comment = BBSComment.objects.create(
+            post=post,
+            user=self.user,
+            content="コメント"
+        )
+
+        result = BBSService.revectorize_comment(comment.comment_id)
+
+        self.assertFalse(result)
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_bbs_comment')
+    def test_revectorize_comment_exception(self, mock_vectorize):
+        """コメントの再ベクトル化でエラーが発生した場合Falseを返すことを確認"""
+        mock_vectorize.side_effect = Exception("Vectorization error")
+
+        post = BBSPost.objects.create(
+            store=self.store,
+            user=self.user,
+            title="投稿",
+            content="内容",
+            genre="claim"
+        )
+
+        comment = BBSComment.objects.create(
+            post=post,
+            user=self.user,
+            content="コメント"
+        )
+
+        result = BBSService.revectorize_comment(comment.comment_id)
+
+        self.assertFalse(result)
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_bbs_post')
+    def test_update_post_vectorization_failure(self, mock_vectorize):
+        """ベクトル化が失敗しても、投稿更新自体は成功することを確認"""
+        # 最初の作成時はFalseを返す（更新時もFalseを返すように）
+        mock_vectorize.return_value = False
+
+        post = BBSPost.objects.create(
+            store=self.store,
+            user=self.user,
+            title="元のタイトル",
+            content="元の内容",
+            genre="claim"
+        )
+
+        # ベクトル化失敗をシミュレート
+        mock_vectorize.side_effect = Exception("AI Service Down")
+
+        update_fields = {'title': '更新されたタイトル'}
+        updated_post = BBSService.update_post(post, update_fields)
+
+        # 投稿は更新されている
+        post.refresh_from_db()
+        self.assertEqual(post.title, '更新されたタイトル')
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_bbs_comment')
+    def test_create_comment_vectorization_failure(self, mock_vectorize):
+        """ベクトル化が失敗しても、コメント作成自体は成功することを確認"""
+        mock_vectorize.side_effect = Exception("AI Service Down")
+
+        post = BBSPost.objects.create(
+            store=self.store,
+            user=self.user,
+            title="投稿",
+            content="内容",
+            comment_count=0
+        )
+
+        comment = BBSService.create_comment(
+            post=post,
+            user=self.user,
+            content="コメント内容"
+        )
+
+        # コメントは作成されている
+        self.assertEqual(BBSComment.objects.count(), 1)
+        self.assertEqual(comment.content, "コメント内容")
+
+        # コメント数も更新されている
+        post.refresh_from_db()
+        self.assertEqual(post.comment_count, 1)
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_bbs_comment')
+    def test_update_comment_vectorization_failure(self, mock_vectorize):
+        """ベクトル化が失敗しても、コメント更新自体は成功することを確認"""
+        post = BBSPost.objects.create(
+            store=self.store,
+            user=self.user,
+            title="投稿",
+            content="内容"
+        )
+
+        comment = BBSComment.objects.create(
+            post=post,
+            user=self.user,
+            content="元のコメント"
+        )
+
+        # ベクトル化失敗をシミュレート
+        mock_vectorize.side_effect = Exception("AI Service Down")
+
+        update_fields = {'content': '更新されたコメント'}
+        updated_comment = BBSService.update_comment(comment, update_fields)
+
+        # コメントは更新されている
+        comment.refresh_from_db()
+        self.assertEqual(comment.content, '更新されたコメント')

@@ -74,3 +74,148 @@ class DailyReportServiceTests(TestCase):
 
         # ベクトル化処理が呼ばれたか
         mock_vectorize.assert_called_with(report.report_id)
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_daily_report')
+    def test_create_report_vectorization_failure(self, mock_vectorize):
+        """ベクトル化が失敗しても日報作成は成功することを確認"""
+        # ベクトル化でエラーを発生させる
+        mock_vectorize.side_effect = Exception("AI Service Down")
+
+        report = DailyReportService.create_report(
+            store=self.store,
+            user=self.user,
+            date=self.today,
+            genre='accident',
+            location='toilet',
+            title='エラー耐性テスト',
+            content='ベクトル化失敗しても保存される',
+            post_to_bbs=False
+        )
+
+        # 日報は作成されている
+        self.assertEqual(DailyReport.objects.count(), 1)
+        self.assertEqual(report.title, 'エラー耐性テスト')
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_daily_report')
+    def test_create_report_vectorization_returns_false(self, mock_vectorize):
+        """ベクトル化がFalseを返しても日報作成は成功することを確認"""
+        mock_vectorize.return_value = False
+
+        report = DailyReportService.create_report(
+            store=self.store,
+            user=self.user,
+            date=self.today,
+            genre='other',
+            location='other',
+            title='ベクトル化失敗テスト',
+            content='内容',
+            post_to_bbs=False
+        )
+
+        # 日報は作成されている
+        self.assertEqual(DailyReport.objects.count(), 1)
+        mock_vectorize.assert_called_once()
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_daily_report')
+    def test_update_report_vectorization_failure(self, mock_vectorize):
+        """ベクトル化が失敗しても日報更新は成功することを確認"""
+        report = DailyReport.objects.create(
+            store=self.store,
+            user=self.user,
+            date=self.today,
+            genre='report',
+            location='hall',
+            title='元のタイトル',
+            content='元の内容'
+        )
+
+        # ベクトル化失敗をシミュレート
+        mock_vectorize.side_effect = Exception("AI Service Down")
+
+        update_fields = {'title': '更新されたタイトル', 'content': '更新された内容'}
+        updated_report = DailyReportService.update_report(report, update_fields)
+
+        # 日報は更新されている
+        report.refresh_from_db()
+        self.assertEqual(report.title, '更新されたタイトル')
+        self.assertEqual(report.content, '更新された内容')
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_daily_report')
+    def test_update_report_vectorization_returns_false(self, mock_vectorize):
+        """ベクトル化がFalseを返しても日報更新は成功することを確認"""
+        report = DailyReport.objects.create(
+            store=self.store,
+            user=self.user,
+            date=self.today,
+            genre='claim',
+            location='kitchen',
+            title='元のタイトル',
+            content='元の内容'
+        )
+
+        mock_vectorize.return_value = False
+
+        update_fields = {'genre': 'praise'}
+        updated_report = DailyReportService.update_report(report, update_fields)
+
+        # 日報は更新されている
+        report.refresh_from_db()
+        self.assertEqual(report.genre, 'praise')
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_daily_report')
+    def test_revectorize_report_success(self, mock_vectorize):
+        """日報の再ベクトル化が成功することを確認"""
+        mock_vectorize.return_value = True
+
+        report = DailyReport.objects.create(
+            store=self.store,
+            user=self.user,
+            date=self.today,
+            genre='report',
+            location='hall',
+            title='日報',
+            content='内容'
+        )
+
+        result = DailyReportService.revectorize_report(report.report_id)
+
+        self.assertTrue(result)
+        mock_vectorize.assert_called_once_with(report.report_id)
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_daily_report')
+    def test_revectorize_report_failure(self, mock_vectorize):
+        """日報の再ベクトル化が失敗した場合Falseを返すことを確認"""
+        mock_vectorize.return_value = False
+
+        report = DailyReport.objects.create(
+            store=self.store,
+            user=self.user,
+            date=self.today,
+            genre='report',
+            location='hall',
+            title='日報',
+            content='内容'
+        )
+
+        result = DailyReportService.revectorize_report(report.report_id)
+
+        self.assertFalse(result)
+
+    @patch('ai_features.services.core_services.VectorizationService.vectorize_daily_report')
+    def test_revectorize_report_exception(self, mock_vectorize):
+        """日報の再ベクトル化でエラーが発生した場合Falseを返すことを確認"""
+        mock_vectorize.side_effect = Exception("Vectorization error")
+
+        report = DailyReport.objects.create(
+            store=self.store,
+            user=self.user,
+            date=self.today,
+            genre='report',
+            location='hall',
+            title='日報',
+            content='内容'
+        )
+
+        result = DailyReportService.revectorize_report(report.report_id)
+
+        self.assertFalse(result)
