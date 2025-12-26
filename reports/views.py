@@ -42,7 +42,6 @@ def report_register(request):
                     comment_count=0
                 )
 
-            messages.success(request, '日報を登録しました。')
             return redirect('common:index')  # ホーム画面にリダイレクト
         else:
             messages.error(request, '入力内容に誤りがあります。')

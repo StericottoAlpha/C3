@@ -19,10 +19,9 @@ def bbs_register(request):
             bbs_post.user = request.user
             bbs_post.store = request.user.store
             bbs_post.save()
-            messages.success(request, '掲示板に投稿しました。')
             return redirect('bbs:list')
         else:
-            messages.error(request, '入力内容にエラーがあります。')
+            pass
     else:
         form = BBSPostForm(user=request.user)
 
@@ -99,9 +98,8 @@ def bbs_comment(request, bbs_id):
             bbs_comment.user = request.user
             bbs_comment.post = bbs_post
             bbs_comment.save()
-            messages.success(request, 'コメントを投稿しました。')
         else:
-            messages.error(request, 'コメントの投稿に失敗しました。')
+            pass
 
     return redirect('bbs:detail', bbs_id=bbs_id)
 
