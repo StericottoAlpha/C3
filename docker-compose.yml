@@ -5,7 +5,7 @@ services:
     container_name: c3-app-postgres
     environment:
       POSTGRES_DB: c3_app_dev
-      POSTGRES_USER: c3SS
+      POSTGRES_USER: c3
       POSTGRES_PASSWORD: password
     ports:
       - "5433:5432"
