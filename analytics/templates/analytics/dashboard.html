@@ -37,10 +37,11 @@
       </label>
     </div>
 
-    <!-- 期間切り替え（週/月） -->
+    <!-- 期間切り替え（週/月/プレビュー） -->
     <div class="flex gap-2">
       <button id="btn-week" class="px-4 py-2 border border-gray-300 rounded-lg text-sm cursor-pointer transition-colors hover:bg-gray-50 bg-blue-500 text-white border-blue-500" onclick="changePeriod('week')">週</button>
       <button id="btn-month" class="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm cursor-pointer transition-colors hover:bg-gray-50" onclick="changePeriod('month')">月</button>
+      <button id="btn-preview" class="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm cursor-pointer transition-colors hover:bg-gray-50" onclick="changePeriod('preview')">プレビュー</button>
     </div>
   </div>
 
@@ -81,6 +82,25 @@
       </div>
     </div>
   </div>
+
+  <!-- 場所別インシデント推移グラフ（場所別インシデント選択時のみ表示） -->
+  <div id="location-trend-section" class="mt-6 hidden">
+    <div class="bg-white p-5 rounded-lg shadow-sm">
+      <div class="mb-4">
+        <label for="location-select" class="block text-sm font-semibold text-gray-700 mb-2">場所を選択</label>
+        <select id="location-select" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="all">全て</option>
+          <option value="kitchen">キッチン</option>
+          <option value="hall">ホール</option>
+          <option value="cashier">レジ</option>
+          <option value="toilet">トイレ</option>
+          <option value="other">その他</option>
+        </select>
+      </div>
+      <div id="location-trend-loading" class="text-center py-10 text-gray-500 hidden">データを読み込み中...</div>
+      <canvas id="location-trend-chart" class="hidden"></canvas>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -88,6 +108,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
   let currentChart = null;
+  let locationTrendChart = null;
   let currentOffset = 0;
   let currentPeriod = localStorage.getItem('analytics_period') || 'week';
   let currentGraphType = localStorage.getItem('analytics_graph_type') || 'sales';
@@ -95,6 +116,7 @@
   let currentScope = localStorage.getItem('analytics_scope') || '{{ default_scope|default:"own" }}';
   let currentGoalYear = null;
   let currentGoalMonth = null;
+  let currentLocation = 'all';
 
   // スコープ切替（自店舗 / 全店舗）
   document.querySelectorAll('input[name="scope"]').forEach(function(radio) {
@@ -125,12 +147,15 @@
     currentGraphType = e.target.value;
     localStorage.setItem('analytics_graph_type', currentGraphType);
 
-    // 場所別インシデントの場合、ジャンルフィルタを表示
+    // 場所別インシデントの場合、ジャンルフィルタと場所別推移セクションを表示
     const genreFilter = document.getElementById('genre-filter');
+    const locationTrendSection = document.getElementById('location-trend-section');
     if (currentGraphType === 'incident_by_location') {
       genreFilter.classList.remove('hidden');
+      locationTrendSection.classList.remove('hidden');
     } else {
       genreFilter.classList.add('hidden');
+      locationTrendSection.classList.add('hidden');
     }
 
     // 週/月切り替えボタンの表示/非表示
@@ -155,11 +180,19 @@
     currentGenre = e.target.value;
     localStorage.setItem('analytics_genre', currentGenre);
     loadGraph();
+    // 場所選択済みの場合は場所別推移グラフも更新
+    if (currentLocation) {
+      loadLocationTrendGraph();
+    }
   });
 
+  // 場所選択
+  document.getElementById('location-select').addEventListener('change', function(e) {
+    currentLocation = e.target.value;
+    loadLocationTrendGraph();
+  });
 
-
-  // 期間切り替え（週/月）
+  // 期間切り替え（週/月/プレビュー）
   function changePeriod(period) {
     currentPeriod = period;
     localStorage.setItem('analytics_period', period);
@@ -168,24 +201,55 @@
     // ボタンのアクティブ状態を切り替え
     const weekBtn = document.getElementById('btn-week');
     const monthBtn = document.getElementById('btn-month');
+    const previewBtn = document.getElementById('btn-preview');
 
+    // すべてのボタンを非アクティブに
+    [weekBtn, monthBtn, previewBtn].forEach(btn => {
+      btn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+      btn.classList.add('bg-white');
+    });
+
+    // 選択されたボタンをアクティブに
+    let activeBtn;
     if (period === 'week') {
-      weekBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
-      weekBtn.classList.remove('bg-white');
-      monthBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
-      monthBtn.classList.add('bg-white');
-    } else {
-      monthBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
-      monthBtn.classList.remove('bg-white');
-      weekBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
-      weekBtn.classList.add('bg-white');
+      activeBtn = weekBtn;
+    } else if (period === 'month') {
+      activeBtn = monthBtn;
+    } else if (period === 'preview') {
+      activeBtn = previewBtn;
     }
 
-    // 月次目標の場合は目標を再読み込み
-    if (currentGraphType === 'monthly_goal') {
-      loadMonthlyGoal();
+    if (activeBtn) {
+      activeBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+      activeBtn.classList.remove('bg-white');
+    }
+
+    // プレビューモードの場合は上部のグラフを非表示
+    const mainGraphContainer = document.querySelector('.bg-white.p-5.rounded-lg.shadow-sm');
+    if (period === 'preview' && currentGraphType === 'incident_by_location') {
+      if (mainGraphContainer) {
+        mainGraphContainer.style.display = 'none';
+      }
+      // 場所別推移グラフのみ更新
+      if (currentLocation) {
+        loadLocationTrendGraph();
+      }
     } else {
-      loadGraph();
+      // 週・月モードの場合は上部のグラフを表示
+      if (mainGraphContainer) {
+        mainGraphContainer.style.display = 'block';
+      }
+
+      // 月次目標の場合は目標を再読み込み
+      if (currentGraphType === 'monthly_goal') {
+        loadMonthlyGoal();
+      } else {
+        loadGraph();
+        // 場所選択済みの場合は場所別推移グラフも更新
+        if (currentGraphType === 'incident_by_location' && currentLocation) {
+          loadLocationTrendGraph();
+        }
+      }
     }
   }
 
@@ -201,6 +265,10 @@
     } else {
       currentOffset += direction;
       loadGraph();
+      // 場所選択済みの場合は場所別推移グラフも更新
+      if (currentGraphType === 'incident_by_location' && currentLocation) {
+        loadLocationTrendGraph();
+      }
     }
   }
 
@@ -520,6 +588,90 @@
     });
   }
 
+  // 場所別インシデント推移グラフを読み込み
+  function loadLocationTrendGraph() {
+    // ローディング表示
+    document.getElementById('location-trend-loading').classList.remove('hidden');
+    document.getElementById('location-trend-chart').classList.add('hidden');
+
+    // APIからデータ取得
+    let url = `/analysis/api/graph-data/?graph_type=incident_trend_by_location&period=${currentPeriod}&offset=${currentOffset}&location=${currentLocation}`;
+
+    // ジャンルフィルタがある場合は追加
+    if (currentGenre) {
+      url += `&genre=${currentGenre}`;
+    }
+
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('データの取得に失敗しました');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // 折れ線グラフ描画
+        drawLocationTrendChart(data);
+
+        // ローディング非表示
+        document.getElementById('location-trend-loading').classList.add('hidden');
+        document.getElementById('location-trend-chart').classList.remove('hidden');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('location-trend-loading').classList.add('hidden');
+      });
+  }
+
+  // 場所別インシデント推移グラフを描画
+  function drawLocationTrendChart(data) {
+    const ctx = document.getElementById('location-trend-chart').getContext('2d');
+
+    // 既存のグラフを破棄
+    if (locationTrendChart) {
+      locationTrendChart.destroy();
+    }
+
+    // 折れ線グラフを作成
+    locationTrendChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.labels,
+        datasets: [{
+          label: data.title,
+          data: data.data,
+          borderColor: 'rgb(59, 130, 246)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderWidth: 2,
+          tension: 0.1,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          title: {
+            display: true,
+            text: data.title
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
+            }
+          }
+        }
+      }
+    });
+  }
+
   // 月次目標を読み込み
   function loadMonthlyGoal() {
     // 既存のグラフを破棄
@@ -611,25 +763,36 @@
     const genreFilter = document.getElementById('genre-filter');
     genreFilter.value = currentGenre;
 
-    // 場所別インシデントの場合、ジャンルフィルタを表示
+    // 場所別インシデントの場合、ジャンルフィルタと場所別推移セクションを表示
     if (currentGraphType === 'incident_by_location') {
       genreFilter.classList.remove('hidden');
+      document.getElementById('location-trend-section').classList.remove('hidden');
     }
 
-    // 週/月ボタンの状態を復元
+    // 週/月/プレビューボタンの状態を復元
     const weekBtn = document.getElementById('btn-week');
     const monthBtn = document.getElementById('btn-month');
+    const previewBtn = document.getElementById('btn-preview');
 
+    // すべてのボタンを非アクティブに
+    [weekBtn, monthBtn, previewBtn].forEach(btn => {
+      btn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+      btn.classList.add('bg-white');
+    });
+
+    // 選択されたボタンをアクティブに
+    let activeBtn;
     if (currentPeriod === 'week') {
-      weekBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
-      weekBtn.classList.remove('bg-white');
-      monthBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
-      monthBtn.classList.add('bg-white');
-    } else {
-      monthBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
-      monthBtn.classList.remove('bg-white');
-      weekBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
-      weekBtn.classList.add('bg-white');
+      activeBtn = weekBtn;
+    } else if (currentPeriod === 'month') {
+      activeBtn = monthBtn;
+    } else if (currentPeriod === 'preview') {
+      activeBtn = previewBtn;
+    }
+
+    if (activeBtn) {
+      activeBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+      activeBtn.classList.remove('bg-white');
     }
 
     // スコープラジオの初期値をセット
@@ -649,7 +812,22 @@
       monthBtn.classList.add('hidden');
       loadMonthlyGoal();
     } else {
-      loadGraph();
+      // プレビューモードかつ場所別インシデントの場合
+      if (currentPeriod === 'preview' && currentGraphType === 'incident_by_location') {
+        // 上部のグラフを非表示
+        const mainGraphContainer = document.querySelector('.bg-white.p-5.rounded-lg.shadow-sm');
+        if (mainGraphContainer) {
+          mainGraphContainer.style.display = 'none';
+        }
+        // 場所別推移グラフのみ表示
+        loadLocationTrendGraph();
+      } else {
+        loadGraph();
+        // 場所別インシデントの場合、場所別推移グラフも表示
+        if (currentGraphType === 'incident_by_location') {
+          loadLocationTrendGraph();
+        }
+      }
     }
   });
 </script>
