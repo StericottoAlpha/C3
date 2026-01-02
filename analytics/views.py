@@ -193,6 +193,7 @@ def get_graph_data(request):
     period = request.GET.get('period', 'week')
     offset = int(request.GET.get('offset', 0))
     genre = request.GET.get('genre', None)
+    location = request.GET.get('location', None)
 
     # ユーザーの所属店舗を取得
     store = request.user.store
@@ -205,7 +206,7 @@ def get_graph_data(request):
     # グラフデータを取得
     try:
         result = AnalyticsService.get_graph_data_by_type(
-            graph_type, store, start_date, end_date, genre
+            graph_type, store, start_date, end_date, genre, period=period, location=location
         )
     except ValueError as e:
         return JsonResponse({'error': str(e)}, status=400)
