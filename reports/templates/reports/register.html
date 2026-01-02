@@ -90,7 +90,7 @@
 
                 <!-- ボタン -->
                 <div class="flex justify-between pt-4">
-                    <a href="{% url 'common:index' %}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                    <a href="{{ request.GET.next|default:'/' }}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
                         キャンセル
                     </a>
                     <button type="submit" class="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition">
