@@ -3,86 +3,187 @@
 {% block title %}掲示板投稿 - C3 ステリコットα{% endblock %}
 
 {% block content %}
-<div class="min-h-screen py-8 px-4">
-    <div class="max-w-3xl mx-auto">
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-6">掲示板投稿</h1>
+<div class="min-h-screen bg-[#b9cfcc] relative overflow-hidden pb-44">
 
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
+  <!-- 背景：うっすら紙感 + グラデ -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-b from-white/12 via-transparent to-black/5"></div>
+    <div class="absolute inset-0 opacity-[0.06]"
+         style="background-image: radial-gradient(rgba(0,0,0,.35) 0.6px, transparent 0.6px);
+                background-size: 12px 12px;"></div>
+  </div>
 
-            <form method="post" class="space-y-6">
-                {% csrf_token %}
+  <!-- 背景装飾（控えめ：波紋＋ドット） -->
+  <div class="absolute inset-0 pointer-events-none z-0">
+    <div class="absolute left-6 top-16 w-32 h-32 rounded-full border border-white/22"></div>
+    <div class="absolute right-8 top-28 w-24 h-24 rounded-full border border-white/18"></div>
+    <div class="absolute left-8 bottom-28 w-40 h-40 rounded-full border border-white/16"></div>
+    <div class="absolute -right-14 -bottom-10 w-52 h-52 rounded-full border border-white/14"></div>
 
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <p class="text-sm text-gray-600">投稿者情報</p>
-                    <div class="mt-2 space-y-1">
-                        <p class="text-gray-800"><span class="font-medium">ユーザーID:</span> {{ user.user_id }}</p>
-                        <p class="text-gray-800"><span class="font-medium">店舗:</span> {{ user.store.store_name }}</p>
-                    </div>
-                </div>
+    <div class="absolute left-10 top-64 w-2 h-2 rounded-full bg-[#2f2f2f]/16"></div>
+    <div class="absolute left-24 top-80 w-1.5 h-1.5 rounded-full bg-[#2f2f2f]/20"></div>
+    <div class="absolute right-16 top-72 w-1.5 h-1.5 rounded-full bg-[#2f2f2f]/20"></div>
+    <div class="absolute right-10 bottom-72 w-2 h-2 rounded-full bg-[#2f2f2f]/14"></div>
+    <div class="absolute left-16 bottom-80 w-1.5 h-1.5 rounded-full bg-[#2f2f2f]/18"></div>
+  </div>
 
-                <div>
-                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.title.label }}
-                        <span class="text-red-500">*</span>
-                    </label>
-                    {{ form.title }}
-                    {% if form.title.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
-                    {% endif %}
-                </div>
+  <!-- ヘッダー -->
+  <div class="relative z-10 max-w-3xl mx-auto px-4 pt-8">
+    <div class="flex items-start justify-between gap-3">
+      <!-- 戻る -->
+      <a href="{% url 'bbs:list' %}"
+         class="shrink-0 inline-flex items-center gap-2 text-[#2f2f2f] bg-white/60 hover:bg-white/80
+                border border-white/60 rounded-full px-4 py-2 shadow-sm transition">
+        <span class="text-lg">←</span>
+        <span class="text-sm font-semibold">戻る</span>
+      </a>
 
-                <div>
-                    <label for="{{ form.genre.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.genre.label }}
-                        <span class="text-red-500">*</span>
-                    </label>
-                    {{ form.genre }}
-                    {% if form.genre.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.genre.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <div>
-                    <label for="{{ form.content.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.content.label }}
-                        <span class="text-red-500">*</span>
-                    </label>
-                    {{ form.content }}
-                    {% if form.content.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.content.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <div>
-                    <label for="{{ form.report.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.report.label }}
-                    </label>
-                    {{ form.report }}
-                    {% if form.report.help_text %}
-                        <p class="mt-1 text-sm text-gray-500">{{ form.report.help_text }}</p>
-                    {% endif %}
-                    {% if form.report.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.report.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="flex gap-4 pt-4">
-                    <button type="submit" class="flex-1 bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-lg transition duration-200">
-                        投稿する
-                    </button>
-                    <a href="{% url 'bbs:list' %}" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-lg text-center transition duration-200">
-                        キャンセル
-                    </a>
-                </div>
-            </form>
-        </div>
+      <!-- タイトル -->
+      <div class="flex-1 text-right">
+        <h1 class="text-2xl sm:text-3xl font-bold text-[#2f2f2f] tracking-wide">掲示板投稿</h1>
+        <p class="mt-1 text-sm text-white/90">チームへ共有したい内容を投稿します</p>
+      </div>
     </div>
+
+    <!-- メッセージ -->
+    {% if messages %}
+      <div class="mt-5 space-y-3">
+        {% for message in messages %}
+          <div class="rounded-2xl px-4 py-3 shadow-sm border border-white/60 bg-white/70
+                      {% if message.tags == 'error' %}text-rose-800{% else %}text-emerald-800{% endif %}">
+            <p class="text-sm font-semibold">
+              {% if message.tags == 'error' %}⚠️{% else %}✅{% endif %}
+              {{ message }}
+            </p>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- 本体カード -->
+  <div class="relative z-10 max-w-3xl mx-auto px-4 mt-6">
+    <div class="bg-white/75 border border-white/70 rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.14)] overflow-hidden">
+      <div class="px-5 sm:px-7 py-6">
+
+        <!-- 投稿者情報 -->
+        <div class="rounded-2xl border border-black/10 bg-white/55 p-4 mb-6">
+          <div class="flex items-start gap-3">
+            <div class="w-12 h-12 rounded-2xl bg-black/5 flex items-center justify-center">
+              <span class="text-xl">👤</span>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-bold text-[#2f2f2f]">投稿者情報</p>
+              <div class="mt-2 text-sm text-[#2f2f2f]/80 space-y-1">
+                <p><span class="font-semibold text-[#2f2f2f]">ユーザーID：</span>{{ user.user_id }}</p>
+                <p><span class="font-semibold text-[#2f2f2f]">店舗：</span>{{ user.store.store_name }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <form method="post" class="space-y-6" id="bbsPostForm">
+          {% csrf_token %}
+
+          <!-- タイトル -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label for="{{ form.title.id_for_label }}" class="text-sm font-bold text-[#2f2f2f]">
+                タイトル
+              </label>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                必須
+              </span>
+            </div>
+            <div class="rounded-xl border border-black/10 bg-white/70 px-3 py-2 focus-within:ring-2 focus-within:ring-black/10">
+              {{ form.title }}
+            </div>
+            {% if form.title.errors %}
+              <p class="mt-2 text-sm text-rose-700 font-semibold">⚠️ {{ form.title.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- ジャンル -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label for="{{ form.genre.id_for_label }}" class="text-sm font-bold text-[#2f2f2f]">
+                ジャンル
+              </label>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                必須
+              </span>
+            </div>
+            <div class="rounded-xl border border-black/10 bg-white/70 px-3 py-2 focus-within:ring-2 focus-within:ring-black/10">
+              {{ form.genre }}
+            </div>
+            {% if form.genre.errors %}
+              <p class="mt-2 text-sm text-rose-700 font-semibold">⚠️ {{ form.genre.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- 内容 -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label for="{{ form.content.id_for_label }}" class="text-sm font-bold text-[#2f2f2f]">
+                内容
+              </label>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                必須
+              </span>
+            </div>
+            <div class="rounded-xl border border-black/10 bg-white/70 px-3 py-2 focus-within:ring-2 focus-within:ring-black/10">
+              {{ form.content }}
+            </div>
+            {% if form.content.errors %}
+              <p class="mt-2 text-sm text-rose-700 font-semibold">⚠️ {{ form.content.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- 関連日報（任意） -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label for="{{ form.report.id_for_label }}" class="text-sm font-bold text-[#2f2f2f]">
+                関連する日報
+              </label>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/5 text-[#2f2f2f]/70 border border-black/10">
+                任意
+              </span>
+            </div>
+            <div class="rounded-xl border border-black/10 bg-white/70 px-3 py-2 focus-within:ring-2 focus-within:ring-black/10">
+              {{ form.report }}
+            </div>
+            {% if form.report.help_text %}
+              <p class="mt-2 text-xs text-[#2f2f2f]/60">{{ form.report.help_text }}</p>
+            {% endif %}
+            {% if form.report.errors %}
+              <p class="mt-2 text-sm text-rose-700 font-semibold">⚠️ {{ form.report.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- ✅ 下部アクション（ボトムナビと被らない） -->
+          <div class="pt-2">
+            <div class="sticky bottom-24">
+              <div class="bg-white/80 backdrop-blur border border-white/70 rounded-2xl
+                          shadow-[0_12px_24px_rgba(0,0,0,0.16)] p-3 flex items-center gap-3">
+                <a href="{% url 'bbs:list' %}"
+                   class="flex-1 text-center py-3 rounded-xl border border-black/10 bg-white/70 hover:bg-white transition
+                          font-bold text-[#2f2f2f]">
+                  キャンセル
+                </a>
+                <button type="submit"
+                        class="flex-[1.2] py-3 rounded-xl bg-primary hover:bg-primary-dark text-white transition
+                               font-bold shadow">
+                  投稿する
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

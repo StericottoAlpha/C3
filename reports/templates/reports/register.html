@@ -3,117 +3,277 @@
 {% block title %}日報登録 - C3 ステリコットα{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-2xl mx-auto">
-        <!-- ヘッダー -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">日報登録</h1>
-            <p class="mt-2 text-sm text-gray-600">発生した出来事を記録してください</p>
+<div class="min-h-screen bg-[#b9cfcc] relative overflow-hidden pb-44">
+
+  <!-- 背景：うっすら紙感 + グラデ -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-b from-white/12 via-transparent to-black/5"></div>
+    <div class="absolute inset-0 opacity-[0.06]"
+         style="background-image: radial-gradient(rgba(0,0,0,.35) 0.6px, transparent 0.6px);
+                background-size: 12px 12px;"></div>
+  </div>
+
+  <!-- 背景装飾（控えめ：波紋＋ドット） -->
+  <div class="absolute inset-0 pointer-events-none z-0">
+    <div class="absolute left-6 top-16 w-32 h-32 rounded-full border border-white/22"></div>
+    <div class="absolute right-8 top-28 w-24 h-24 rounded-full border border-white/18"></div>
+    <div class="absolute left-8 bottom-28 w-40 h-40 rounded-full border border-white/16"></div>
+    <div class="absolute -right-14 -bottom-10 w-52 h-52 rounded-full border border-white/14"></div>
+
+    <div class="absolute left-10 top-64 w-2 h-2 rounded-full bg-[#2f2f2f]/16"></div>
+    <div class="absolute left-24 top-80 w-1.5 h-1.5 rounded-full bg-[#2f2f2f]/20"></div>
+    <div class="absolute right-16 top-72 w-1.5 h-1.5 rounded-full bg-[#2f2f2f]/20"></div>
+    <div class="absolute right-10 bottom-72 w-2 h-2 rounded-full bg-[#2f2f2f]/14"></div>
+    <div class="absolute left-16 bottom-80 w-1.5 h-1.5 rounded-full bg-[#2f2f2f]/18"></div>
+  </div>
+
+  <!-- ヘッダー（戻る＋タイトルのみ） -->
+  <div class="relative z-10 max-w-2xl mx-auto px-4 pt-8">
+    <div class="flex items-start justify-between gap-3">
+      <!-- 左：戻る -->
+      <a href="{% url 'common:index' %}"
+         class="shrink-0 inline-flex items-center gap-2 text-[#2f2f2f] bg-white/60 hover:bg-white/80
+                border border-white/60 rounded-full px-4 py-2 shadow-sm transition">
+        <span class="text-lg">←</span>
+        <span class="text-sm font-semibold">戻る</span>
+      </a>
+
+      <!-- 右：タイトル＋説明 -->
+      <div class="flex-1">
+        <div class="text-right">
+          <h1 class="text-2xl sm:text-3xl font-bold text-[#2f2f2f] tracking-wide">日報登録</h1>
+          <p class="mt-1 text-sm text-white/90">発生した出来事を記録してください</p>
         </div>
-
-        <!-- メッセージ表示 -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-50 text-green-800{% else %}bg-red-50 text-red-800{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <!-- フォーム -->
-        <div class="bg-white shadow-md rounded-lg p-6">
-            <form method="post" enctype="multipart/form-data" class="space-y-6">
-                {% csrf_token %}
-
-                <!-- ジャンル -->
-                <div>
-                    <label for="{{ form.genre.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.genre.label }} <span class="text-red-500">*</span>
-                    </label>
-                    {{ form.genre }}
-                    {% if form.genre.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.genre.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- 発生場所 -->
-                <div>
-                    <label for="{{ form.location.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.location.label }} <span class="text-red-500">*</span>
-                    </label>
-                    {{ form.location }}
-                    {% if form.location.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.location.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- 件名 -->
-                <div>
-                    <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.title.label }} <span class="text-red-500">*</span>
-                    </label>
-                    {{ form.title }}
-                    {% if form.title.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.title.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- コメント -->
-                <div>
-                    <label for="{{ form.content.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.content.label }} <span class="text-red-500">*</span>
-                    </label>
-                    {{ form.content }}
-                    {% if form.content.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.content.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- 写真 -->
-                <div>
-                    <label for="{{ form.image.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        {{ form.image.label }}
-                    </label>
-                    {{ form.image }}
-                    {% if form.image.errors %}
-                        <p class="mt-1 text-sm text-red-600">{{ form.image.errors.0 }}</p>
-                    {% endif %}
-                </div>
-
-                <!-- 掲示板に投稿 -->
-                <div class="flex items-center">
-                    {{ form.post_to_bbs }}
-                    <label for="{{ form.post_to_bbs.id_for_label }}" class="ml-2 text-sm text-gray-700">
-                        {{ form.post_to_bbs.label }}
-                    </label>
-                </div>
-
-                <!-- ボタン -->
-                <div class="flex justify-between pt-4">
-                    <a href="{% url 'common:index' %}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
-                        キャンセル
-                    </a>
-                    <button type="submit" class="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition">
-                        登録する
-                    </button>
-                </div>
-            </form>
-        </div>
+      </div>
     </div>
+
+    <!-- メッセージ表示 -->
+    {% if messages %}
+      <div class="mt-5 space-y-3">
+        {% for message in messages %}
+          <div class="rounded-2xl px-4 py-3 shadow-sm border border-white/60
+                      {% if message.tags == 'success' %}bg-white/70 text-emerald-800{% else %}bg-white/70 text-rose-800{% endif %}">
+            <p class="text-sm font-semibold">
+              {% if message.tags == 'success' %}✅{% else %}⚠️{% endif %}
+              {{ message }}
+            </p>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- フォーム本体 -->
+  <div class="relative z-10 max-w-2xl mx-auto px-4 mt-6">
+    <div class="bg-white/75 border border-white/70 rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.14)] overflow-hidden">
+      <div class="px-5 sm:px-7 py-6">
+        <form id="reportForm" method="post" enctype="multipart/form-data" class="space-y-6">
+          {% csrf_token %}
+
+          <!-- ジャンル -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label for="{{ form.genre.id_for_label }}" class="text-sm font-bold text-[#2f2f2f]">
+                ジャンル
+              </label>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                必須
+              </span>
+            </div>
+
+            <div class="rounded-xl border border-black/10 bg-white/70 px-3 py-2 focus-within:ring-2 focus-within:ring-black/10">
+              {{ form.genre }}
+            </div>
+
+            {% if form.genre.errors %}
+              <p class="mt-2 text-sm text-rose-700 font-semibold">⚠️ {{ form.genre.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- 発生場所 -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label for="{{ form.location.id_for_label }}" class="text-sm font-bold text-[#2f2f2f]">
+                発生場所
+              </label>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                必須
+              </span>
+            </div>
+
+            <div class="rounded-xl border border-black/10 bg-white/70 px-3 py-2 focus-within:ring-2 focus-within:ring-black/10">
+              {{ form.location }}
+            </div>
+
+            {% if form.location.errors %}
+              <p class="mt-2 text-sm text-rose-700 font-semibold">⚠️ {{ form.location.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- 件名 -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label for="{{ form.title.id_for_label }}" class="text-sm font-bold text-[#2f2f2f]">
+                件名
+              </label>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                必須
+              </span>
+            </div>
+
+            <div class="rounded-xl border border-black/10 bg-white/70 px-3 py-2 focus-within:ring-2 focus-within:ring-black/10">
+              {{ form.title }}
+            </div>
+
+            {% if form.title.errors %}
+              <p class="mt-2 text-sm text-rose-700 font-semibold">⚠️ {{ form.title.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- 内容 -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label for="{{ form.content.id_for_label }}" class="text-sm font-bold text-[#2f2f2f]">
+                内容
+              </label>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                必須
+              </span>
+            </div>
+
+            <div class="rounded-xl border border-black/10 bg-white/70 px-3 py-2 focus-within:ring-2 focus-within:ring-black/10">
+              {{ form.content }}
+            </div>
+
+            <div class="mt-2 text-xs text-[#2f2f2f]/60">
+              できるだけ具体的に書くと、あとで振り返りやすいです。
+            </div>
+
+            {% if form.content.errors %}
+              <p class="mt-2 text-sm text-rose-700 font-semibold">⚠️ {{ form.content.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- 写真 -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <label for="{{ form.image.id_for_label }}" class="text-sm font-bold text-[#2f2f2f]">
+                写真
+              </label>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/5 text-[#2f2f2f]/70 border border-black/10">
+                任意
+              </span>
+            </div>
+
+            <label class="block rounded-2xl border border-dashed border-black/15 bg-white/55 hover:bg-white/70 transition cursor-pointer p-4">
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-black/5 flex items-center justify-center">
+                  <span class="text-xl">📷</span>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold text-[#2f2f2f]">写真を追加</p>
+                  <p class="text-xs text-[#2f2f2f]/60 mt-1">
+                    タップして選択（1枚） / 画像は記録の補助に使えます
+                  </p>
+                  <p id="imageFileName" class="mt-2 text-xs text-[#2f2f2f]/70 hidden"></p>
+                </div>
+              </div>
+
+              <div class="hidden">
+                {{ form.image }}
+              </div>
+            </label>
+
+            <div id="imagePreviewWrap" class="mt-3 hidden">
+              <div class="rounded-2xl overflow-hidden border border-black/10 bg-white/60">
+                <img id="imagePreview" alt="画像プレビュー" class="w-full max-h-64 object-cover">
+              </div>
+            </div>
+
+            {% if form.image.errors %}
+              <p class="mt-2 text-sm text-rose-700 font-semibold">⚠️ {{ form.image.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- 掲示板に投稿 -->
+          <div class="rounded-2xl border border-black/10 bg-white/55 p-4">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-bold text-[#2f2f2f]">掲示板に投稿</p>
+                <p class="text-xs text-[#2f2f2f]/60 mt-1">
+                  チームに共有したい内容はONにしてください
+                </p>
+              </div>
+              <div class="flex items-center gap-2">
+                {{ form.post_to_bbs }}
+                <label for="{{ form.post_to_bbs.id_for_label }}" class="text-sm text-[#2f2f2f]/70">
+                  ON
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- ✅ 入力の下：キャンセル＆投稿（ボトムナビと被らない） -->
+          <div class="pt-2">
+            <div class="sticky bottom-24">
+              <div class="bg-white/80 backdrop-blur border border-white/70 rounded-2xl
+                          shadow-[0_12px_24px_rgba(0,0,0,0.16)] p-3 flex items-center gap-3">
+                <a href="{% url 'common:index' %}"
+                   class="flex-1 text-center py-3 rounded-xl border border-black/10 bg-white/70 hover:bg-white transition
+                          font-bold text-[#2f2f2f]">
+                  キャンセル
+                </a>
+                <button type="submit"
+                        class="flex-[1.2] py-3 rounded-xl bg-primary hover:bg-primary-dark text-white transition
+                               font-bold shadow">
+                  投稿する
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // 画像プレビュー機能（オプション）
+  // 画像プレビュー
+  (function() {
     const imageInput = document.getElementById('{{ form.image.id_for_label }}');
-    if (imageInput) {
-        imageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                console.log(`画像が選択されました: ${file.name}`);
-            }
-        });
-    }
+    const fileNameEl = document.getElementById('imageFileName');
+    const previewWrap = document.getElementById('imagePreviewWrap');
+    const previewImg = document.getElementById('imagePreview');
+
+    if (!imageInput) return;
+
+    imageInput.addEventListener('change', function(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) {
+        fileNameEl.classList.add('hidden');
+        previewWrap.classList.add('hidden');
+        return;
+      }
+
+      fileNameEl.textContent = `選択中：${file.name}`;
+      fileNameEl.classList.remove('hidden');
+
+      if (file.type && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          previewImg.src = ev.target.result;
+          previewWrap.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+      } else {
+        previewWrap.classList.add('hidden');
+      }
+    });
+  })();
 </script>
 {% endblock %}
+
