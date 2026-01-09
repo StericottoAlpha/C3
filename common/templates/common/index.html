@@ -9,7 +9,7 @@
         <h1 class="text-6xl font-bold mb-4">
             {% now "m.d" %} <span class="text-2xl">{% now "D" %}</span>
         </h1>
-        <p class="text-lg opacity-90">おはようございます</p>
+        <p class="text-lg opacity-90" id="greeting-text">おはようございます</p>
         
         <p class="text-2xl font-bold mt-2">
             {% if user.last_name and user.first_name %}
@@ -44,4 +44,23 @@
     </a>
 
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const greetingElement = document.getElementById('greeting-text');
+    if (!greetingElement) return;
+
+    const hour = new Date().getHours();
+    let text = '';
+
+    if (hour >= 5 && hour < 11) {
+        text = 'おはようございます';
+    } else if (hour >= 11 && hour < 18) {
+        text = 'こんにちは';
+    } else {
+        text = 'こんばんは';
+    }
+
+    greetingElement.textContent = text;
+});
+</script>
 {% endblock %}
