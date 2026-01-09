@@ -94,7 +94,7 @@
       </span>
     </div>
 
-    <p class="mt-3 text-lg text-white/90">おはようございます</p>
+    <p class="text-lg opacity-90" id="greeting-text">おはようございます</p>
 
     <p class="mt-1 text-2xl font-bold">
       {% if user.last_name and user.first_name %}
@@ -191,5 +191,24 @@
 </a>
 
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const greetingElement = document.getElementById('greeting-text');
+    if (!greetingElement) return;
+
+    const hour = new Date().getHours();
+    let text = '';
+
+    if (hour >= 5 && hour < 11) {
+        text = 'おはようございます';
+    } else if (hour >= 11 && hour < 18) {
+        text = 'こんにちは';
+    } else {
+        text = 'こんばんは';
+    }
+
+    greetingElement.textContent = text;
+});
+</script>
 {% endblock %}
 
