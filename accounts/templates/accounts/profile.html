@@ -62,34 +62,35 @@
           <p class="mt-1 text-lg font-bold text-[#2f2f2f]">{{ full_name }}</p>
         </div>
 
-        <!-- 権限 -->
-        <div class="rounded-2xl border border-black/10 bg-white/70 px-4 py-3 flex items-center justify-between gap-3">
-          <div>
-            <p class="text-xs font-bold text-[#2f2f2f]/55">権限</p>
-            <p class="mt-1 text-sm text-[#2f2f2f]/80">あなたのアカウント種別</p>
-          </div>
-
-          <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-black/10 bg-black/5 text-[#2f2f2f] font-bold text-sm">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            {{ role }}
-          </span>
+        <!-- 権限（少し控えめ） -->
+        <div class="rounded-2xl border border-black/10 bg-white/70 px-4 py-3">
+          <p class="text-xs font-bold text-[#2f2f2f]/55">権限</p>
+          <p class="mt-1 text-base font-semibold text-[#2f2f2f]/80">{{ role }}</p>
         </div>
 
-        <!-- ユーザーID -->
+
+        <!-- ユーザーID（コピーできるボタンに変更） -->
         <div class="rounded-2xl border border-black/10 bg-white/70 px-4 py-3">
           <p class="text-xs font-bold text-[#2f2f2f]/55">ユーザーID</p>
-          <div class="mt-1 flex items-center justify-between gap-3">
-            <p class="font-mono text-sm text-[#2f2f2f]/80 break-all">{{ user_id }}</p>
 
-            <!-- コピーっぽい見た目（動作は付けない：必要ならJS追加する） -->
-            <span class="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-black/5 border border-black/10 text-xs font-bold text-[#2f2f2f]/70">
+          <div class="mt-1 flex items-center justify-between gap-3">
+            <p id="user-id-text" class="font-mono text-sm text-[#2f2f2f]/80 break-all">{{ user_id }}</p>
+
+            <button type="button"
+                    id="copy-id-btn"
+                    class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-black/5 border border-black/10
+                           text-xs font-bold text-[#2f2f2f]/75 hover:bg-black/10 transition"
+                    data-copy-text="{{ user_id }}"
+                    aria-label="ユーザーIDをコピー">
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M8 8h10v12H8V8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                 <path d="M6 16H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               </svg>
-              ID
-            </span>
+              <span id="copy-id-label">コピー</span>
+            </button>
           </div>
+
+          <p id="copy-id-msg" class="mt-2 text-xs text-emerald-700 font-bold hidden">コピーしました</p>
         </div>
 
         <!-- 所属店舗 -->
@@ -125,4 +126,55 @@
 
   </div>
 </div>
+
+<script>
+  (function () {
+    const btn = document.getElementById('copy-id-btn');
+    const label = document.getElementById('copy-id-label');
+    const msg = document.getElementById('copy-id-msg');
+
+    if (!btn) return;
+
+    const original = label ? label.textContent : 'コピー';
+    let timer = null;
+
+    function showCopied() {
+      if (label) label.textContent = 'コピー済み';
+      if (msg) msg.classList.remove('hidden');
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (label) label.textContent = original;
+        if (msg) msg.classList.add('hidden');
+      }, 1400);
+    }
+
+    btn.addEventListener('click', async () => {
+      const text = btn.getAttribute('data-copy-text') || '';
+      if (!text) return;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          showCopied();
+          return;
+        }
+
+        // フォールバック（http開発環境でも動く）
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showCopied();
+      } catch (e) {
+        // 失敗時：何もしない（必要ならアラート出してもOK）
+        console.error(e);
+      }
+    });
+  })();
+</script>
 {% endblock %}
