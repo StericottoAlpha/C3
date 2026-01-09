@@ -171,7 +171,25 @@
       // その他の場合は週/月ボタンを表示
       weekBtn.classList.remove('hidden');
       monthBtn.classList.remove('hidden');
-      loadGraph();
+      // ▼▼▼ 修正: プレビューモードかつ場所別インシデントの場合の判定を追加 ▼▼▼
+      const mainGraphContainer = document.querySelector('.bg-white.p-5.rounded-lg.shadow-sm');
+      
+      if (currentPeriod === 'preview' && currentGraphType === 'incident_by_location') {
+        // プレビュー×場所別インシデントならメイングラフを隠す
+        if (mainGraphContainer) {
+          mainGraphContainer.style.display = 'none';
+        }
+        // 下部の推移グラフだけ更新（場所選択済みの場合）
+        if (currentLocation) {
+          loadLocationTrendGraph();
+        }
+      } else {
+        // それ以外ならメイングラフを表示して読み込む
+        if (mainGraphContainer) {
+          mainGraphContainer.style.display = 'block';
+        }
+        loadGraph();
+      }
     }
   });
 
@@ -332,7 +350,11 @@
     const hasDatasets = data.datasets !== undefined;
     const chartKind = data.chart_kind || (hasDatasets ? 'bar' : 'line');
     const chartType = chartKind;
-    // 比較モード（自店舗 vs 他店平均）が有効かどうかを判定
+    
+    // 比較モード（自店舗 vs 他店平均）判定
+    // 今回の変更で、比較モードは「差異」を表示するようになったため、
+    // 従来の side-by-side 比較用の判定（'（自店舗）'を含むラベル）は false になりますが、
+    // それにより通常の積み上げ棒グラフとして描画されるため、期待通りの挙動（上下に伸びる）となります。
     let compareMode = false;
     if (chartKind === 'bar' && hasDatasets) {
       compareMode = data.datasets.some(ds => ds.label && ds.label.indexOf('（自店舗）') !== -1);
@@ -342,77 +364,37 @@
     // データセットの準備
     let datasets;
     if (chartKind === 'bar' && hasDatasets) {
-      // 比較モード（自店舗 vs 他店平均）の場合はグループ化して横並びの棒にする
-      if (compareMode) {
-        // 比較モードでは「自店舗」と「他店平均」いずれも自店舗と同じ外観に揃える
-        datasets = data.datasets.map((dataset, index) => {
-          const baseColor = dataset.backgroundColor;
+      // 棒グラフ（場所別インシデントなど）
+      datasets = data.datasets.map((dataset, index) => {
+        // グラデーション生成
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        const baseColor = dataset.backgroundColor;
+        let gradientApplied = false;
 
-          // 可能ならグラデーションを生成（非比較の積み上げ棒と同じ処理）
-          const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-          let gradientApplied = false;
-
-          if (typeof baseColor === 'string') {
-            const rgbaMatch = baseColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-            if (rgbaMatch) {
-              const r = rgbaMatch[1], g = rgbaMatch[2], b = rgbaMatch[3];
-              gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.9)`);
-              gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.6)`);
-              gradientApplied = true;
-            }
+        if (typeof baseColor === 'string') {
+          const rgbaMatch = baseColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+          if (rgbaMatch) {
+            const r = rgbaMatch[1], g = rgbaMatch[2], b = rgbaMatch[3];
+            gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.9)`);
+            gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.6)`);
+            gradientApplied = true;
           }
+        }
 
-          return {
-            ...dataset,
-            backgroundColor: gradientApplied ? gradient : baseColor,
-            borderWidth: 0,
-            // borderRadius を削除し、代わりに以下を追加
-            borderRadius: 6,      // 全体に適用
-            borderSkipped: 'bottom', // 下側の角を丸くしない設定
-            barPercentage: 0.8,
-            categoryPercentage: 0.9
-          };
-        });
-      } else {
-        // 通常の積み上げ棒グラフ用（場所別インシデントなど）
-        datasets = data.datasets.map((dataset, index) => {
-          const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-          const baseColor = dataset.backgroundColor;
-          let gradientApplied = false;
-
-          if (typeof baseColor === 'string') {
-            const rgbaMatch = baseColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-            if (rgbaMatch) {
-              const r = rgbaMatch[1], g = rgbaMatch[2], b = rgbaMatch[3];
-              gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.9)`);
-              gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.6)`);
-              gradientApplied = true;
-            }
-          }
-
-          return {
-            ...dataset,
-            backgroundColor: gradientApplied ? gradient : baseColor,
-            borderWidth: 0,
-            borderRadius: {
-              topLeft: 8,
-              topRight: 8,
-              bottomLeft: 8,
-              bottomRight: 8
-            },
-            borderSkipped: false,
-            // 棒幅を広くして見やすくする
-            barPercentage: 0.9,
-            categoryPercentage: 1.0,
-            // 固定幅を設定
-            barThickness: 36,
-            // 最大幅を制限
-            maxBarThickness: 80
-          };
-        });
-      }
+        return {
+          ...dataset,
+          backgroundColor: gradientApplied ? gradient : baseColor,
+          borderWidth: 0,
+          borderRadius: 4, // 角丸を少し控えめに
+          borderSkipped: false, // 全ての角を丸くする
+          barPercentage: 0.9,
+          categoryPercentage: 1.0,
+          barThickness: 36,
+          maxBarThickness: 80
+        };
+      });
     } else if (chartKind === 'line' && hasDatasets) {
-      // 複数ライン（全店舗表示）
+      // 複数ライン（全店舗表示など）
       datasets = data.datasets.map((dataset, index) => {
         const border = dataset.borderColor || 'rgb(59, 130, 246)';
         let bg = dataset.backgroundColor || border;
@@ -443,9 +425,33 @@
       }];
     }
 
-    // y軸の目盛りステップを決定（比較モードでは小数表示を許容）
+    let yMin = 0; // デフォルト
+    let yMax = undefined; // デフォルト（自動）
+    
+    // 全店舗モードの場所別インシデント（差異グラフ）の場合
+    if (currentGraphType === 'incident_by_location' && currentScope === 'all') {
+        let maxAbs = 0;
+        // 全データセットの全データから、絶対値の最大を探す
+        datasets.forEach(ds => {
+            if (Array.isArray(ds.data)) {
+                ds.data.forEach(val => {
+                    const abs = Math.abs(val);
+                    if (abs > maxAbs) maxAbs = abs;
+                });
+            }
+        });
+
+        const limit = Math.ceil(maxAbs) + 0.5;
+        
+        // プラスマイナス対称に設定することで0が中央に来る
+        yMax = limit;
+        yMin = -limit;
+    }
+
+    // y軸の設定
     let yStepSize = currentGraphType === 'sales' ? 100000 : (currentGraphType === 'customer_count' ? 100 : 1);
-    if (compareMode && chartType === 'bar' && currentGraphType !== 'sales' && currentGraphType !== 'customer_count') {
+    // 差異グラフの場合は小数を許容する
+    if (currentGraphType === 'incident_by_location' && currentScope === 'all') {
       yStepSize = 0.5;
     }
 
@@ -467,7 +473,6 @@
           legend: {
             display: true,
             position: 'top',
-            // grouped-stacked 比較表示のときは凡例を「場所ごと」にまとめて表示し、クリックでその場所の自/他両方をトグル
             labels: {
               usePointStyle: true,
               pointStyle: 'circle',
@@ -477,61 +482,52 @@
                 weight: '500'
               },
               generateLabels: function(chart) {
-                // compareMode のときのみユニークな場所ラベルを生成
-                if (!compareMode) {
-                  return Chart.overrides && Chart.overrides.plugins && Chart.overrides.plugins.legend && Chart.overrides.plugins.legend.labels && Chart.overrides.plugins.legend.labels.generateLabels ? Chart.overrides.plugins.legend.labels.generateLabels(chart) : Chart.defaults.plugins.legend.labels.generateLabels(chart);
-                }
-                const datasets = chart.data.datasets || [];
-                const unique = {};
-                datasets.forEach((d, i) => {
-                  const loc = d.location_label || ('' + d.label).replace(/（.*）$/, '');
-                  if (!unique[loc]) {
-                    unique[loc] = { text: loc, fillStyle: d.backgroundColor, hidden: false, datasetIndex: i };
+                  // 従来の比較モードのときだけ特殊なラベル生成を行う
+                  if (compareMode) {
+                    const datasets = chart.data.datasets || [];
+                    const unique = {};
+                    datasets.forEach((d, i) => {
+                      const loc = d.location_label || ('' + d.label).replace(/（.*）$/, '');
+                      if (!unique[loc]) {
+                        unique[loc] = { text: loc, fillStyle: d.backgroundColor, hidden: false, datasetIndex: i };
+                      }
+                    });
+                    return Object.keys(unique).map(k => ({ text: unique[k].text, fillStyle: unique[k].fillStyle, hidden: unique[k].hidden, datasetIndex: unique[k].datasetIndex }));
                   }
-                });
-                return Object.keys(unique).map(k => ({ text: unique[k].text, fillStyle: unique[k].fillStyle, hidden: unique[k].hidden, datasetIndex: unique[k].datasetIndex }));
+                  // それ以外（通常、および今回の差異グラフ）はデフォルト
+                  return Chart.defaults.plugins.legend.labels.generateLabels(chart);
               }
             },
             onClick: function(e, legendItem) {
-              // compareMode のときは、クリックされた場所に対応するすべてのデータセット（自/他）をトグル
-              if (!compareMode) {
-                Chart.defaults.plugins.legend.onClick.call(this, e, legendItem);
-                return;
+              if (compareMode) {
+                  // 比較モード時の特殊トグル処理
+                  const chart = this.chart;
+                  const label = legendItem.text;
+                  chart.data.datasets.forEach(ds => {
+                    const loc = ds.location_label || ('' + ds.label).replace(/（.*）$/, '');
+                    if (loc === label) {
+                      ds.hidden = !ds.hidden;
+                    }
+                  });
+                  chart.update();
+                  return;
               }
-              const chart = this.chart;
-              const label = legendItem.text;
-              chart.data.datasets.forEach(ds => {
-                const loc = ds.location_label || ('' + ds.label).replace(/（.*）$/, '');
-                if (loc === label) {
-                  ds.hidden = !ds.hidden;
-                }
-              });
-              chart.update();
+              // デフォルトの挙動
+              Chart.defaults.plugins.legend.onClick.call(this, e, legendItem);
             }
           },
           title: {
             display: true,
             text: data.title,
-            font: {
-              size: 18,
-              weight: 'bold'
-            },
-            padding: {
-              top: 10,
-              bottom: 20
-            }
+            font: { size: 18, weight: 'bold' },
+            padding: { top: 10, bottom: 20 }
           },
           tooltip: {
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             padding: 12,
             cornerRadius: 8,
-            titleFont: {
-              size: 14,
-              weight: 'bold'
-            },
-            bodyFont: {
-              size: 13
-            },
+            titleFont: { size: 14, weight: 'bold' },
+            bodyFont: { size: 13 },
             callbacks: {
               label: function(context) {
                 let label = context.dataset.label || '';
@@ -539,8 +535,21 @@
                   label += ': ';
                 }
                 if (context.parsed.y !== null) {
-                  label += context.parsed.y;
+                  const val = context.parsed.y;
+                  // プラスの場合は符号をつける
+                  label += (val > 0 ? '+' : '') + val;
                 }
+                
+                // ▼ カスタムデータ（実数と平均）がある場合は表示を追加
+                const ds = context.dataset;
+                if (ds.custom_self && ds.custom_avg) {
+                    const idx = context.dataIndex;
+                    // 配列境界チェック
+                    if (ds.custom_self[idx] !== undefined && ds.custom_avg[idx] !== undefined) {
+                        label += ` (自店舗: ${ds.custom_self[idx]}, 平均: ${ds.custom_avg[idx]})`;
+                    }
+                }
+                
                 return label;
               }
             }
@@ -549,35 +558,29 @@
         scales: {
           x: {
             stacked: isStackedChart || compareMode, 
-            grid: {
-              display: false
-            },
-            ticks: {
-              font: {
-                size: 11
-              }
-            }
+            grid: { display: false },
+            ticks: { font: { size: 11 } }
           },
           y: {
             stacked: isStackedChart || compareMode,
+            min: yMin,
+            max: yMax,
             beginAtZero: true,
-            min: 0,
             grid: {
-              color: 'rgba(0, 0, 0, 0.06)',
+              color: function(context) {
+                if (context.tick.value === 0) {
+                  return 'rgba(0, 0, 0, 0.3)'; // 0ラインを少し濃く
+                }
+                return 'rgba(0, 0, 0, 0.06)';
+              },
               drawBorder: false
             },
             ticks: {
               stepSize: yStepSize,
-              font: {
-                size: 11
-              },
+              font: { size: 11 },
               callback: function(value) {
                 if (currentGraphType === 'sales') {
                   return '¥' + value.toLocaleString();
-                }
-                // 小数値を 0.5 刻みで見やすく表示（必要なら小数点を表示）
-                if (yStepSize < 1) {
-                  return value.toString();
                 }
                 return value;
               }
@@ -595,7 +598,8 @@
     document.getElementById('location-trend-chart').classList.add('hidden');
 
     // APIからデータ取得
-    let url = `/analysis/api/graph-data/?graph_type=incident_trend_by_location&period=${currentPeriod}&offset=${currentOffset}&location=${currentLocation}`;
+    // ▼ 修正: URLに &scope=${currentScope} を追加しました
+    let url = `/analysis/api/graph-data/?graph_type=incident_trend_by_location&period=${currentPeriod}&offset=${currentOffset}&location=${currentLocation}&scope=${currentScope}`;
 
     // ジャンルフィルタがある場合は追加
     if (currentGenre) {
@@ -632,24 +636,38 @@
       locationTrendChart.destroy();
     }
 
+    // データセットの準備
+    let datasets = [];
+    if (data.datasets) {
+      // サーバーからデータセット配列が来ている場合（比較モードなど）
+      datasets = data.datasets;
+    } else {
+      // 従来のデータ形式の場合（フォールバック）
+      datasets = [{
+        label: data.title,
+        data: data.data,
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        borderWidth: 2,
+        tension: 0.1,
+        fill: true
+      }];
+    }
+
     // 折れ線グラフを作成
     locationTrendChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: data.labels,
-        datasets: [{
-          label: data.title,
-          data: data.data,
-          borderColor: 'rgb(59, 130, 246)',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderWidth: 2,
-          tension: 0.1,
-          fill: true
-        }]
+        datasets: datasets
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
         plugins: {
           legend: {
             display: true,
@@ -658,13 +676,22 @@
           title: {
             display: true,
             text: data.title
+          },
+          tooltip: {
+            callbacks: {
+               label: function(context) {
+                 return context.dataset.label + ': ' + context.parsed.y;
+               }
+            }
           }
         },
         scales: {
           y: {
             beginAtZero: true,
             ticks: {
-              stepSize: 1
+              // 比較モード（平均値）の場合は小数が出るため、整数固定を解除するか、状況で分ける
+              // ここでは見やすさ優先で、もしデータに小数が含まれていれば自動、そうでなければstepSize:1等が望ましいですが、
+              // Chart.jsの自動調整に任せつつ、0始まりだけ強制します。
             }
           }
         }

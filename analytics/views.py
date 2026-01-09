@@ -194,34 +194,58 @@ def get_graph_data(request):
     offset = int(request.GET.get('offset', 0))
     genre = request.GET.get('genre', None)
     location = request.GET.get('location', None)
+    
+    # ▼ 追加: scopeパラメータを受け取る
+    scope = request.GET.get('scope', 'own')
 
     # ユーザーの所属店舗を取得
-    store = request.user.store
-    if not store:
+    user_store = request.user.store
+    if not user_store:
         return JsonResponse({'error': '店舗が設定されていません'}, status=400)
+
+    # ▼ 修正: scopeに応じて target_store と base_store を切り替える
+    if scope == 'all':
+        # 全店舗モード: target_storeをNoneにすることでServices側で全店舗ロジックが動く
+        target_store = None
+        # 比較グラフ（自店舗 vs 他店平均）のために base_store に自店舗をセット
+        base_store = user_store
+    else:
+        # 自店舗モード: 従来どおり
+        target_store = user_store
+        base_store = None
 
     # 期間の日付範囲とラベルを計算
     start_date, end_date, period_label = AnalyticsService.calculate_period_dates(period, offset)
 
     # グラフデータを取得
     try:
+        # ▼ 修正: store引数には target_store を渡し、base_store も渡す
         result = AnalyticsService.get_graph_data_by_type(
-            graph_type, store, start_date, end_date, genre, period=period, location=location
+            graph_type, 
+            target_store,  # ここを変更
+            start_date, 
+            end_date, 
+            genre, 
+            base_store=base_store,  # ここを追加
+            period=period, 
+            location=location
         )
     except ValueError as e:
         return JsonResponse({'error': str(e)}, status=400)
 
     # レスポンスの構築
     chart_data = result['chart_data']
+    
+    # ... (以下変更なし) ...
     response_data = {
         'title': result['title'],
         'period_label': period_label,
         'labels': chart_data['labels'],
         'start_date': start_date.isoformat(),
         'end_date': end_date.isoformat(),
+        'chart_kind': chart_data.get('chart_kind'),
     }
 
-    # datasetsがある場合（積み上げグラフ）とない場合（折れ線グラフ）で分岐
     if 'datasets' in chart_data:
         response_data['datasets'] = chart_data['datasets']
     else:

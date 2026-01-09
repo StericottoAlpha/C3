@@ -1,3 +1,4 @@
+import random
 from django.core.management.base import BaseCommand
 from django.core.management import call_command
 from django.contrib.auth import get_user_model
@@ -89,146 +90,151 @@ class Command(BaseCommand):
                     )
         self.stdout.write(self.style.SUCCESS('Created 30 days of performance data for stores'))
 
-                # 4. 日報データ作成（多様なシナリオ）
-        reports_data = [
-            # A店のデータ（接客・クレーム中心）
-            {
-                'store': stores['A店'], 'user': users['staff001'], 'date': today,
-                'genre': 'claim', 'location': 'hall', 'title': '接客態度に関するクレーム',
-                'content': 'お客様から「スタッフの対応が遅い」とのご指摘をいただきました。ピーク時の対応について改善が必要です。レジ待ち時間が10分以上かかり、お客様を不快にさせてしまいました。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['A店'], 'user': users['staff002'], 'date': today - timedelta(days=1),
-                'genre': 'praise', 'location': 'kitchen', 'title': '料理の美味しさを褒められました',
-                'content': 'お客様から「今日のハンバーグは特に美味しかった」と直接お褒めの言葉をいただきました。シェフの丁寧な調理が評価されています。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['A店'], 'user': users['staff001'], 'date': today - timedelta(days=2),
-                'genre': 'claim', 'location': 'hall', 'title': '料理提供の遅延',
-                'content': 'ランチタイムに注文から提供まで25分かかってしまいました。お客様から「遅すぎる」とお叱りを受けました。キッチンとホールの連携を改善する必要があります。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['A店'], 'user': users['staff002'], 'date': today - timedelta(days=3),
-                'genre': 'praise', 'location': 'hall', 'title': '子連れ対応を褒められました',
-                'content': '小さなお子様連れのお客様から「スタッフの気配りが素晴らしかった」とお褒めの言葉をいただきました。子供用の食器やクレヨンを用意したことが好評でした。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['A店'], 'user': users['staff001'], 'date': today - timedelta(days=5),
-                'genre': 'claim', 'location': 'kitchen', 'title': '料理の温度が低い',
-                'content': 'お客様から「スープがぬるかった」とご指摘を受けました。再加熱してお出ししましたが、提供前の温度確認を徹底する必要があります。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['A店'], 'user': users['staff002'], 'date': today - timedelta(days=7),
-                'genre': 'report', 'location': 'hall', 'title': '売上好調',
-                'content': '本日の売上が過去最高の38万円を記録しました。新メニューのカレーが好評で、注文が集中しました。',
-                'post_to_bbs': True
-            },
+        # 4. 日報データ作成（ランダム大量生成版）
+        self.stdout.write(self.style.WARNING('\n=== 日報データの大量生成を開始します ==='))
 
-            # B店のデータ（設備トラブル・事故中心）
-            {
-                'store': stores['B店'], 'user': users['staff003'], 'date': today,
-                'genre': 'accident', 'location': 'kitchen', 'title': 'フライヤーの点検',
-                'content': 'フライヤーの温度が不安定だったため、業者に連絡して点検を依頼しました。温度計の故障が原因でした。',
-                'post_to_bbs': False
-            },
-            {
-                'store': stores['B店'], 'user': users['staff003'], 'date': today - timedelta(days=1),
-                'genre': 'accident', 'location': 'hall', 'title': '食器の破損事故',
-                'content': 'スタッフが食器を運搬中にお皿を2枚落として破損しました。けが人はありませんでしたが、再発防止のためトレーの使用を徹底します。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['B店'], 'user': users['manager002'], 'date': today - timedelta(days=2),
-                'genre': 'report', 'location': 'toilet', 'title': 'トイレ清掃の改善',
-                'content': '本日よりトイレ清掃チェックリストを導入しました。30分おきの確認を徹底します。お客様から「トイレが清潔」と好評です。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['B店'], 'user': users['staff003'], 'date': today - timedelta(days=3),
-                'genre': 'claim', 'location': 'cashier', 'title': 'レジの金額相違',
-                'content': 'お客様からお会計の金額が違うとご指摘を受けました。レジの入力ミスでした。確認を怠らないよう注意します。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['B店'], 'user': users['staff003'], 'date': today - timedelta(days=4),
-                'genre': 'accident', 'location': 'kitchen', 'title': '冷蔵庫の温度異常',
-                'content': '冷蔵庫の温度が10度まで上昇していることに気づきました。食材の廃棄を行い、修理業者を手配しました。損失額は約3万円です。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['B店'], 'user': users['manager002'], 'date': today - timedelta(days=6),
-                'genre': 'report', 'location': 'other', 'title': '新人スタッフの育成',
-                'content': '新人スタッフの山田さんが接客に慣れてきました。本日から一人でホール業務を担当してもらいます。',
-                'post_to_bbs': True
-            },
+        # 生成する日報の件数（ここを変更すれば好きなだけ増やせます）
+        NUM_REPORTS_TO_GENERATE = 300
 
-            # C店のデータ（バランス型）
-            {
-                'store': stores['C店'], 'user': users['staff004'], 'date': today,
-                'genre': 'praise', 'location': 'hall', 'title': '常連客からの感謝',
-                'content': '常連のお客様から「いつも笑顔で迎えてくれてありがとう」と温かいお言葉をいただきました。スタッフ一同励みになります。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['C店'], 'user': users['staff004'], 'date': today - timedelta(days=1),
-                'genre': 'report', 'location': 'kitchen', 'title': '食材在庫の適正化',
-                'content': '野菜の発注量を調整し、廃棄ロスを削減できました。先週比で廃棄量が30%減少しています。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['C店'], 'user': users['staff004'], 'date': today - timedelta(days=3),
-                'genre': 'claim', 'location': 'hall', 'title': '席の案内ミス',
-                'content': 'お客様を予約席ではない席にご案内してしまい、ご迷惑をおかけしました。予約確認を徹底します。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['C店'], 'user': users['staff004'], 'date': today - timedelta(days=5),
-                'genre': 'praise', 'location': 'kitchen', 'title': '季節メニューが好評',
-                'content': '新しく追加した秋の限定メニュー「栗のモンブランパフェ」が大変好評で、1日20個以上売れています。',
-                'post_to_bbs': True
-            },
-            {
-                'store': stores['C店'], 'user': users['staff004'], 'date': today - timedelta(days=7),
-                'genre': 'report', 'location': 'other', 'title': '省エネ対策の実施',
-                'content': '照明をLEDに変更し、電気代の削減を実現しました。月間約1万円のコスト削減が見込まれます。',
-                'post_to_bbs': True
-            },
-        ]
+        # 店舗とスタッフのマッピング
+        store_staff_map = {
+            'A店': ['manager001', 'staff001', 'staff002'],
+            'B店': ['manager002', 'staff003'],
+            'C店': ['staff004']
+        }
 
+        # テンプレートデータの定義
+        templates = {
+            'claim': [
+                ('hall', '接客態度への指摘', 'お客様より「スタッフの笑顔がない」「元気が足りない」とのご指摘をいただきました。疲れていても表に出さないよう、プロ意識の指導が必要です。'),
+                ('hall', '提供遅れ', 'ランチピーク時に料理の提供まで25分以上かかり、お叱りを受けました。ホールの連携ミスとキッチンの遅延が重なったことが原因です。'),
+                ('hall', '注文間違い', 'オーダーミスにより違う商品を提供してしまいました。ハンディの入力確認と復唱確認を徹底します。'),
+                ('hall', '席への案内遅れ', '空席があるのに入り口で待たされたとクレームがありました。バッシングの優先順位を見直す必要があります。'),
+                ('kitchen', '料理の異物混入', 'サラダにビニール片が混入していたと報告がありました。食材開封時の確認プロセスを強化します。'),
+                ('kitchen', '料理が冷めている', '提供されたスープがぬるいとの指摘を受けました。パッサーでの滞留時間が長かった可能性があります。'),
+                ('kitchen', '味付けの不備', '「今日のパスタは塩辛い」とのご意見をいただきました。調理マニュアルの分量を再確認させました。'),
+                ('cashier', '会計ミス', '釣り銭の渡し間違いが発生しました。お客様が帰宅後に電話で判明し、謝罪対応を行いました。'),
+            ],
+            'praise': [
+                ('hall', '笑顔での接客', '「担当スタッフの笑顔が素敵で癒やされた」と直接お褒めの言葉をいただきました。'),
+                ('hall', '気配りへの感謝', 'お水を注ぐタイミングが絶妙だったと感謝されました。「よく見ているね」と言っていただけました。'),
+                ('hall', '子供への対応', 'お子様連れのお客様より、子供用の椅子や取り皿をすぐに用意したことを褒められました。'),
+                ('kitchen', '料理の味', '「今まで食べたハンバーグで一番美味しい」と絶賛されました。シェフに共有し、モチベーションアップに繋げます。'),
+                ('kitchen', '提供スピード', '急いでいるお客様への提供が早く、「助かった、ありがとう」と感謝されました。'),
+                ('other', '店内の清掃', 'トイレや洗面台が非常に綺麗で気持ちが良いとお褒めいただきました。清掃スタッフの努力の成果です。'),
+            ],
+            'accident': [
+                ('hall', '食器の破損', 'バッシング中にグラスを落として割ってしまいました。破片の処理は完了し、怪我人はありませんでした。'),
+                ('hall', 'お客様との接触', '配膳中にお客様とぶつかりそうになりました。「後ろを通ります」の声掛けをより大きな声で徹底します。'),
+                ('hall', 'ドリンク転倒', 'テーブルにお水をこぼしてしまいました。お客様の服にはかかりませんでしたが、謝罪し新しいおしぼりを提供しました。'),
+                ('kitchen', '指の切り傷', '仕込み中に包丁で指を軽く切ってしまいました。絆創膏で処置し、手袋を着用して作業を継続しています。'),
+                ('kitchen', '火傷', 'オーブンの鉄板に腕が触れて軽い火傷をしました。注意散漫になっていたことが原因です。'),
+                ('kitchen', '床の滑り', '油で床が滑りやすくなっており、転倒しそうになりました。すぐにデッキブラシで清掃を実施しました。'),
+            ],
+            'trouble': [
+                ('kitchen', '食洗機の不調', '食洗機から異音がしています。一時的に手洗いで対応中です。業者手配済みです。'),
+                ('kitchen', '冷蔵庫の温度', '冷蔵庫の温度が設定より少し高くなっています。フィルター掃除を実施して様子を見ています。'),
+                ('hall', 'エアコンの水漏れ', 'エアコンから水が垂れてきました。真下の席を使用禁止にして対応しています。'),
+                ('cashier', 'レジプリンター詰まり', 'レシート用紙が詰まって交換に時間を要しました。予備のロール紙の位置も再確認しました。'),
+                ('kitchen', 'フライヤーの温度異常', 'フライヤーの温度が上がりにくい現象が発生しています。ピーク前に調整が必要です。'),
+            ],
+            'report': [
+                ('other', '備品の発注', '洗剤とペーパータオルの在庫が少なくなったため発注完了しました。納品は明後日予定です。'),
+                ('other', 'シフト調整', '来月のシフト希望を回収中です。週末の人員確保が少し厳しそうです。'),
+                ('other', '新人の様子', '新人スタッフがメニューを覚え始めました。来週からオーダー取りを練習させる予定です。'),
+                ('hall', 'メニューブックの補修', '破れかけているメニューブックをテープで補修しました。見栄えが悪いため、交換時期かもしれません。'),
+                ('kitchen', '棚卸し実施', '月末の棚卸しを実施しました。大きな差異はありませんでした。'),
+                ('hall', '売上目標達成', '本日のランチ売上が目標を達成しました。回転率が良く、スムーズな営業でした。'),
+            ]
+        }
+
+        # 発生確率の重み付け (claim, praise, accident, trouble, report)
+        genre_weights = [0.2, 0.3, 0.1, 0.1, 0.3]
+        genres = ['claim', 'praise', 'accident', 'trouble', 'report']
+
+        # 過去60日分からランダムに日付を生成
+        base_date = datetime.now().date()
+        generated_reports_data = []
+
+        for _ in range(NUM_REPORTS_TO_GENERATE):
+            # 1. 店舗をランダムに決定
+            store_name = random.choice(list(store_staff_map.keys()))
+            store_obj = stores[store_name]
+
+            # 2. その店舗のスタッフをランダムに決定
+            user_id = random.choice(store_staff_map[store_name])
+            user_obj = users.get(user_id)
+
+            # ユーザーが存在しない場合（seedデータの設定漏れ対策）はスキップ
+            if not user_obj:
+                continue
+
+            # 3. 日付をランダムに決定（直近60日以内）
+            days_ago = random.randint(0, 60)
+            report_date = base_date - timedelta(days=days_ago)
+
+            # 4. ジャンルを重み付けランダムで決定
+            chosen_genre = random.choices(genres, weights=genre_weights, k=1)[0]
+
+            # troubleキーがない場合はaccidentに倒すなどの調整（念のため）
+            if chosen_genre == 'trouble' and 'trouble' not in templates:
+                chosen_genre = 'accident'
+
+            # 5. テンプレートからランダムに選択
+            tpl = random.choice(templates[chosen_genre])
+            location = tpl[0]
+            title = tpl[1]
+            base_content = tpl[2]
+
+            # 内容に少しランダム性を加える（文末を変える）
+            suffixes = ['', ' 今後気をつけます。', ' 共有お願いします。', ' 対応完了しました。', ' 早急に対策が必要です。', ' 引き続き注視します。']
+            final_content = base_content + random.choice(suffixes)
+
+            # 6. データ辞書作成
+            generated_reports_data.append({
+                'store': store_obj,
+                'user': user_obj,
+                'date': report_date,
+                'genre': chosen_genre,
+                'location': location,
+                'title': title,
+                'content': final_content,
+                'post_to_bbs': random.choice([True, True, False])  # 2/3の確率で掲示板投稿
+            })
+
+        # 日付順にソート
+        generated_reports_data.sort(key=lambda x: x['date'])
+
+        # データベースへ登録
         reports = []
-        for report_data in reports_data:
+        for report_data in generated_reports_data:
             report = DailyReport.objects.create(**report_data)
             reports.append(report)
-        self.stdout.write(self.style.SUCCESS(f'Created {len(reports)} daily reports'))
+        self.stdout.write(self.style.SUCCESS(f'Created {len(reports)} daily reports (Randomly Generated)'))
 
         """全ての日報をベクトル化"""
         self.stdout.write(self.style.WARNING('\n=== 日報のベクトル化 ==='))
 
-        reports = DailyReport.objects.all()
-        total = reports.count()
+        # 生成したreportsリストではなく、DBから全件取得してベクトル化（以前のデータが残っている場合も考慮）
+        target_reports = DailyReport.objects.all()
+        total = target_reports.count()
 
         if total == 0:
             self.stdout.write('ベクトル化する日報がありません')
-            return
+        else:
+            success_count = 0
+            error_count = 0
 
-        success_count = 0
-        error_count = 0
+            for report in tqdm(target_reports, desc='日報をベクトル化中', unit='件'):
+                result = VectorizationService.vectorize_daily_report(report.report_id)
+                if result:
+                    success_count += 1
+                else:
+                    error_count += 1
 
-        for report in tqdm(reports, desc='日報をベクトル化中', unit='件'):
-            result = VectorizationService.vectorize_daily_report(report.report_id)
-            if result:
-                success_count += 1
-            else:
-                error_count += 1
-
-        self.stdout.write(self.style.SUCCESS(
-            f'\n日報のベクトル化完了: 成功 {success_count}件, 失敗 {error_count}件, 合計 {total}件'
-        ))
+            self.stdout.write(self.style.SUCCESS(
+                f'\n日報のベクトル化完了: 成功 {success_count}件, 失敗 {error_count}件, 合計 {total}件'
+            ))
 
         # 5. 掲示板投稿データ作成（日報から自動投稿 + 直接投稿）
         bbs_posts = []
