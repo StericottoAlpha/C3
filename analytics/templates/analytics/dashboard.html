@@ -26,7 +26,7 @@
     </select>
 
     <!-- スコープ切替（自店舗 / 全店舗） -->
-    <div class="flex items-center gap-3">
+    <div id="scope-selector" class="flex items-center gap-3">
       <label class="inline-flex items-center">
         <input type="radio" name="scope" value="own" id="scope-own" class="mr-2" />
         <span>自店舗</span>
@@ -158,19 +158,29 @@
       locationTrendSection.classList.add('hidden');
     }
 
-    // 週/月切り替えボタンの表示/非表示
+    // 週/月/プレビュー切り替えボタンと全店舗ラジオボタンの表示/非表示
     const weekBtn = document.getElementById('btn-week');
     const monthBtn = document.getElementById('btn-month');
+    const previewBtn = document.getElementById('btn-preview');
+    const scopeSelector = document.getElementById('scope-selector');
 
     if (currentGraphType === 'monthly_goal') {
-      // 月次目標の場合は週/月ボタンを非表示
+      // 月次目標の場合は週/月/プレビューボタンと全店舗ラジオボタンを非表示
       weekBtn.classList.add('hidden');
       monthBtn.classList.add('hidden');
+      previewBtn.classList.add('hidden');
+      if (scopeSelector) {
+        scopeSelector.classList.add('hidden');
+      }
       loadMonthlyGoal();
     } else {
-      // その他の場合は週/月ボタンを表示
+      // その他の場合は週/月/プレビューボタンと全店舗ラジオボタンを表示
       weekBtn.classList.remove('hidden');
       monthBtn.classList.remove('hidden');
+      previewBtn.classList.remove('hidden');
+      if (scopeSelector) {
+        scopeSelector.classList.remove('hidden');
+      }
       loadGraph();
     }
   });
@@ -806,10 +816,15 @@
 
 
 
-    // 月次目標の場合は週/月ボタンを非表示
+    // 月次目標の場合は週/月/プレビューボタンと全店舗ラジオボタンを非表示
+    const scopeSelector = document.getElementById('scope-selector');
     if (currentGraphType === 'monthly_goal') {
       weekBtn.classList.add('hidden');
       monthBtn.classList.add('hidden');
+      previewBtn.classList.add('hidden');
+      if (scopeSelector) {
+        scopeSelector.classList.add('hidden');
+      }
       loadMonthlyGoal();
     } else {
       // プレビューモードかつ場所別インシデントの場合
