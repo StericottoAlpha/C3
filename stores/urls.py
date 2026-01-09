@@ -1,10 +1,9 @@
 from django.urls import path
-
 from . import views
 
 app_name = 'stores'
 
 urlpatterns = [
-    # path('', views.store_list, name='list'),
-    # path('<int:pk>/', views.store_detail, name='detail'),
+    # 既存のパスがあれば残し、以下を追加
+    path('goal/update/', views.update_current_month_goal, name='update_goal'),
 ]
