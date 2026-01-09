@@ -9,6 +9,28 @@
                 <div class="bg-teal-600 text-white px-6 py-4">
                     <h4 class="text-xl font-bold m-0">ユーザー新規登録</h4>
                 </div>
+
+                {% if messages %}
+                <div class="mb-6 space-y-2">
+                    {% for message in messages %}
+                        <div class="p-4 rounded-lg shadow-sm font-medium transition-all duration-300 flex items-center gap-2
+                            {% if message.tags == 'error' %}
+                                bg-red-50 text-red-700 border border-red-200
+                            {% else %}
+                                bg-green-50 text-green-700 border border-green-200
+                            {% endif %}">
+                        
+                            {% if message.tags == 'error' %}
+                                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            {% else %}
+                                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            {% endif %}
+                        
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 
                 <div class="p-6">
                     <p class="text-sm text-gray-600 mb-6">

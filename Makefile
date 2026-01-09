@@ -15,7 +15,8 @@ lint-fix:
 	ruff check . --fix
 
 test:
-	python3 manage.py test
+	coverage run manage.py test
+	coverage report
 
 run:
 	python3 manage.py runserver
