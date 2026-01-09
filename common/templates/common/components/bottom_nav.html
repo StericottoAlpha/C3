@@ -3,6 +3,20 @@
 
     {% with current=request.resolver_match.view_name %}
 
+    <!-- 日報 -->
+    <a href="{% url 'reports:list' %}"
+       class="flex flex-col items-center gap-1
+       {% if current == 'reports:list' %}
+         text-primary
+       {% else %}
+         text-gray-400 hover:text-primary
+       {% endif %}">
+      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M16 4h-1.2A3 3 0 0 0 12 2a3 3 0 0 0-2.8 2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-4-1a1 1 0 0 1 1 1h-2a1 1 0 0 1 1-1z"/>
+      </svg>
+      <span>日報</span>
+    </a>
+
     <!-- 分析 -->
     <a href="{% url 'analytics:dashboard' %}"
        class="flex flex-col items-center gap-1
@@ -98,16 +112,6 @@
       <div class="h-px bg-gray-200 my-4"></div>
 
       <div class="grid grid-cols-3 gap-x-10 gap-y-10 justify-items-center">
-
-        <!-- リスト機能 -->
-        <a href="/list" data-drawer-close="1" class="flex flex-col items-center gap-3">
-          <div class="w-24 h-24 rounded-2xl bg-teal-100 flex items-center justify-center">
-            <svg class="w-10 h-10 text-gray-600" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M16 4h-1.2A3 3 0 0 0 12 2a3 3 0 0 0-2.8 2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-4-1a1 1 0 0 1 1 1h-2a1 1 0 0 1 1-1z"/>
-            </svg>
-          </div>
-          <span class="text-gray-700">リスト機能</span>
-        </a>
 
         <!-- ユーザー情報 -->
         <a href="/accounts/profile" data-drawer-close="1" class="flex flex-col items-center gap-3">

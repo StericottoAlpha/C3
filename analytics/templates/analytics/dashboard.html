@@ -25,10 +25,23 @@
       <option value="other">その他</option>
     </select>
 
-    <!-- 期間切り替え（週/月） -->
+    <!-- スコープ切替（自店舗 / 全店舗） -->
+    <div class="flex items-center gap-3">
+      <label class="inline-flex items-center">
+        <input type="radio" name="scope" value="own" id="scope-own" class="mr-2" />
+        <span>自店舗</span>
+      </label>
+      <label class="inline-flex items-center">
+        <input type="radio" name="scope" value="all" id="scope-all" class="mr-2" />
+        <span>全店舗</span>
+      </label>
+    </div>
+
+    <!-- 期間切り替え（週/月/プレビュー） -->
     <div class="flex gap-2">
       <button id="btn-week" class="px-4 py-2 border border-gray-300 rounded-lg text-sm cursor-pointer transition-colors hover:bg-gray-50 bg-blue-500 text-white border-blue-500" onclick="changePeriod('week')">週</button>
       <button id="btn-month" class="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm cursor-pointer transition-colors hover:bg-gray-50" onclick="changePeriod('month')">月</button>
+      <button id="btn-preview" class="px-4 py-2 border border-gray-300 bg-white rounded-lg text-sm cursor-pointer transition-colors hover:bg-gray-50" onclick="changePeriod('preview')">プレビュー</button>
     </div>
   </div>
 
@@ -69,6 +82,25 @@
       </div>
     </div>
   </div>
+
+  <!-- 場所別インシデント推移グラフ（場所別インシデント選択時のみ表示） -->
+  <div id="location-trend-section" class="mt-6 hidden">
+    <div class="bg-white p-5 rounded-lg shadow-sm">
+      <div class="mb-4">
+        <label for="location-select" class="block text-sm font-semibold text-gray-700 mb-2">場所を選択</label>
+        <select id="location-select" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          <option value="all">全て</option>
+          <option value="kitchen">キッチン</option>
+          <option value="hall">ホール</option>
+          <option value="cashier">レジ</option>
+          <option value="toilet">トイレ</option>
+          <option value="other">その他</option>
+        </select>
+      </div>
+      <div id="location-trend-loading" class="text-center py-10 text-gray-500 hidden">データを読み込み中...</div>
+      <canvas id="location-trend-chart" class="hidden"></canvas>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -76,24 +108,54 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
   let currentChart = null;
+  let locationTrendChart = null;
   let currentOffset = 0;
   let currentPeriod = localStorage.getItem('analytics_period') || 'week';
   let currentGraphType = localStorage.getItem('analytics_graph_type') || 'sales';
   let currentGenre = localStorage.getItem('analytics_genre') || '';
+  let currentScope = localStorage.getItem('analytics_scope') || '{{ default_scope|default:"own" }}';
   let currentGoalYear = null;
   let currentGoalMonth = null;
+  let currentLocation = 'all';
+
+  // スコープ切替（自店舗 / 全店舗）
+  document.querySelectorAll('input[name="scope"]').forEach(function(radio) {
+    radio.addEventListener('change', function(e) {
+      currentScope = e.target.value;
+      localStorage.setItem('analytics_scope', currentScope);
+
+
+      // 月次目標は店舗単位のみ対応しているため、全店舗選択時は月次目標をロードしない
+      if (currentGraphType === 'monthly_goal' && currentScope === 'all') {
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('analytics-chart').classList.add('hidden');
+        document.getElementById('monthly-goal-container').classList.add('hidden');
+        document.getElementById('error-message').textContent = '全店舗の月次目標は表示できません';
+        document.getElementById('error-message').classList.remove('hidden');
+      } else {
+        if (currentGraphType === 'monthly_goal') {
+          loadMonthlyGoal();
+        } else {
+          loadGraph();
+        }
+      }
+    });
+  });
 
   // グラフ種類変更
   document.getElementById('graph-type').addEventListener('change', function(e) {
     currentGraphType = e.target.value;
     localStorage.setItem('analytics_graph_type', currentGraphType);
 
-    // 場所別インシデントの場合、ジャンルフィルタを表示
+    // 場所別インシデントの場合、ジャンルフィルタと場所別推移セクションを表示
     const genreFilter = document.getElementById('genre-filter');
+    const locationTrendSection = document.getElementById('location-trend-section');
     if (currentGraphType === 'incident_by_location') {
       genreFilter.classList.remove('hidden');
+      locationTrendSection.classList.remove('hidden');
     } else {
       genreFilter.classList.add('hidden');
+      locationTrendSection.classList.add('hidden');
     }
 
     // 週/月切り替えボタンの表示/非表示
@@ -118,9 +180,19 @@
     currentGenre = e.target.value;
     localStorage.setItem('analytics_genre', currentGenre);
     loadGraph();
+    // 場所選択済みの場合は場所別推移グラフも更新
+    if (currentLocation) {
+      loadLocationTrendGraph();
+    }
   });
 
-  // 期間切り替え（週/月）
+  // 場所選択
+  document.getElementById('location-select').addEventListener('change', function(e) {
+    currentLocation = e.target.value;
+    loadLocationTrendGraph();
+  });
+
+  // 期間切り替え（週/月/プレビュー）
   function changePeriod(period) {
     currentPeriod = period;
     localStorage.setItem('analytics_period', period);
@@ -129,24 +201,55 @@
     // ボタンのアクティブ状態を切り替え
     const weekBtn = document.getElementById('btn-week');
     const monthBtn = document.getElementById('btn-month');
+    const previewBtn = document.getElementById('btn-preview');
 
+    // すべてのボタンを非アクティブに
+    [weekBtn, monthBtn, previewBtn].forEach(btn => {
+      btn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+      btn.classList.add('bg-white');
+    });
+
+    // 選択されたボタンをアクティブに
+    let activeBtn;
     if (period === 'week') {
-      weekBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
-      weekBtn.classList.remove('bg-white');
-      monthBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
-      monthBtn.classList.add('bg-white');
-    } else {
-      monthBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
-      monthBtn.classList.remove('bg-white');
-      weekBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
-      weekBtn.classList.add('bg-white');
+      activeBtn = weekBtn;
+    } else if (period === 'month') {
+      activeBtn = monthBtn;
+    } else if (period === 'preview') {
+      activeBtn = previewBtn;
     }
 
-    // 月次目標の場合は目標を再読み込み
-    if (currentGraphType === 'monthly_goal') {
-      loadMonthlyGoal();
+    if (activeBtn) {
+      activeBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+      activeBtn.classList.remove('bg-white');
+    }
+
+    // プレビューモードの場合は上部のグラフを非表示
+    const mainGraphContainer = document.querySelector('.bg-white.p-5.rounded-lg.shadow-sm');
+    if (period === 'preview' && currentGraphType === 'incident_by_location') {
+      if (mainGraphContainer) {
+        mainGraphContainer.style.display = 'none';
+      }
+      // 場所別推移グラフのみ更新
+      if (currentLocation) {
+        loadLocationTrendGraph();
+      }
     } else {
-      loadGraph();
+      // 週・月モードの場合は上部のグラフを表示
+      if (mainGraphContainer) {
+        mainGraphContainer.style.display = 'block';
+      }
+
+      // 月次目標の場合は目標を再読み込み
+      if (currentGraphType === 'monthly_goal') {
+        loadMonthlyGoal();
+      } else {
+        loadGraph();
+        // 場所選択済みの場合は場所別推移グラフも更新
+        if (currentGraphType === 'incident_by_location' && currentLocation) {
+          loadLocationTrendGraph();
+        }
+      }
     }
   }
 
@@ -162,6 +265,10 @@
     } else {
       currentOffset += direction;
       loadGraph();
+      // 場所選択済みの場合は場所別推移グラフも更新
+      if (currentGraphType === 'incident_by_location' && currentLocation) {
+        loadLocationTrendGraph();
+      }
     }
   }
 
@@ -174,11 +281,16 @@
     document.getElementById('error-message').classList.add('hidden');
 
     // APIからデータ取得
-    let url = `/analysis/api/graph-data/?graph_type=${currentGraphType}&period=${currentPeriod}&offset=${currentOffset}`;
+    let url = `/analysis/api/graph-data/?graph_type=${currentGraphType}&period=${currentPeriod}&offset=${currentOffset}&scope=${currentScope}`;
 
     // ジャンルフィルタがある場合は追加
     if (currentGraphType === 'incident_by_location' && currentGenre) {
       url += `&genre=${currentGenre}`;
+    }
+
+    // 全店舗かつ場所別インシデントの場合は常に比較（compare=1）を付与
+    if (currentGraphType === 'incident_by_location' && currentScope === 'all') {
+      url += '&compare=1';
     }
 
     fetch(url)
@@ -216,46 +328,108 @@
       currentChart.destroy();
     }
 
-    // データセットの形式判定（積み上げグラフか折れ線グラフか）
-    const isStackedChart = data.datasets !== undefined;
-    const chartType = isStackedChart ? 'bar' : 'line';
+    // データの型判定
+    const hasDatasets = data.datasets !== undefined;
+    const chartKind = data.chart_kind || (hasDatasets ? 'bar' : 'line');
+    const chartType = chartKind;
+    // 比較モード（自店舗 vs 他店平均）が有効かどうかを判定
+    let compareMode = false;
+    if (chartKind === 'bar' && hasDatasets) {
+      compareMode = data.datasets.some(ds => ds.label && ds.label.indexOf('（自店舗）') !== -1);
+    }
+    const isStackedChart = (chartType === 'bar' && hasDatasets && !compareMode);
 
     // データセットの準備
     let datasets;
-    if (isStackedChart) {
-      // 積み上げグラフ用
-      datasets = data.datasets.map((dataset, index) => {
-        // グラデーション作成
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        const baseColor = dataset.backgroundColor;
-        let gradientApplied = false;
+    if (chartKind === 'bar' && hasDatasets) {
+      // 比較モード（自店舗 vs 他店平均）の場合はグループ化して横並びの棒にする
+      if (compareMode) {
+        // 比較モードでは「自店舗」と「他店平均」いずれも自店舗と同じ外観に揃える
+        datasets = data.datasets.map((dataset, index) => {
+          const baseColor = dataset.backgroundColor;
 
-        // RGBカラーを抽出してグラデーションを作成
-        if (typeof baseColor === 'string') {
-          const rgbaMatch = baseColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-          if (rgbaMatch) {
-            const r = rgbaMatch[1], g = rgbaMatch[2], b = rgbaMatch[3];
-            gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.9)`);
-            gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.6)`);
-            gradientApplied = true;
+          // 可能ならグラデーションを生成（非比較の積み上げ棒と同じ処理）
+          const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+          let gradientApplied = false;
+
+          if (typeof baseColor === 'string') {
+            const rgbaMatch = baseColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+            if (rgbaMatch) {
+              const r = rgbaMatch[1], g = rgbaMatch[2], b = rgbaMatch[3];
+              gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.9)`);
+              gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.6)`);
+              gradientApplied = true;
+            }
           }
-        }
 
+          return {
+            ...dataset,
+            backgroundColor: gradientApplied ? gradient : baseColor,
+            borderWidth: 0,
+            // borderRadius を削除し、代わりに以下を追加
+            borderRadius: 6,      // 全体に適用
+            borderSkipped: 'bottom', // 下側の角を丸くしない設定
+            barPercentage: 0.8,
+            categoryPercentage: 0.9
+          };
+        });
+      } else {
+        // 通常の積み上げ棒グラフ用（場所別インシデントなど）
+        datasets = data.datasets.map((dataset, index) => {
+          const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+          const baseColor = dataset.backgroundColor;
+          let gradientApplied = false;
+
+          if (typeof baseColor === 'string') {
+            const rgbaMatch = baseColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+            if (rgbaMatch) {
+              const r = rgbaMatch[1], g = rgbaMatch[2], b = rgbaMatch[3];
+              gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.9)`);
+              gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.6)`);
+              gradientApplied = true;
+            }
+          }
+
+          return {
+            ...dataset,
+            backgroundColor: gradientApplied ? gradient : baseColor,
+            borderWidth: 0,
+            borderRadius: {
+              topLeft: 8,
+              topRight: 8,
+              bottomLeft: 8,
+              bottomRight: 8
+            },
+            borderSkipped: false,
+            // 棒幅を広くして見やすくする
+            barPercentage: 0.9,
+            categoryPercentage: 1.0,
+            // 固定幅を設定
+            barThickness: 36,
+            // 最大幅を制限
+            maxBarThickness: 80
+          };
+        });
+      }
+    } else if (chartKind === 'line' && hasDatasets) {
+      // 複数ライン（全店舗表示）
+      datasets = data.datasets.map((dataset, index) => {
+        const border = dataset.borderColor || 'rgb(59, 130, 246)';
+        let bg = dataset.backgroundColor || border;
+        if (typeof bg === 'string' && bg.startsWith('rgb(')) {
+          bg = bg.replace('rgb', 'rgba').replace(')', ', 0.08)');
+        }
         return {
           ...dataset,
-          backgroundColor: gradientApplied ? gradient : baseColor,
-          borderWidth: 0,
-          borderRadius: {
-            topLeft: 8,
-            topRight: 8,
-            bottomLeft: 8,
-            bottomRight: 8
-          },
-          borderSkipped: false,
+          borderColor: border,
+          backgroundColor: bg,
+          fill: false,
+          tension: dataset.tension !== undefined ? dataset.tension : 0.3,
+          pointRadius: dataset.pointRadius !== undefined ? dataset.pointRadius : 3,
         };
       });
     } else {
-      // 折れ線グラフ用（従来の形式）
+      // 単一の折れ線グラフ
       datasets = [{
         label: data.title,
         data: data.data,
@@ -267,6 +441,12 @@
         pointRadius: 4,
         pointBackgroundColor: 'rgb(59, 130, 246)',
       }];
+    }
+
+    // y軸の目盛りステップを決定（比較モードでは小数表示を許容）
+    let yStepSize = currentGraphType === 'sales' ? 100000 : (currentGraphType === 'customer_count' ? 100 : 1);
+    if (compareMode && chartType === 'bar' && currentGraphType !== 'sales' && currentGraphType !== 'customer_count') {
+      yStepSize = 0.5;
     }
 
     // 新しいグラフを作成
@@ -287,6 +467,7 @@
           legend: {
             display: true,
             position: 'top',
+            // grouped-stacked 比較表示のときは凡例を「場所ごと」にまとめて表示し、クリックでその場所の自/他両方をトグル
             labels: {
               usePointStyle: true,
               pointStyle: 'circle',
@@ -294,7 +475,38 @@
               font: {
                 size: 12,
                 weight: '500'
+              },
+              generateLabels: function(chart) {
+                // compareMode のときのみユニークな場所ラベルを生成
+                if (!compareMode) {
+                  return Chart.overrides && Chart.overrides.plugins && Chart.overrides.plugins.legend && Chart.overrides.plugins.legend.labels && Chart.overrides.plugins.legend.labels.generateLabels ? Chart.overrides.plugins.legend.labels.generateLabels(chart) : Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                }
+                const datasets = chart.data.datasets || [];
+                const unique = {};
+                datasets.forEach((d, i) => {
+                  const loc = d.location_label || ('' + d.label).replace(/（.*）$/, '');
+                  if (!unique[loc]) {
+                    unique[loc] = { text: loc, fillStyle: d.backgroundColor, hidden: false, datasetIndex: i };
+                  }
+                });
+                return Object.keys(unique).map(k => ({ text: unique[k].text, fillStyle: unique[k].fillStyle, hidden: unique[k].hidden, datasetIndex: unique[k].datasetIndex }));
               }
+            },
+            onClick: function(e, legendItem) {
+              // compareMode のときは、クリックされた場所に対応するすべてのデータセット（自/他）をトグル
+              if (!compareMode) {
+                Chart.defaults.plugins.legend.onClick.call(this, e, legendItem);
+                return;
+              }
+              const chart = this.chart;
+              const label = legendItem.text;
+              chart.data.datasets.forEach(ds => {
+                const loc = ds.location_label || ('' + ds.label).replace(/（.*）$/, '');
+                if (loc === label) {
+                  ds.hidden = !ds.hidden;
+                }
+              });
+              chart.update();
             }
           },
           title: {
@@ -336,7 +548,7 @@
         },
         scales: {
           x: {
-            stacked: isStackedChart,
+            stacked: isStackedChart || compareMode, 
             grid: {
               display: false
             },
@@ -347,7 +559,7 @@
             }
           },
           y: {
-            stacked: isStackedChart,
+            stacked: isStackedChart || compareMode,
             beginAtZero: true,
             min: 0,
             grid: {
@@ -355,7 +567,7 @@
               drawBorder: false
             },
             ticks: {
-              stepSize: currentGraphType === 'sales' ? 100000 : (currentGraphType === 'customer_count' ? 100 : 1),
+              stepSize: yStepSize,
               font: {
                 size: 11
               },
@@ -363,8 +575,96 @@
                 if (currentGraphType === 'sales') {
                   return '¥' + value.toLocaleString();
                 }
+                // 小数値を 0.5 刻みで見やすく表示（必要なら小数点を表示）
+                if (yStepSize < 1) {
+                  return value.toString();
+                }
                 return value;
               }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 場所別インシデント推移グラフを読み込み
+  function loadLocationTrendGraph() {
+    // ローディング表示
+    document.getElementById('location-trend-loading').classList.remove('hidden');
+    document.getElementById('location-trend-chart').classList.add('hidden');
+
+    // APIからデータ取得
+    let url = `/analysis/api/graph-data/?graph_type=incident_trend_by_location&period=${currentPeriod}&offset=${currentOffset}&location=${currentLocation}`;
+
+    // ジャンルフィルタがある場合は追加
+    if (currentGenre) {
+      url += `&genre=${currentGenre}`;
+    }
+
+    fetch(url)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('データの取得に失敗しました');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // 折れ線グラフ描画
+        drawLocationTrendChart(data);
+
+        // ローディング非表示
+        document.getElementById('location-trend-loading').classList.add('hidden');
+        document.getElementById('location-trend-chart').classList.remove('hidden');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('location-trend-loading').classList.add('hidden');
+      });
+  }
+
+  // 場所別インシデント推移グラフを描画
+  function drawLocationTrendChart(data) {
+    const ctx = document.getElementById('location-trend-chart').getContext('2d');
+
+    // 既存のグラフを破棄
+    if (locationTrendChart) {
+      locationTrendChart.destroy();
+    }
+
+    // 折れ線グラフを作成
+    locationTrendChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.labels,
+        datasets: [{
+          label: data.title,
+          data: data.data,
+          borderColor: 'rgb(59, 130, 246)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderWidth: 2,
+          tension: 0.1,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          title: {
+            display: true,
+            text: data.title
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              stepSize: 1
             }
           }
         }
@@ -463,26 +763,48 @@
     const genreFilter = document.getElementById('genre-filter');
     genreFilter.value = currentGenre;
 
-    // 場所別インシデントの場合、ジャンルフィルタを表示
+    // 場所別インシデントの場合、ジャンルフィルタと場所別推移セクションを表示
     if (currentGraphType === 'incident_by_location') {
       genreFilter.classList.remove('hidden');
+      document.getElementById('location-trend-section').classList.remove('hidden');
     }
 
-    // 週/月ボタンの状態を復元
+    // 週/月/プレビューボタンの状態を復元
     const weekBtn = document.getElementById('btn-week');
     const monthBtn = document.getElementById('btn-month');
+    const previewBtn = document.getElementById('btn-preview');
 
+    // すべてのボタンを非アクティブに
+    [weekBtn, monthBtn, previewBtn].forEach(btn => {
+      btn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+      btn.classList.add('bg-white');
+    });
+
+    // 選択されたボタンをアクティブに
+    let activeBtn;
     if (currentPeriod === 'week') {
-      weekBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
-      weekBtn.classList.remove('bg-white');
-      monthBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
-      monthBtn.classList.add('bg-white');
-    } else {
-      monthBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
-      monthBtn.classList.remove('bg-white');
-      weekBtn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
-      weekBtn.classList.add('bg-white');
+      activeBtn = weekBtn;
+    } else if (currentPeriod === 'month') {
+      activeBtn = monthBtn;
+    } else if (currentPeriod === 'preview') {
+      activeBtn = previewBtn;
     }
+
+    if (activeBtn) {
+      activeBtn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+      activeBtn.classList.remove('bg-white');
+    }
+
+    // スコープラジオの初期値をセット
+    const scopeOwn = document.getElementById('scope-own');
+    const scopeAll = document.getElementById('scope-all');
+    if (currentScope === 'all') {
+      scopeAll.checked = true;
+    } else {
+      scopeOwn.checked = true;
+    }
+
+
 
     // 月次目標の場合は週/月ボタンを非表示
     if (currentGraphType === 'monthly_goal') {
@@ -490,7 +812,22 @@
       monthBtn.classList.add('hidden');
       loadMonthlyGoal();
     } else {
-      loadGraph();
+      // プレビューモードかつ場所別インシデントの場合
+      if (currentPeriod === 'preview' && currentGraphType === 'incident_by_location') {
+        // 上部のグラフを非表示
+        const mainGraphContainer = document.querySelector('.bg-white.p-5.rounded-lg.shadow-sm');
+        if (mainGraphContainer) {
+          mainGraphContainer.style.display = 'none';
+        }
+        // 場所別推移グラフのみ表示
+        loadLocationTrendGraph();
+      } else {
+        loadGraph();
+        // 場所別インシデントの場合、場所別推移グラフも表示
+        if (currentGraphType === 'incident_by_location') {
+          loadLocationTrendGraph();
+        }
+      }
     }
   });
 </script>
