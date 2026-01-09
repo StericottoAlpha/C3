@@ -5,19 +5,15 @@
 {% block content %}
 <div class="min-h-screen relative overflow-hidden bg-[#b9cfcc] pb-28">
 
-  <!-- 背景：うっすら紙感 + グラデ -->
   <div class="absolute inset-0 pointer-events-none">
     <div class="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/5"></div>
-    <!-- うっすらノイズ -->
     <div class="absolute inset-0 opacity-[0.07]"
          style="background-image: radial-gradient(rgba(0,0,0,.35) 0.6px, transparent 0.6px);
                 background-size: 12px 12px;"></div>
   </div>
 
-  <!-- 背景装飾（重なり抑制：中央ゼロ / 波紋は各コーナーだけ） -->
   <div class="absolute inset-0 pointer-events-none z-0">
 
-    <!-- うねうね線（さらに控えめ：薄く・端固定） -->
     <svg class="absolute left-6 top-24 w-64 opacity-[0.10]" viewBox="0 0 360 120" fill="none">
       <path d="M10 70 C80 20, 140 110, 210 60 C270 20, 310 95, 350 55"
             stroke="#2f2f2f" stroke-width="2" stroke-linecap="round"/>
@@ -38,48 +34,29 @@
             stroke="#2f2f2f" stroke-width="2" stroke-linecap="round"/>
     </svg>
 
-    <!-- 波紋（重なりにくい：各コーナーに1〜2個だけ） -->
-    <!-- 左上 -->
     <div class="absolute left-8 top-20 w-28 h-28 rounded-full border border-white/28"></div>
     <div class="absolute left-24 top-44 w-16 h-16 rounded-full border border-white/18"></div>
-
-    <!-- 右上 -->
     <div class="absolute right-10 top-24 w-24 h-24 rounded-full border border-white/24"></div>
     <div class="absolute right-28 top-56 w-14 h-14 rounded-full border border-white/16"></div>
-
-    <!-- 左下 -->
     <div class="absolute left-10 bottom-28 w-36 h-36 rounded-full border border-white/20"></div>
-
-    <!-- 右下（掲示板に寄りすぎないよう画面外に逃がす） -->
     <div class="absolute -right-12 -bottom-8 w-44 h-44 rounded-full border border-white/18"></div>
-
-    <!-- 大きい薄波紋（各1個だけ・被りにくい位置） -->
     <div class="absolute left-0 top-8 w-56 h-56 rounded-full border border-white/10 blur-[0.6px]"></div>
     <div class="absolute right-0 bottom-36 w-64 h-64 rounded-full border border-white/10 blur-[0.8px]"></div>
 
-    <!-- ドット（増量：中央帯は避けて四隅に散らす） -->
-    <!-- 左上 -->
     <div class="absolute left-14 top-60 w-1.5 h-1.5 rounded-full bg-[#2f2f2f]/30"></div>
     <div class="absolute left-28 top-78 w-1 h-1 rounded-full bg-[#2f2f2f]/28"></div>
     <div class="absolute left-10 top-84 w-2 h-2 rounded-full bg-[#2f2f2f]/18"></div>
-
-    <!-- 右上 -->
     <div class="absolute right-16 top-64 w-1.5 h-1.5 rounded-full bg-[#2f2f2f]/30"></div>
     <div class="absolute right-30 top-84 w-1 h-1 rounded-full bg-[#2f2f2f]/28"></div>
     <div class="absolute right-10 top-92 w-2 h-2 rounded-full bg-[#2f2f2f]/18"></div>
-
-    <!-- 左下 -->
     <div class="absolute left-16 bottom-72 w-1.5 h-1.5 rounded-full bg-[#2f2f2f]/30"></div>
     <div class="absolute left-36 bottom-64 w-1 h-1 rounded-full bg-[#2f2f2f]/28"></div>
     <div class="absolute left-10 bottom-84 w-2 h-2 rounded-full bg-[#2f2f2f]/18"></div>
-
-    <!-- 右下 -->
     <div class="absolute right-18 bottom-72 w-1.5 h-1.5 rounded-full bg-[#2f2f2f]/30"></div>
     <div class="absolute right-36 bottom-64 w-1 h-1 rounded-full bg-[#2f2f2f]/28"></div>
     <div class="absolute right-12 bottom-92 w-2 h-2 rounded-full bg-[#2f2f2f]/18"></div>
   </div>
 
-  <!-- 上部：日付・挨拶 -->
   <div class="relative z-10 pt-12 text-center text-[#2f2f2f]">
     <p class="text-4xl font-semibold tracking-[0.12em] font-serif">
       {% now "Y" %}
@@ -94,7 +71,7 @@
       </span>
     </div>
 
-    <p class="text-lg opacity-90" id="greeting-text">おはようございます</p>
+    <p class="mt-3 text-lg text-white/90">おはようございます</p>
 
     <p class="mt-1 text-2xl font-bold">
       {% if user.last_name and user.first_name %}
@@ -105,64 +82,46 @@
     </p>
   </div>
 
-  <!-- 中央：掲示板風（バグりにくいSVG吊り下げ） -->
   <div class="relative z-10 mt-10 flex justify-center px-6">
     <div class="relative w-full max-w-xl">
 
-      <!-- ピン＋紐（SVGで固定：どの幅でも崩れない） -->
       <div class="relative h-24">
-        <!-- ピン -->
         <div class="absolute left-1/2 top-7 -translate-x-1/2">
           <div class="w-3 h-3 rounded-full bg-[#2f2f2f] shadow"></div>
         </div>
 
-        <!-- 紐（中心→ボード角へ） -->
         <svg class="absolute inset-x-0 top-0 h-24 w-full pointer-events-none" viewBox="0 0 1000 240" preserveAspectRatio="none">
-          <!-- 白っぽい紐 -->
           <path d="M500 80 L160 220" stroke="rgba(255,255,255,0.85)" stroke-width="6" stroke-linecap="round"/>
           <path d="M500 80 L840 220" stroke="rgba(255,255,255,0.85)" stroke-width="6" stroke-linecap="round"/>
-          <!-- 影 -->
           <path d="M500 84 L160 224" stroke="rgba(0,0,0,0.12)" stroke-width="6" stroke-linecap="round"/>
           <path d="M500 84 L840 224" stroke="rgba(0,0,0,0.12)" stroke-width="6" stroke-linecap="round"/>
         </svg>
       </div>
 
-      <!-- ボード -->
       <div class="relative mx-auto w-full rounded-2xl bg-white/75 shadow-[0_16px_40px_rgba(0,0,0,0.16)] border border-white/70">
 
         <div class="px-10 py-10 text-center">
             <div class="flex items-center justify-center gap-4 text-[#6a8f8a] font-bold text-xl">
-            <!-- 左：葉っぱ1枚 -->
                 <svg class="w-7 h-7 opacity-80" viewBox="0 0 24 24" fill="none">
-            <!-- 葉の外形 -->
-                <path d="M19 5c-7 1-12 6-13 13c7-1 12-6 13-13Z"
-                stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
-            <!-- 葉脈 -->
-                <path d="M7 18c3-4 7-8 12-12"
-                stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    <path d="M19 5c-7 1-12 6-13 13c7-1 12-6 13-13Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                    <path d="M7 18c3-4 7-8 12-12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                 </svg>
 
                 <span class="tracking-wider">今月の目標</span>
 
-            <!-- 右：葉っぱ1枚（左右反転） -->
                 <svg class="w-7 h-7 opacity-80 scale-x-[-1]" viewBox="0 0 24 24" fill="none">
-                <path d="M19 5c-7 1-12 6-13 13c7-1 12-6 13-13Z"
-                stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
-                <path d="M7 18c3-4 7-8 12-12"
-                stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    <path d="M19 5c-7 1-12 6-13 13c7-1 12-6 13-13Z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/>
+                    <path d="M7 18c3-4 7-8 12-12" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
                 </svg>
             </div>
 
-
-
-          <div class="mt-8 text-2xl text-[#2f2f2f] font-medium">
-            {% if user.store and user.store.goal %}
-              {{ user.store.goal }}
+          <div class="mt-8 text-2xl text-[#2f2f2f] font-medium px-6">
+            {% if monthly_goal and monthly_goal.goal_text %}
+              {{ monthly_goal.goal_text|linebreaksbr }}
             {% else %}
               <span class="opacity-70">目標未設定</span>
             {% endif %}
           </div>
-
           {% if user.store %}
             <div class="mt-3 text-sm text-[#2f2f2f]/55">
               {{ user.store.store_name }}
@@ -170,45 +129,23 @@
           {% endif %}
         </div>
 
-        <!-- ボード下の薄い影 -->
         <div class="absolute inset-x-10 bottom-3 h-2 bg-black/10 blur-md rounded-full"></div>
       </div>
     </div>
   </div>
 
-  <!-- 右下：日報登録ボタン（大きめ） -->
-<a href="/report/register/"
-   class="fixed right-8 bottom-28 w-32 h-32 rounded-full bg-white shadow-[0_16px_30px_rgba(0,0,0,0.25)]
-          flex flex-col items-center justify-center z-20">
-  <div class="w-16 h-16 rounded-2xl bg-black/5 flex items-center justify-center mb-2">
-    <svg class="w-12 h-12 text-[#2f2f2f]" viewBox="0 0 24 24" fill="none">
-      <path d="M7 3h8l3 3v15a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/>
-      <path d="M15 3v4h4" stroke="currentColor" stroke-width="1.8"/>
-      <path d="M8 11h8M8 15h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-    </svg>
-  </div>
-  <span class="text-sm font-bold text-[#2f2f2f] tracking-wider">日報登録</span>
-</a>
+  <a href="/report/register/"
+     class="fixed right-8 bottom-28 w-32 h-32 rounded-full bg-white shadow-[0_16px_30px_rgba(0,0,0,0.25)]
+            flex flex-col items-center justify-center z-20">
+    <div class="w-16 h-16 rounded-2xl bg-black/5 flex items-center justify-center mb-2">
+      <svg class="w-12 h-12 text-[#2f2f2f]" viewBox="0 0 24 24" fill="none">
+        <path d="M7 3h8l3 3v15a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M15 3v4h4" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M8 11h8M8 15h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="text-sm font-bold text-[#2f2f2f] tracking-wider">日報登録</span>
+  </a>
 
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const greetingElement = document.getElementById('greeting-text');
-    if (!greetingElement) return;
-
-    const hour = new Date().getHours();
-    let text = '';
-
-    if (hour >= 5 && hour < 11) {
-        text = 'おはようございます';
-    } else if (hour >= 11 && hour < 18) {
-        text = 'こんにちは';
-    } else {
-        text = 'こんばんは';
-    }
-
-    greetingElement.textContent = text;
-});
-</script>
 {% endblock %}
-
