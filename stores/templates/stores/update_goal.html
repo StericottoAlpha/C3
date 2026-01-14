@@ -7,29 +7,55 @@
     <div class="bg-white w-full max-w-lg rounded-2xl shadow-lg p-8 mt-10">
         
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-gray-800">店舗目標の設定</h1>
+            <h1 class="text-2xl font-bold text-gray-800">店舗目標・実績の管理</h1>
             <div class="mt-2 text-teal-600 font-bold text-lg">
                 {{ year }}年 {{ month }}月
             </div>
             <p class="text-sm text-gray-500 mt-1">{{ store.store_name }}</p>
         </div>
 
-        <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-sm text-blue-800">
-            <p>設定した目標はホーム画面に表示され、全スタッフが確認できます。</p>
-        </div>
-
         <form method="post">
             {% csrf_token %}
             
             <div class="mb-8">
-                <label class="block text-gray-700 font-bold mb-2">{{ form.goal_text.label }}</label>
+                <label class="block text-gray-700 font-bold mb-2 border-l-4 border-teal-500 pl-2">
+                    {{ form.goal_text.label }}
+                </label>
                 {{ form.goal_text }}
                 {% if form.goal_text.errors %}
                     <div class="text-red-500 text-sm mt-1">{{ form.goal_text.errors }}</div>
                 {% endif %}
             </div>
 
-            <div class="flex items-center justify-between gap-4">
+            <hr class="border-gray-200 my-8 border-dashed">
+
+            <div class="mb-6">
+                <label class="block text-gray-700 font-bold mb-2 border-l-4 border-yellow-500 pl-2">
+                    実績・振り返り
+                </label>
+                
+                <div class="mb-4">
+                    <label class="block text-sm text-gray-600 mb-1">{{ form.achievement_rate.label }}</label>
+                    <div class="flex items-center gap-2">
+                        <div class="w-24">
+                            {{ form.achievement_rate }}
+                        </div>
+                        <span class="text-gray-500">%</span>
+                    </div>
+                    {% if form.achievement_rate.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.achievement_rate.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-2">
+                    <label class="block text-sm text-gray-600 mb-1">{{ form.achievement_text.label }}</label>
+                    {{ form.achievement_text }}
+                    {% if form.achievement_text.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.achievement_text.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex items-center justify-between gap-4 mt-8">
                 <a href="{% url 'common:index' %}" class="text-gray-500 hover:text-gray-700 text-sm font-bold transition">
                     キャンセル
                 </a>
