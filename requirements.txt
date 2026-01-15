@@ -19,3 +19,7 @@ openai>=1.0.0
 # ASGI Streaming
 fastapi>=0.115.0
 uvicorn>=0.32.0
+
+# Cloud Storage (Supabase Storage via S3)
+django-storages>=1.14.0
+boto3>=1.35.0

@@ -185,8 +185,40 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 
 # Media files (uploaded files)
-MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Supabase Storage設定（S3互換API）
+SUPABASE_STORAGE_BUCKET = os.getenv('SUPABASE_STORAGE_BUCKET', 'media')
+SUPABASE_PROJECT_ID = os.getenv('SUPABASE_PROJECT_ID')
+SUPABASE_STORAGE_ACCESS_KEY = os.getenv('SUPABASE_STORAGE_ACCESS_KEY')
+SUPABASE_STORAGE_SECRET_KEY = os.getenv('SUPABASE_STORAGE_SECRET_KEY')
+
+if SUPABASE_PROJECT_ID and SUPABASE_STORAGE_ACCESS_KEY:
+    # 本番環境: Supabase Storageを使用
+    STORAGES = {
+        'default': {
+            'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        },
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
+
+    # Supabase Storage S3互換エンドポイント
+    AWS_S3_ENDPOINT_URL = f'https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/s3'
+    AWS_ACCESS_KEY_ID = SUPABASE_STORAGE_ACCESS_KEY
+    AWS_SECRET_ACCESS_KEY = SUPABASE_STORAGE_SECRET_KEY
+    AWS_STORAGE_BUCKET_NAME = SUPABASE_STORAGE_BUCKET
+    AWS_S3_REGION_NAME = 'ap-northeast-1'
+    AWS_DEFAULT_ACL = 'public-read'
+    AWS_QUERYSTRING_AUTH = False
+    AWS_S3_FILE_OVERWRITE = False
+
+    # メディアファイルのURL
+    MEDIA_URL = f'https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/{SUPABASE_STORAGE_BUCKET}/'
+else:
+    # 開発環境: ローカルファイルシステムを使用
+    MEDIA_URL = '/media/'
 
 # Streaming API URL (for ASGI streaming server)
 # デフォルトは空文字列（同じサーバーを使用）
