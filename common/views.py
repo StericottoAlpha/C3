@@ -1,7 +1,8 @@
 import datetime
+from pathlib import Path
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 # ▼ モデルをインポート
 from stores.models import MonthlyGoal
 
@@ -26,3 +27,15 @@ def index(request):
 
 def health(request):
     return HttpResponse(status=200)
+
+
+def manifest(request):
+    """PWA manifest.jsonを配信"""
+    file_path = Path(__file__).parent / 'static' / 'common' / 'manifest.json'
+    return FileResponse(open(file_path, 'rb'), content_type='application/manifest+json')
+
+
+def service_worker(request):
+    """PWA Service Workerを配信"""
+    file_path = Path(__file__).parent / 'static' / 'common' / 'service-worker.js'
+    return FileResponse(open(file_path, 'rb'), content_type='application/javascript')
