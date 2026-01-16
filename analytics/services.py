@@ -244,11 +244,17 @@ class AnalyticsService:
                     q_self = DailyReport.objects.filter(date=date, location=location_code, store=base_store)
                     if genre:
                         q_self = q_self.filter(genre=genre)
+                    else:
+                        # 全ジャンル時は賞賛を除外
+                        q_self = q_self.exclude(genre='praise')
                     self_counts[date][location_code] = q_self.count()
 
                     q_other = DailyReport.objects.filter(date=date, location=location_code).exclude(store__store_name='本部').exclude(store=base_store)
                     if genre:
                         q_other = q_other.filter(genre=genre)
+                    else:
+                        # 全ジャンル時は賞賛を除外
+                        q_other = q_other.exclude(genre='praise')
                     other_totals[date][location_code] = q_other.count()
 
             # 各場所ごとに自店舗と他店平均の2系列を作る
@@ -313,6 +319,9 @@ class AnalyticsService:
                     query = query.exclude(store__store_name='本部')
                 if genre:
                     query = query.filter(genre=genre)
+                else:
+                    # 全ジャンル時は賞賛を除外
+                    query = query.exclude(genre='praise')
                 all_data[date][location_code] = query.count()
 
         # 各場所ごとのデータを集計（棒グラフ用）
@@ -401,6 +410,9 @@ class AnalyticsService:
                     )
                     if genre:
                         q_self = q_self.filter(genre=genre)
+                    else:
+                        # 全ジャンル時は賞賛を除外
+                        q_self = q_self.exclude(genre='praise')
                     self_counts[week_label][location_code] = q_self.count()
 
                     q_other = DailyReport.objects.filter(
@@ -410,6 +422,9 @@ class AnalyticsService:
                     ).exclude(store__store_name='本部').exclude(store=base_store)
                     if genre:
                         q_other = q_other.filter(genre=genre)
+                    else:
+                        # 全ジャンル時は賞賛を除外
+                        q_other = q_other.exclude(genre='praise')
                     other_totals[week_label][location_code] = q_other.count()
 
             # 各場所ごとに自店舗と他店平均の2系列を作る
@@ -473,6 +488,9 @@ class AnalyticsService:
                     query = query.exclude(store__store_name='本部')
                 if genre:
                     query = query.filter(genre=genre)
+                else:
+                    # 全ジャンル時は賞賛を除外
+                    query = query.exclude(genre='praise')
                 all_data[week_label][location_code] = query.count()
 
         # 各場所ごとのデータを集計（棒グラフ用）
@@ -541,6 +559,9 @@ class AnalyticsService:
                     query = query.exclude(store__store_name='本部')
                 if genre:
                     query = query.filter(genre=genre)
+                else:
+                    # 全ジャンル時は賞賛を除外
+                    query = query.exclude(genre='praise')
 
                 data.append(query.count())
 
@@ -578,6 +599,9 @@ class AnalyticsService:
                 query = query.exclude(store__store_name='本部')
             if genre:
                 query = query.filter(genre=genre)
+            else:
+                # 全ジャンル時は賞賛を除外
+                query = query.exclude(genre='praise')
 
             data.append(query.count())
 
