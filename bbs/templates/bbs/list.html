@@ -235,6 +235,44 @@
           {% endfor %}
         </div>
 
+        <div class="mt-8 flex justify-center">
+          <nav class="inline-flex items-center gap-1 rounded-2xl
+                      bg-white/80 border border-white/70
+                      shadow px-3 py-2">
+
+            {% if posts.has_previous %}
+              <a href="?page=1{% if query_string %}&{{ query_string }}{% endif %}"
+                class="px-3 py-1.5 rounded-lg text-sm font-bold
+                        text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                «
+              </a>
+              <a href="?page={{ posts.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+                class="px-3 py-1.5 rounded-lg text-sm font-bold
+                        text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                ‹
+              </a>
+            {% endif %}
+
+            <span class="px-4 py-1.5 rounded-lg text-sm font-bold
+                        bg-[#2f2f2f] text-white">
+              {{ posts.number }} / {{ posts.paginator.num_pages }}
+            </span>
+
+            {% if posts.has_next %}
+              <a href="?page={{ posts.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+                class="px-3 py-1.5 rounded-lg text-sm font-bold
+                        text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                ›
+              </a>
+              <a href="?page={{ posts.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}"
+                class="px-3 py-1.5 rounded-lg text-sm font-bold
+                        text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                »
+              </a>
+            {% endif %}
+          </nav>
+        </div>
+
       {% else %}
         <div class="mt-10 text-center bg-white/70 border border-white/70 rounded-2xl p-10 shadow-sm">
           <p class="text-[#2f2f2f] text-lg font-bold">まだ投稿がありません</p>
