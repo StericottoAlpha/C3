@@ -40,6 +40,18 @@ services:
         value: 14
       - key: STREAM_API_URL
         sync: false
+      # デモデータセットアップ（初回のみ true に設定、実行後は false に戻す）
+      - key: RUN_DEMO_SETUP
+        value: "false"
+      # Supabase Storage設定
+      - key: SUPABASE_PROJECT_ID
+        sync: false
+      - key: SUPABASE_STORAGE_ACCESS_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: media
 
   # ストリーミング専用ASGIアプリケーション（uvicorn）
   - type: web
