@@ -34,7 +34,9 @@ def update_current_month_goal(request):
         form = MonthlyGoalForm(request.POST, instance=goal_obj)
         if form.is_valid():
             form.save()
-            messages.success(request, f"{today.year}年{today.month}月の店舗目標を更新しました。")
+            # ▼▼▼ 修正：メッセージ表示を削除（どこにも表示させないため） ▼▼▼
+            # messages.success(...) の行を削除しました
+            
             # 保存後はホームへ
             return redirect('common:index')
     else:
