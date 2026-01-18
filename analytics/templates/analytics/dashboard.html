@@ -66,7 +66,7 @@
                        focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-transparent">
           <option value="sales">売上</option>
           <option value="customer_count">客数</option>
-          <option value="incident_by_location">場所別インシデント</option>
+          <option value="incident_by_location">場所別の出来事データ</option>
           <option value="monthly_goal">月次目標</option>
         </select>
       </div>
@@ -77,7 +77,8 @@
         <select id="genre-filter"
                 class="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm bg-white
                        focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-transparent">
-          <option value="">全ジャンル</option>
+          <!-- <option value="">全ジャンル(賞賛を除く)</option> -->
+          <option value="">ネガティブジャンル(クレーム・事故)</option>
           <option value="claim">クレーム</option>
           <option value="praise">賞賛</option>
           <option value="accident">事故</option>
@@ -197,7 +198,7 @@
     <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 sm:p-6">
       <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
         <div>
-          <p class="text-sm font-extrabold text-gray-900">場所別インシデント推移</p>
+          <p class="text-sm font-extrabold text-gray-900">場所別できごと数の推移</p>
           <p class="text-xs text-gray-500 mt-1">場所を選択して推移を確認できます。</p>
         </div>
 
@@ -430,7 +431,7 @@
             ...dataset,
             backgroundColor: gradientApplied ? gradient : baseColor,
             borderWidth: 0,
-            borderRadius: 6,
+            borderRadius: 0,
             borderSkipped: 'bottom',
             barPercentage: 0.8,
             categoryPercentage: 0.9
@@ -456,7 +457,7 @@
             ...dataset,
             backgroundColor: gradientApplied ? gradient : baseColor,
             borderWidth: 0,
-            borderRadius: { topLeft: 8, topRight: 8, bottomLeft: 8, bottomRight: 8 },
+            borderRadius: 0,
             borderSkipped: false,
             barPercentage: 0.8,
             categoryPercentage: 0.9,
