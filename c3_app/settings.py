@@ -209,10 +209,16 @@ if SUPABASE_PROJECT_ID and SUPABASE_STORAGE_ACCESS_KEY:
     AWS_ACCESS_KEY_ID = SUPABASE_STORAGE_ACCESS_KEY
     AWS_SECRET_ACCESS_KEY = SUPABASE_STORAGE_SECRET_KEY
     AWS_STORAGE_BUCKET_NAME = SUPABASE_STORAGE_BUCKET
-    AWS_S3_REGION_NAME = 'ap-northeast-1'
-    AWS_DEFAULT_ACL = 'public-read'
+    # Supabase Storage S3互換設定
+    AWS_S3_REGION_NAME = 'auto'  # Supabaseは'auto'を使用
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_DEFAULT_ACL = None  # Supabaseはバケットレベルで公開設定するためACL不要
     AWS_QUERYSTRING_AUTH = False
-    AWS_S3_FILE_OVERWRITE = False
+    AWS_S3_FILE_OVERWRITE = True  # Supabase StorageはHeadObjectをサポートしないため
+    AWS_S3_ADDRESSING_STYLE = 'path'  # パススタイルを使用
+
+    # Supabase Storage公開URL用のカスタムドメイン設定
+    AWS_S3_CUSTOM_DOMAIN = f'{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/{SUPABASE_STORAGE_BUCKET}'
 
     # メディアファイルのURL
     MEDIA_URL = f'https://{SUPABASE_PROJECT_ID}.supabase.co/storage/v1/object/public/{SUPABASE_STORAGE_BUCKET}/'
