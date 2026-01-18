@@ -113,6 +113,9 @@ def bbs_comment(request, bbs_id):
             bbs_comment.user = request.user
             bbs_comment.post = bbs_post
             bbs_comment.save()
+            # コメント数を更新
+            bbs_post.comment_count = bbs_post.comments.count()
+            bbs_post.save(update_fields=['comment_count'])
         else:
             pass
 
