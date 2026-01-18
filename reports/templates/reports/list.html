@@ -20,14 +20,13 @@
       <!-- ヘッダー -->
       <div class="flex items-center justify-between gap-3 mb-6">
         <div>
-          <p class="text-xs text-gray-500">日報</p>
           <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900">日報一覧</h1>
           <p class="text-sm text-gray-600 mt-1">日別のまとめや検索で確認できます。</p>
         </div>
 
         <a href="{% url 'reports:register' %}?next={% url 'reports:list' %}"
-           class="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white
-                  shadow hover:bg-teal-700 transition">
+           class="inline-flex items-center gap-1.5 rounded-xl bg-teal-600 px-3 py-2 text-sm font-semibold text-white
+                  shadow hover:bg-teal-700 transition whitespace-nowrap">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 5a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H6a1 1 0 1 1 0-2h5V6a1 1 0 0 1 1-1z"/>
           </svg>
@@ -90,7 +89,6 @@
                       <div class="rounded-2xl border border-teal-200 bg-white p-4">
                         <div class="flex items-center justify-between mb-3">
                           <h3 class="text-sm font-extrabold text-teal-700">店舗実績</h3>
-                          <span class="text-xs text-gray-500">当日の数値</span>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -168,6 +166,44 @@
               </div>
             {% endfor %}
           </div>
+
+          <!-- ページネーション -->
+          {% if date_page.has_other_pages %}
+            <div class="mt-6 flex items-center justify-center gap-2">
+              {% if date_page.has_previous %}
+                <a href="?page={{ date_page.previous_page_number }}{% if current_genre %}&genre={{ current_genre }}{% endif %}{% if current_location %}&location={{ current_location }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"
+                   class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition">
+                  <span class="text-lg">←</span>
+                </a>
+              {% endif %}
+
+              <div class="flex items-center gap-1">
+                {% for num in date_page.paginator.page_range %}
+                  {% if date_page.number == num %}
+                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-teal-600 text-white font-bold text-sm">
+                      {{ num }}
+                    </span>
+                  {% elif num > date_page.number|add:'-3' and num < date_page.number|add:'3' %}
+                    <a href="?page={{ num }}{% if current_genre %}&genre={{ current_genre }}{% endif %}{% if current_location %}&location={{ current_location }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"
+                       class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition text-sm font-semibold">
+                      {{ num }}
+                    </a>
+                  {% endif %}
+                {% endfor %}
+              </div>
+
+              {% if date_page.has_next %}
+                <a href="?page={{ date_page.next_page_number }}{% if current_genre %}&genre={{ current_genre }}{% endif %}{% if current_location %}&location={{ current_location }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"
+                   class="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition">
+                  <span class="text-lg">→</span>
+                </a>
+              {% endif %}
+            </div>
+
+            <div class="mt-2 text-center text-xs text-gray-500">
+              {{ date_page.paginator.count }}日分中 {{ date_page.start_index }}-{{ date_page.end_index }}日目を表示
+            </div>
+          {% endif %}
 
         {% else %}
           <div class="text-center py-12">
@@ -268,6 +304,37 @@
               </a>
             {% endfor %}
           </div>
+
+          <!-- ページネーション（掲示板一覧と同じスタイル） -->
+          {% if reports.has_other_pages %}
+            <div class="mt-6 flex items-center justify-center gap-1">
+              {% if reports.has_previous %}
+                <a href="?search_page=1{% if query_string %}&{{ query_string }}{% endif %}"
+                   class="px-3 py-1.5 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100 transition">
+                  «
+                </a>
+                <a href="?search_page={{ reports.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+                   class="px-3 py-1.5 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100 transition">
+                  ‹
+                </a>
+              {% endif %}
+
+              <span class="px-4 py-1.5 rounded-lg text-sm font-bold bg-teal-600 text-white">
+                {{ reports.number }} / {{ reports.paginator.num_pages }}
+              </span>
+
+              {% if reports.has_next %}
+                <a href="?search_page={{ reports.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+                   class="px-3 py-1.5 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100 transition">
+                  ›
+                </a>
+                <a href="?search_page={{ reports.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}"
+                   class="px-3 py-1.5 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100 transition">
+                  »
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
 
         {% else %}
           <div class="text-center py-12">
