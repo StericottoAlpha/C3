@@ -5,9 +5,12 @@ from django.utils import timezone
 from django.db.models import Q
 from itertools import groupby
 from operator import attrgetter
+import logging
 from .forms import DailyReportForm
 from .models import DailyReport, ReportImage, StoreDailyPerformance
 from bbs.models import BBSPost
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -28,10 +31,15 @@ def report_register(request):
             # 画像を保存（1枚のみ）
             image = request.FILES.get('image')
             if image:
-                ReportImage.objects.create(
-                    report=report,
-                    file_path=image
-                )
+                try:
+                    ReportImage.objects.create(
+                        report=report,
+                        file_path=image
+                    )
+                    logger.info(f"Image uploaded successfully for report {report.report_id}")
+                except Exception as e:
+                    logger.error(f"Image upload failed: {e}", exc_info=True)
+                    raise  # 一時的に再スロー（エラー内容を確認するため）
 
             # 掲示板に投稿する場合
             if report.post_to_bbs:

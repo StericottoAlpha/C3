@@ -6,6 +6,7 @@ app_name = 'common'
 urlpatterns = [
     path('', views.index, name='index'),
     path('health/', views.health, name="health"),
+    # path('debug/storage/', views.debug_storage, name='debug_storage'),  # 一時的なデバッグ用
 
     # PWA
     path('manifest.json', views.manifest, name='manifest'),
