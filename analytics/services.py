@@ -245,16 +245,16 @@ class AnalyticsService:
                     if genre:
                         q_self = q_self.filter(genre=genre)
                     else:
-                        # 全ジャンル時は賞賛を除外
-                        q_self = q_self.exclude(genre='praise')
+                        # ネガティブジャンル：クレームと事故のみ
+                        q_self = q_self.filter(genre__in=['claim', 'accident'])
                     self_counts[date][location_code] = q_self.count()
 
                     q_other = DailyReport.objects.filter(date=date, location=location_code).exclude(store__store_name='本部').exclude(store=base_store)
                     if genre:
                         q_other = q_other.filter(genre=genre)
                     else:
-                        # 全ジャンル時は賞賛を除外
-                        q_other = q_other.exclude(genre='praise')
+                        # ネガティブジャンル：クレームと事故のみ
+                        q_other = q_other.filter(genre__in=['claim', 'accident'])
                     other_totals[date][location_code] = q_other.count()
 
             # 各場所ごとに自店舗と他店平均の2系列を作る
@@ -320,8 +320,8 @@ class AnalyticsService:
                 if genre:
                     query = query.filter(genre=genre)
                 else:
-                    # 全ジャンル時は賞賛を除外
-                    query = query.exclude(genre='praise')
+                    # ネガティブジャンル：クレームと事故のみ
+                    query = query.filter(genre__in=['claim', 'accident'])
                 all_data[date][location_code] = query.count()
 
         # 各場所ごとのデータを集計（棒グラフ用）
@@ -411,8 +411,8 @@ class AnalyticsService:
                     if genre:
                         q_self = q_self.filter(genre=genre)
                     else:
-                        # 全ジャンル時は賞賛を除外
-                        q_self = q_self.exclude(genre='praise')
+                        # ネガティブジャンル：クレームと事故のみ
+                        q_self = q_self.filter(genre__in=['claim', 'accident'])
                     self_counts[week_label][location_code] = q_self.count()
 
                     q_other = DailyReport.objects.filter(
@@ -423,8 +423,8 @@ class AnalyticsService:
                     if genre:
                         q_other = q_other.filter(genre=genre)
                     else:
-                        # 全ジャンル時は賞賛を除外
-                        q_other = q_other.exclude(genre='praise')
+                        # ネガティブジャンル：クレームと事故のみ
+                        q_other = q_other.filter(genre__in=['claim', 'accident'])
                     other_totals[week_label][location_code] = q_other.count()
 
             # 各場所ごとに自店舗と他店平均の2系列を作る
@@ -489,8 +489,8 @@ class AnalyticsService:
                 if genre:
                     query = query.filter(genre=genre)
                 else:
-                    # 全ジャンル時は賞賛を除外
-                    query = query.exclude(genre='praise')
+                    # ネガティブジャンル：クレームと事故のみ
+                    query = query.filter(genre__in=['claim', 'accident'])
                 all_data[week_label][location_code] = query.count()
 
         # 各場所ごとのデータを集計（棒グラフ用）
@@ -560,8 +560,8 @@ class AnalyticsService:
                 if genre:
                     query = query.filter(genre=genre)
                 else:
-                    # 全ジャンル時は賞賛を除外
-                    query = query.exclude(genre='praise')
+                    # ネガティブジャンル：クレームと事故のみ
+                    query = query.filter(genre__in=['claim', 'accident'])
 
                 data.append(query.count())
 
@@ -600,8 +600,8 @@ class AnalyticsService:
             if genre:
                 query = query.filter(genre=genre)
             else:
-                # 全ジャンル時は賞賛を除外
-                query = query.exclude(genre='praise')
+                # ネガティブジャンル：クレームと事故のみ
+                query = query.filter(genre__in=['claim', 'accident'])
 
             data.append(query.count())
 
@@ -778,8 +778,8 @@ class AnalyticsService:
                 'report': '報告',
                 'other': 'その他',
             }
-            genre_label = genre_labels.get(genre, '全ジャンル') if genre else '全ジャンル'
-            title = f'場所別インシデント数（{genre_label}）'
+            genre_label = genre_labels.get(genre, 'ネガティブジャンル') if genre else 'ネガティブジャンル'
+            title = f'場所別できごと（{genre_label}）'
         elif graph_type == 'incident_trend_by_location':
             if not location:
                 raise ValueError('場所が指定されていません')
@@ -802,8 +802,8 @@ class AnalyticsService:
                 'report': '報告',
                 'other': 'その他',
             }
-            genre_label = genre_labels.get(genre, '全ジャンル') if genre else '全ジャンル'
-            title = f'{location_label}のインシデント推移（{genre_label}）'
+            genre_label = genre_labels.get(genre, 'ﾈｶﾞﾃｨﾌﾞｼﾞｬﾝﾙ') if genre else 'ﾈｶﾞﾃｨﾌﾞｼﾞｬﾝﾙ'
+            title = f'{location_label}での出来事数推移({genre_label})'
         else:
             raise ValueError(f'不正なグラフタイプです: {graph_type}')
 

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}C3 ステリコットα{% endblock %}
+{% block title %}GenbaNote{% endblock %}
 
 {% block content %}
 <div class="min-h-screen relative overflow-hidden bg-[#b9cfcc] pb-28">
@@ -82,12 +82,12 @@
     </p>
   </div>
 
-  <div class="relative z-10 mt-10 flex justify-center px-6">
+  <div class="relative z-10 mt-5 flex justify-center px-6">
     <div class="relative w-full max-w-xl">
 
       <div class="relative h-24">
         <div class="absolute left-1/2 top-7 -translate-x-1/2">
-          <div class="w-3 h-3 rounded-full bg-[#2f2f2f] shadow"></div>
+          <div class="w-3 h-3 rounded-full bg-[#2f2f2f] shadow"></div> <!--black point-->
         </div>
 
         <svg class="absolute inset-x-0 top-0 h-24 w-full pointer-events-none" viewBox="0 0 1000 240" preserveAspectRatio="none">
@@ -98,7 +98,7 @@
         </svg>
       </div>
 
-      <div class="relative mx-auto w-full rounded-2xl bg-white/75 shadow-[0_16px_40px_rgba(0,0,0,0.16)] border border-white/70">
+      <div class="relative -top-2 mx-auto w-full rounded-2xl bg-white/75 shadow-[0_16px_40px_rgba(0,0,0,0.16)] border border-white/70">
 
         <div class="px-10 py-10 text-center">
             <div class="flex items-center justify-center gap-4 text-[#6a8f8a] font-bold text-xl">
@@ -115,7 +115,7 @@
                 </svg>
             </div>
 
-          <div class="mt-8 text-2xl text-[#2f2f2f] font-medium px-6">
+          <div class="mt-8 text-xl text-[#2f2f2f] font-medium px-6">
             {% if monthly_goal and monthly_goal.goal_text %}
               {{ monthly_goal.goal_text|linebreaksbr }}
             {% else %}
@@ -135,9 +135,9 @@
   </div>
 
   <a href="/report/register/"
-     class="fixed right-8 bottom-28 w-32 h-32 rounded-full bg-white shadow-[0_16px_30px_rgba(0,0,0,0.25)]
+     class="fixed right-4 bottom-28 w-24 h-24 rounded-full bg-white shadow-[0_16px_30px_rgba(0,0,0,0.25)]
             flex flex-col items-center justify-center z-20">
-    <div class="w-16 h-16 rounded-2xl bg-black/5 flex items-center justify-center mb-2">
+    <div class="w-12 h-12 rounded-2xl bg-black/5 flex items-center justify-center mb-2">
       <svg class="w-12 h-12 text-[#2f2f2f]" viewBox="0 0 24 24" fill="none">
         <path d="M7 3h8l3 3v15a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/>
         <path d="M15 3v4h4" stroke="currentColor" stroke-width="1.8"/>

@@ -1,288 +1,463 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
-{% block title %}日報一覧 - C3 ステリコットα{% endblock %}
+{% block title %}日報一覧 - GenbaNote{% endblock %}
 
 {% block content %}
+<div class="min-h-screen bg-[#b9cfcc] relative overflow-hidden pb-44">
 
-<!-- ✅ 背景（ホーム風：単色・グラデ無し） -->
-<div aria-hidden="true"
-     class="fixed inset-0 -z-10 overflow-hidden pointer-events-none"
-     style="background:#c8d8d6;">
-</div>
+  <!-- 背景：控えめ（紙感＋薄いグラデ） -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/5"></div>
+    <div class="absolute inset-0 opacity-[0.045]"
+         style="background-image: radial-gradient(rgba(0,0,0,.35) 0.6px, transparent 0.6px);
+                background-size: 14px 14px;"></div>
+  </div>
 
-<div class="min-h-screen py-6 px-4 pb-28">
-  <div class="max-w-6xl mx-auto">
+  <!-- 装飾：少なめ（角に薄い波紋1〜2個だけ） -->
+  <div class="absolute inset-0 pointer-events-none z-0">
+    <div class="absolute left-6 top-16 w-28 h-28 rounded-full border border-white/18"></div>
+    <div class="absolute right-8 bottom-28 w-36 h-36 rounded-full border border-white/12"></div>
+  </div>
 
-    <!-- 外枠フレーム（シンプル） -->
-    <div class="rounded-3xl border border-gray-200 bg-white/75 backdrop-blur-[1px] shadow-sm p-5 sm:p-6">
+  <div class="relative z-10 max-w-6xl mx-auto px-4 pt-8">
 
-      <!-- ヘッダー -->
-      <div class="flex items-center justify-between gap-3 mb-6">
-        <div>
-          <p class="text-xs text-gray-500">日報</p>
-          <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900">日報一覧</h1>
-          <p class="text-sm text-gray-600 mt-1">日別のまとめや検索で確認できます。</p>
-        </div>
-
-        <a href="{% url 'reports:register' %}?next={% url 'reports:list' %}"
-           class="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white
-                  shadow hover:bg-teal-700 transition">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 5a1 1 0 0 1 1 1v5h5a1 1 0 1 1 0 2h-5v5a1 1 0 1 1-2 0v-5H6a1 1 0 1 1 0-2h5V6a1 1 0 0 1 1-1z"/>
-          </svg>
-          新規作成
-        </a>
+    <!-- ヘッダー -->
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-[#2f2f2f] tracking-wide">日報一覧</h1>
+        <p class="mt-1 text-sm text-white/90">日別のまとめや検索で確認できます</p>
       </div>
 
-      <!-- タブ -->
-      <div class="mb-5">
-        <div class="inline-flex rounded-2xl border border-gray-200 bg-gray-50 p-1">
-          <button type="button" id="tab-daily" onclick="switchTab('daily')"
-                  class="tab-button px-4 py-2 rounded-xl text-sm font-semibold transition
-                         bg-teal-600 text-white shadow-sm border border-teal-600">
-            日別表示
-          </button>
-          <button type="button" id="tab-search" onclick="switchTab('search')"
-                  class="tab-button px-4 py-2 rounded-xl text-sm font-semibold transition
-                         bg-white text-gray-700 border border-transparent hover:bg-gray-100">
-            検索表示
-          </button>
-        </div>
+      <a href="{% url 'reports:register' %}?next={% url 'reports:list' %}"
+         class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl
+                bg-primary hover:bg-primary-dark text-white font-bold shadow transition">
+        <span class="text-lg">＋</span>
+        <span class="text-sm">新規作成</span>
+      </a>
+    </div>
+
+    <!-- タブ -->
+    <div class="mt-6 bg-white/75 border border-white/70 rounded-2xl shadow-[0_14px_30px_rgba(0,0,0,0.12)] p-4 sm:p-5">
+      <div class="inline-flex rounded-xl border border-black/10 bg-black/5 p-1">
+        <button type="button" id="tab-daily" onclick="switchTab('daily')"
+                class="tab-button px-4 py-2 rounded-lg text-sm font-bold transition
+                       bg-[#2f2f2f] text-white">
+          日別表示
+        </button>
+        <button type="button" id="tab-search" onclick="switchTab('search')"
+                class="tab-button px-4 py-2 rounded-lg text-sm font-bold transition
+                       bg-transparent text-[#2f2f2f]/70 hover:bg-black/5">
+          検索表示
+        </button>
       </div>
+    </div>
 
-      <!-- 日別表示 -->
-      <div id="content-daily" class="tab-content">
-        {% if reports_by_date %}
-          <div class="space-y-4">
-            {% for day_data in reports_by_date %}
-              <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <!-- 日別表示 -->
+    <div id="content-daily" class="tab-content mt-6">
+      {% if reports_by_date %}
+        <div class="space-y-3">
+          {% for day_data in reports_by_date %}
+            <div class="rounded-2xl bg-white/80 border border-white/70
+                        shadow-[0_10px_22px_rgba(0,0,0,0.10)] overflow-hidden">
 
-                <!-- 日付ヘッダー -->
-                <button type="button"
-                        onclick="toggleDayAccordion('day-{{ forloop.counter }}')"
-                        class="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-gray-50 transition">
-                  <div class="flex items-center gap-3">
-                    <div class="text-left">
-                      <h2 class="text-base sm:text-lg font-extrabold text-gray-900">
-                        {{ day_data.date|date:"Y年m月d日 (D)" }}
-                      </h2>
-                      <p class="text-xs text-gray-500 mt-0.5">この日の記録</p>
-                    </div>
-                    <span class="text-xs bg-teal-100 text-teal-700 px-3 py-1 rounded-full font-bold">
-                      {{ day_data.count }}件
-                    </span>
+              <!-- 日付ヘッダー -->
+              <button type="button"
+                      onclick="toggleDayAccordion('day-{{ forloop.counter }}')"
+                      class="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-black/[0.02] transition">
+                <div class="flex items-center gap-3">
+                  <div class="text-left">
+                    <h2 class="text-base sm:text-lg font-bold text-[#2f2f2f]">
+                      {{ day_data.date|date:"Y年m月d日 (D)" }}
+                    </h2>
+                    <p class="text-xs text-[#2f2f2f]/60 mt-0.5">この日の記録</p>
                   </div>
-
-                  <svg id="icon-day-{{ forloop.counter }}"
-                       class="w-6 h-6 text-gray-400 transform transition-transform duration-200"
-                       fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                  </svg>
-                </button>
-
-                <!-- 中身 -->
-                <div id="day-{{ forloop.counter }}" class="accordion-content hidden bg-gray-50 border-t border-gray-200">
-                  <div class="p-4 sm:p-5 space-y-4">
-
-                    <!-- 店舗実績 -->
-                    {% if day_data.performance %}
-                      <div class="rounded-2xl border border-teal-200 bg-white p-4">
-                        <div class="flex items-center justify-between mb-3">
-                          <h3 class="text-sm font-extrabold text-teal-700">店舗実績</h3>
-                          <span class="text-xs text-gray-500">当日の数値</span>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 text-center">
-                            <p class="text-xs text-gray-500 mb-1">売上金額</p>
-                            <p class="text-lg font-extrabold text-gray-900">
-                              ¥{{ day_data.performance.sales_amount|intcomma|default:"--" }}
-                            </p>
-                          </div>
-
-                          <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 text-center">
-                            <p class="text-xs text-gray-500 mb-1">客数</p>
-                            <p class="text-lg font-extrabold text-gray-900">
-                              {{ day_data.performance.customer_count|intcomma|default:"--" }}
-                              <span class="text-sm text-gray-500">人</span>
-                            </p>
-                          </div>
-
-                          <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 text-center">
-                            <p class="text-xs text-gray-500 mb-1">違算金額</p>
-                            <p class="text-lg font-extrabold {% if day_data.performance.cash_difference == 0 %}text-emerald-600{% else %}text-red-600{% endif %}">
-                              {% if day_data.performance.cash_difference > 0 %}+{% endif %}¥{{ day_data.performance.cash_difference|intcomma|default:"--" }}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    {% else %}
-                      <div class="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-center">
-                        <p class="text-sm text-amber-800 font-semibold">この日の店舗実績データは未登録です</p>
-                      </div>
-                    {% endif %}
-
-                    <!-- 日報一覧 -->
-                    <div class="space-y-3">
-                      {% for report in day_data.reports %}
-                        <a href="{% url 'reports:view' report.report_id %}"
-                           class="block rounded-2xl border border-gray-200 bg-white p-4 hover:border-teal-500 hover:shadow-sm transition">
-                          <div class="flex items-start justify-between gap-4">
-                            <div class="min-w-0 flex-1">
-                              <div class="flex flex-wrap items-center gap-2 mb-2">
-                                <span class="text-xs font-bold bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                                  {{ report.get_genre_display }}
-                                </span>
-                                <span class="text-xs font-bold bg-sky-100 text-sky-700 px-2 py-1 rounded">
-                                  {{ report.get_location_display }}
-                                </span>
-                                {% if report.post_to_bbs %}
-                                  <span class="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-bold">
-                                    掲示板連携
-                                  </span>
-                                {% endif %}
-                              </div>
-
-                              <h3 class="text-base sm:text-lg font-extrabold text-gray-900 mb-1 break-words">
-                                {{ report.title }}
-                              </h3>
-
-                              <p class="text-sm text-gray-700 line-clamp-2">
-                                {{ report.content|truncatechars:100 }}
-                              </p>
-
-                              <div class="mt-2 flex items-center gap-3 text-xs text-gray-500">
-                                <span class="font-semibold text-gray-700">{{ report.user.username }}</span>
-                                <span>{{ report.created_at|date:"H:i" }}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </a>
-                      {% endfor %}
-                    </div>
-
-                  </div>
+                  <span class="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-bold">
+                    {{ day_data.count }}件
+                  </span>
                 </div>
 
-              </div>
-            {% endfor %}
-          </div>
-
-        {% else %}
-          <div class="text-center py-12">
-            <p class="text-gray-700 text-lg font-bold">まだ日報がありません</p>
-            <p class="text-gray-600 mt-2">最初の日報を作成してみましょう</p>
-          </div>
-        {% endif %}
-      </div>
-
-      <!-- 検索表示 -->
-      <div id="content-search" class="tab-content hidden">
-
-        <div class="mb-5 rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
-          <form method="get" action="" class="space-y-3">
-            <input type="hidden" name="view" value="search">
-
-            <div class="flex flex-col sm:flex-row gap-2">
-              <input type="text" name="query" value="{{ query|default:'' }}"
-                     placeholder="キーワードを入力（デフォルトではor検索）"
-                     class="w-full flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm
-                            focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-transparent bg-white">
-              <button type="submit"
-                      class="inline-flex items-center justify-center rounded-xl bg-teal-600 px-6 py-2.5 text-sm font-extrabold text-white
-                             shadow hover:bg-teal-700 transition">
-                検索
+                <svg id="icon-day-{{ forloop.counter }}"
+                     class="w-5 h-5 text-[#2f2f2f]/40 transform transition-transform duration-200"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
               </button>
-            </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <select name="genre" onchange="this.form.submit()"
-                      class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 px-3 rounded-xl text-sm
-                             focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-transparent">
-                <option value="">全てのジャンル</option>
-                {% for code, label in genre_choices %}
-                  <option value="{{ code }}" {% if current_genre == code %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
+              <!-- 中身 -->
+              <div id="day-{{ forloop.counter }}" class="accordion-content hidden border-t border-black/5">
+                <div class="p-4 sm:p-5 space-y-4 bg-black/[0.02]">
 
-              <select name="location" onchange="this.form.submit()"
-                      class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 px-3 rounded-xl text-sm
-                             focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-transparent">
-                <option value="">全ての場所</option>
-                {% for code, label in location_choices %}
-                  <option value="{{ code }}" {% if current_location == code %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-              </select>
+                  <!-- 店舗実績 -->
+                  {% if day_data.performance %}
+                    <div class="rounded-2xl border border-white/70 bg-white/90 p-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-[#2f2f2f]">店舗実績</h3>
+                      </div>
 
-              <select name="sort" onchange="this.form.submit()"
-                      class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 px-3 rounded-xl text-sm
-                             focus:outline-none focus:ring-2 focus:ring-teal-300 focus:border-transparent">
-                <option value="newest" {% if sort == 'newest' %}selected{% endif %}>日付: 新しい順</option>
-                <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>日付: 古い順</option>
-              </select>
-            </div>
-          </form>
-        </div>
+                      <div class="grid grid-cols-3 gap-2">
+                        <div class="rounded-xl border border-black/10 bg-white/70 p-2 text-center">
+                          <p class="text-[10px] text-[#2f2f2f]/60 mb-0.5">売上</p>
+                          <p class="text-sm font-bold text-[#2f2f2f]">
+                            ¥{{ day_data.performance.sales_amount|intcomma|default:"--" }}
+                          </p>
+                        </div>
 
-        {% if reports %}
-          <div class="space-y-3">
-            {% for report in reports %}
-              <a href="{% url 'reports:view' report.report_id %}"
-                 class="block rounded-2xl border border-gray-200 bg-white p-4 hover:border-teal-500 hover:shadow-sm transition">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                  <div class="flex flex-wrap items-center gap-2 min-w-0">
-                    <span class="text-xs font-bold bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                      {{ report.get_genre_display }}
-                    </span>
-                    <span class="text-xs font-bold bg-sky-100 text-sky-700 px-2 py-1 rounded">
-                      {{ report.get_location_display }}
-                    </span>
-                    <h2 class="text-base sm:text-lg font-extrabold text-gray-900 break-words">
-                      {{ report.title }}
-                    </h2>
+                        <div class="rounded-xl border border-black/10 bg-white/70 p-2 text-center">
+                          <p class="text-[10px] text-[#2f2f2f]/60 mb-0.5">客数</p>
+                          <p class="text-sm font-bold text-[#2f2f2f]">
+                            {{ day_data.performance.customer_count|intcomma|default:"--" }}人
+                          </p>
+                        </div>
+
+                        <div class="rounded-xl border border-black/10 bg-white/70 p-2 text-center">
+                          <p class="text-[10px] text-[#2f2f2f]/60 mb-0.5">違算</p>
+                          <p class="text-sm font-bold {% if day_data.performance.cash_difference == 0 %}text-emerald-600{% else %}text-rose-600{% endif %}">
+                            {% if day_data.performance.cash_difference > 0 %}+{% endif %}¥{{ day_data.performance.cash_difference|intcomma|default:"--" }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  {% else %}
+                    <div class="rounded-2xl border border-amber-200/70 bg-amber-50/70 p-3 text-center">
+                      <p class="text-sm text-amber-800 font-semibold">この日の店舗実績データは未登録です</p>
+                    </div>
+                  {% endif %}
+
+                  <!-- 日報一覧 -->
+                  <div class="space-y-3">
+                    {% for report in day_data.reports %}
+                      <a href="{% url 'reports:view' report.report_id %}"
+                         class="group block rounded-2xl bg-white/90 border border-white/70
+                                shadow-sm hover:shadow-[0_10px_22px_rgba(0,0,0,0.10)]
+                                transition overflow-hidden">
+                        <div class="p-4">
+                          <!-- 上：ジャンル＋時刻 -->
+                          <div class="flex items-center justify-between gap-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                              <span class="inline-flex items-center text-xs font-bold px-3 py-1 rounded-full
+                                           bg-black/5 text-[#2f2f2f]/80 border border-black/10">
+                                {{ report.get_genre_display }}
+                              </span>
+                              <span class="inline-flex items-center text-xs font-bold px-3 py-1 rounded-full
+                                           bg-sky-50 text-sky-700 border border-sky-200/70">
+                                {{ report.get_location_display }}
+                              </span>
+                              {% if report.post_to_bbs %}
+                                <span class="inline-flex items-center text-xs font-bold px-3 py-1 rounded-full
+                                             bg-primary/10 text-primary border border-primary/20">
+                                  掲示板連携
+                                </span>
+                              {% endif %}
+                            </div>
+                            <span class="text-xs text-[#2f2f2f]/60 whitespace-nowrap">
+                              {{ report.created_at|date:"H:i" }}
+                            </span>
+                          </div>
+
+                          <!-- タイトル -->
+                          <h3 class="mt-3 text-base sm:text-lg font-bold text-[#2f2f2f] group-hover:opacity-90 transition break-words">
+                            {{ report.title }}
+                          </h3>
+
+                          <!-- 本文プレビュー -->
+                          <p class="mt-2 text-sm text-[#2f2f2f]/80 line-clamp-2">
+                            {{ report.content|truncatechars:100 }}
+                          </p>
+
+                          <!-- 下：メタ情報 -->
+                          <div class="mt-3 flex items-center gap-3 text-xs text-[#2f2f2f]/65">
+                            <div class="inline-flex items-center gap-1">
+                              <svg class="w-4 h-4 text-[#2f2f2f]/55" viewBox="0 0 24 24" fill="none">
+                                <path d="M20 21a8 8 0 1 0-16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                <path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                              </svg>
+                              <span>{{ report.user.username }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </a>
+                    {% endfor %}
                   </div>
 
-                  <span class="text-xs text-gray-500 whitespace-nowrap">
+                </div>
+              </div>
+
+            </div>
+          {% endfor %}
+        </div>
+
+        <!-- ページネーション -->
+        {% if date_page.has_other_pages %}
+          <div class="mt-8 flex justify-center">
+            <nav class="inline-flex items-center gap-1 rounded-2xl
+                        bg-white/80 border border-white/70
+                        shadow px-3 py-2">
+
+              {% if date_page.has_previous %}
+                <a href="?page=1{% if current_genre %}&genre={{ current_genre }}{% endif %}{% if current_location %}&location={{ current_location }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"
+                  class="px-3 py-1.5 rounded-lg text-sm font-bold
+                          text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                  «
+                </a>
+                <a href="?page={{ date_page.previous_page_number }}{% if current_genre %}&genre={{ current_genre }}{% endif %}{% if current_location %}&location={{ current_location }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"
+                  class="px-3 py-1.5 rounded-lg text-sm font-bold
+                          text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                  ‹
+                </a>
+              {% endif %}
+
+              <span class="px-4 py-1.5 rounded-lg text-sm font-bold
+                          bg-[#2f2f2f] text-white">
+                {{ date_page.number }} / {{ date_page.paginator.num_pages }}
+              </span>
+
+              {% if date_page.has_next %}
+                <a href="?page={{ date_page.next_page_number }}{% if current_genre %}&genre={{ current_genre }}{% endif %}{% if current_location %}&location={{ current_location }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"
+                  class="px-3 py-1.5 rounded-lg text-sm font-bold
+                          text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                  ›
+                </a>
+                <a href="?page={{ date_page.paginator.num_pages }}{% if current_genre %}&genre={{ current_genre }}{% endif %}{% if current_location %}&location={{ current_location }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}"
+                  class="px-3 py-1.5 rounded-lg text-sm font-bold
+                          text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                  »
+                </a>
+              {% endif %}
+            </nav>
+          </div>
+
+          <div class="mt-2 text-center text-xs text-white/70">
+            {{ date_page.paginator.count }}日分中 {{ date_page.start_index }}-{{ date_page.end_index }}日目を表示
+          </div>
+        {% endif %}
+
+      {% else %}
+        <div class="mt-10 text-center bg-white/70 border border-white/70 rounded-2xl p-10 shadow-sm">
+          <p class="text-[#2f2f2f] text-lg font-bold">まだ日報がありません</p>
+          <p class="text-[#2f2f2f]/70 mt-2 text-sm">最初の日報を作成してみましょう</p>
+          <div class="mt-5">
+            <a href="{% url 'reports:register' %}?next={% url 'reports:list' %}"
+               class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary hover:bg-primary-dark
+                      text-white font-bold shadow transition">
+              <span>＋</span><span>新規作成</span>
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- 検索表示 -->
+    <div id="content-search" class="tab-content hidden mt-6">
+
+      <!-- 検索フォーム -->
+      <div class="bg-white/75 border border-white/70 rounded-2xl shadow-[0_14px_30px_rgba(0,0,0,0.12)]">
+        <form method="get" action="" class="p-4 sm:p-5 space-y-3">
+          <input type="hidden" name="view" value="search">
+
+          <!-- キーワード -->
+          <div class="flex gap-2">
+            <div class="flex-1">
+              <input type="text" name="query" value="{{ query|default:'' }}"
+                     placeholder="キーワード（スペース区切りでOR検索）"
+                     class="w-full rounded-xl border border-black/10 bg-white/70 px-4 py-3 text-sm
+                            focus:outline-none focus:ring-2 focus:ring-black/10 text-[#2f2f2f] placeholder:text-[#2f2f2f]/35">
+            </div>
+            <button type="submit"
+                    class="px-5 py-3 rounded-xl bg-[#2f2f2f] text-white font-bold text-sm
+                           hover:opacity-90 transition shadow">
+              検索
+            </button>
+          </div>
+
+          <!-- フィルタ -->
+          <div class="grid grid-cols-3 gap-2">
+            <div class="relative">
+              <select name="genre" onchange="this.form.submit()"
+                      class="w-full appearance-none rounded-xl border border-black/10 bg-white/70 px-4 py-3 pr-10 text-sm
+                             focus:outline-none focus:ring-2 focus:ring-black/10 text-[#2f2f2f]">
+                <option value="">全てのジャンル</option>
+                {% for code, label in genre_choices %}
+                  <option value="{{ code }}" {% if current_genre == code %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#2f2f2f]/60">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="relative">
+              <select name="location" onchange="this.form.submit()"
+                      class="w-full appearance-none rounded-xl border border-black/10 bg-white/70 px-4 py-3 pr-10 text-sm
+                             focus:outline-none focus:ring-2 focus:ring-black/10 text-[#2f2f2f]">
+                <option value="">全ての場所</option>
+                {% for code, label in location_choices %}
+                  <option value="{{ code }}" {% if current_location == code %}selected{% endif %}>
+                    {{ label }}
+                  </option>
+                {% endfor %}
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#2f2f2f]/60">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="relative">
+              <select name="sort" onchange="this.form.submit()"
+                      class="w-full appearance-none rounded-xl border border-black/10 bg-white/70 px-4 py-3 pr-10 text-sm
+                             focus:outline-none focus:ring-2 focus:ring-black/10 text-[#2f2f2f]">
+                <option value="newest" {% if sort == 'newest' %}selected{% endif %}>新しい順</option>
+                <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>古い順</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#2f2f2f]/60">
+                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      {% if reports %}
+        <div class="mt-6 space-y-3">
+          {% for report in reports %}
+            <a href="{% url 'reports:view' report.report_id %}"
+               class="group block rounded-2xl bg-white/80 border border-white/70
+                      shadow-[0_10px_22px_rgba(0,0,0,0.10)] hover:shadow-[0_16px_34px_rgba(0,0,0,0.14)]
+                      transition overflow-hidden">
+
+              <div class="p-4 sm:p-5">
+                <!-- 上：ジャンル＋日時 -->
+                <div class="flex items-center justify-between gap-3">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center text-xs font-bold px-3 py-1 rounded-full
+                                 bg-black/5 text-[#2f2f2f]/80 border border-black/10">
+                      {{ report.get_genre_display }}
+                    </span>
+                    <span class="inline-flex items-center text-xs font-bold px-3 py-1 rounded-full
+                                 bg-sky-50 text-sky-700 border border-sky-200/70">
+                      {{ report.get_location_display }}
+                    </span>
+                    {% if report.post_to_bbs %}
+                      <span class="inline-flex items-center text-xs font-bold px-3 py-1 rounded-full
+                                   bg-primary/10 text-primary border border-primary/20">
+                        掲示板連携
+                      </span>
+                    {% endif %}
+                  </div>
+
+                  <span class="text-xs text-[#2f2f2f]/60 whitespace-nowrap">
                     {{ report.date|date:"Y/m/d" }}
                   </span>
                 </div>
 
-                <p class="mt-2 text-sm text-gray-700 line-clamp-2">
+                <!-- タイトル -->
+                <h2 class="mt-3 text-lg sm:text-xl font-bold text-[#2f2f2f] group-hover:opacity-90 transition">
+                  {{ report.title }}
+                </h2>
+
+                <!-- 本文プレビュー -->
+                <p class="mt-2 text-sm text-[#2f2f2f]/80 line-clamp-2">
                   {{ report.content|truncatechars:100 }}
                 </p>
 
-                <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
-                  <div class="flex flex-wrap items-center gap-3">
-                    <span class="font-semibold text-gray-700">{{ report.user.username }}</span>
-
-                    {% if report.store and report.store.store_name %}
-                      <span>{{ report.store.store_name }}</span>
-                    {% endif %}
-
-                    {% if report.post_to_bbs %}
-                      <span class="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded font-bold">掲示板連携</span>
-                    {% endif %}
+                <!-- 下：メタ情報 -->
+                <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#2f2f2f]/65">
+                  <!-- ユーザー -->
+                  <div class="inline-flex items-center gap-1">
+                    <svg class="w-4 h-4 text-[#2f2f2f]/55" viewBox="0 0 24 24" fill="none">
+                      <path d="M20 21a8 8 0 1 0-16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                      <path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>{{ report.user.username }}</span>
                   </div>
-                </div>
-              </a>
-            {% endfor %}
-          </div>
 
-        {% else %}
-          <div class="text-center py-12">
-            <p class="text-gray-700 text-lg font-bold">まだ日報がありません</p>
-            <p class="text-gray-600 mt-2">最初の日報を作成してみましょう</p>
+                  <!-- 店舗 -->
+                  {% if report.store and report.store.store_name %}
+                    <div class="inline-flex items-center gap-1">
+                      <svg class="w-4 h-4 text-[#2f2f2f]/55" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 10l2-6h12l2 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M5 10v10h14V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M9 20v-6h6v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                      </svg>
+                      <span>{{ report.store.store_name }}</span>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+
+        <!-- ページネーション -->
+        {% if reports.has_other_pages %}
+          <div class="mt-8 flex justify-center">
+            <nav class="inline-flex items-center gap-1 rounded-2xl
+                        bg-white/80 border border-white/70
+                        shadow px-3 py-2">
+
+              {% if reports.has_previous %}
+                <a href="?view=search&search_page=1{% if query_string %}&{{ query_string }}{% endif %}"
+                  class="px-3 py-1.5 rounded-lg text-sm font-bold
+                          text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                  «
+                </a>
+                <a href="?view=search&search_page={{ reports.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+                  class="px-3 py-1.5 rounded-lg text-sm font-bold
+                          text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                  ‹
+                </a>
+              {% endif %}
+
+              <span class="px-4 py-1.5 rounded-lg text-sm font-bold
+                          bg-[#2f2f2f] text-white">
+                {{ reports.number }} / {{ reports.paginator.num_pages }}
+              </span>
+
+              {% if reports.has_next %}
+                <a href="?view=search&search_page={{ reports.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+                  class="px-3 py-1.5 rounded-lg text-sm font-bold
+                          text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                  ›
+                </a>
+                <a href="?view=search&search_page={{ reports.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}"
+                  class="px-3 py-1.5 rounded-lg text-sm font-bold
+                          text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                  »
+                </a>
+              {% endif %}
+            </nav>
           </div>
         {% endif %}
-      </div>
 
+      {% else %}
+        <div class="mt-10 text-center bg-white/70 border border-white/70 rounded-2xl p-10 shadow-sm">
+          <p class="text-[#2f2f2f] text-lg font-bold">まだ日報がありません</p>
+          <p class="text-[#2f2f2f]/70 mt-2 text-sm">最初の日報を作成してみましょう</p>
+          <div class="mt-5">
+            <a href="{% url 'reports:register' %}?next={% url 'reports:list' %}"
+               class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary hover:bg-primary-dark
+                      text-white font-bold shadow transition">
+              <span>＋</span><span>新規作成</span>
+            </a>
+          </div>
+        </div>
+      {% endif %}
     </div>
+
   </div>
+
 </div>
 
 <script>
-// タブ切り替え機能（デザインに合わせて class を切り替え）
+// タブ切り替え機能
 function switchTab(tabName) {
   const tabDaily = document.getElementById('tab-daily');
   const tabSearch = document.getElementById('tab-search');
@@ -292,14 +467,14 @@ function switchTab(tabName) {
 
   // ボタン状態をリセット
   [tabDaily, tabSearch].forEach(btn => {
-    btn.classList.remove('bg-teal-600','text-white','border-teal-600','shadow-sm');
-    btn.classList.add('bg-white','text-gray-700','border-transparent');
+    btn.classList.remove('bg-[#2f2f2f]', 'text-white');
+    btn.classList.add('bg-transparent', 'text-[#2f2f2f]/70');
   });
 
   // アクティブ
   const activeBtn = document.getElementById(`tab-${tabName}`);
-  activeBtn.classList.add('bg-teal-600','text-white','border-teal-600','shadow-sm');
-  activeBtn.classList.remove('bg-white','text-gray-700','border-transparent');
+  activeBtn.classList.add('bg-[#2f2f2f]', 'text-white');
+  activeBtn.classList.remove('bg-transparent', 'text-[#2f2f2f]/70');
 
   // 表示
   document.getElementById(`content-${tabName}`).classList.remove('hidden');

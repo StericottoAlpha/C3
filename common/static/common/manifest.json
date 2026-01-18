@@ -1,7 +1,7 @@
 {
-  "name": "C3 ステリコットα",
-  "short_name": "ステリコットα",
-  "description": "店舗管理・日報・分析アプリ",
+  "name": "GenbaNote",
+  "short_name": "genba note",
+  "description": "店舗管理・日報・分析アプリ by ステリコットα",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
