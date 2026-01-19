@@ -98,7 +98,7 @@
           <div class="h-4 w-px bg-gray-200 mx-1"></div>
           <label class="inline-flex items-center gap-2 text-sm text-gray-700">
             <input type="radio" name="scope" value="all" id="scope-all" class="h-4 w-4 accent-teal-600" />
-            全店舗
+            他店舗比較
           </label>
         </div>
       </div>
@@ -120,7 +120,7 @@
             <div class="h-4 w-px bg-gray-200 mx-1"></div>
             <label class="inline-flex items-center gap-2 text-sm text-gray-700">
               <input type="radio" name="period" value="preview" id="period-preview" class="h-4 w-4 accent-teal-600" />
-              プレビュー
+              月間プレビュー
             </label>
           </div>
 
@@ -218,7 +218,9 @@
       </div>
 
       <div id="location-trend-loading" class="text-center py-10 text-gray-500 hidden">データを読み込み中...</div>
-      <canvas id="location-trend-chart" class="hidden"></canvas>
+      <div id="location-trend-chart-container" class="hidden">
+        <canvas id="location-trend-chart"></canvas>
+      </div>
     </div>
   </div>
 
@@ -358,8 +360,7 @@
   // グラフデータを読み込み
   function loadGraph() {
     document.getElementById('loading').classList.remove('hidden');
-    document.getElementById('chart-container').classList.remove('hidden');
-    document.getElementById('analytics-chart').classList.add('hidden');
+    document.getElementById('chart-container').classList.add('hidden');
     document.getElementById('monthly-goal-container').classList.add('hidden');
     document.getElementById('error-message').classList.add('hidden');
 
@@ -378,6 +379,7 @@
         document.getElementById('period-label').textContent = data.period_label;
         drawChart(data);
         document.getElementById('loading').classList.add('hidden');
+        document.getElementById('chart-container').classList.remove('hidden');
         document.getElementById('analytics-chart').classList.remove('hidden');
       })
       .catch(error => {
@@ -462,6 +464,8 @@
         });
       }
     } else if (chartKind === 'line' && hasDatasets) {
+      // 月表示の場合は点を非表示にする（データ点が多くて見づらいため）
+      const hidePoints = currentPeriod === 'month';
       datasets = data.datasets.map((dataset) => {
         const border = dataset.borderColor || 'rgb(13, 148, 136)'; // teal-600
         let bg = dataset.backgroundColor || border;
@@ -474,10 +478,12 @@
           backgroundColor: bg,
           fill: false,
           tension: dataset.tension !== undefined ? dataset.tension : 0.3,
-          pointRadius: dataset.pointRadius !== undefined ? dataset.pointRadius : 3,
+          pointRadius: hidePoints ? 0 : (dataset.pointRadius !== undefined ? dataset.pointRadius : 3),
         };
       });
     } else {
+      // 月表示の場合は点を非表示にする（データ点が多くて見づらいため）
+      const hidePoints = currentPeriod === 'month';
       datasets = [{
         label: data.title,
         data: data.data,
@@ -486,7 +492,7 @@
         tension: 0.3,
         fill: true,
         borderWidth: 2,
-        pointRadius: 4,
+        pointRadius: hidePoints ? 0 : 4,
         pointBackgroundColor: 'rgb(13, 148, 136)',
       }];
     }
@@ -519,10 +525,17 @@
         stepSize: yStepSize,
         font: { size: 11 },
         callback: function(value) {
+          // 比較モードで0の場合は「平均」と表示
+          if (isComparisonMode && value === 0) return '平均';
           if (currentGraphType === 'sales') return '¥' + value.toLocaleString();
           if (yStepSize < 1) return value.toString();
           return value;
         }
+      },
+      title: {
+        display: currentGraphType === 'incident_by_location',
+        text: '（件）',
+        font: { size: 12 }
       }
     };
 
@@ -536,6 +549,7 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: currentGraphType === 'incident_by_location' ? false : true,
         interaction: { mode: 'index', intersect: false },
         plugins: {
           legend: {
@@ -585,7 +599,7 @@
   // 場所別インシデント推移グラフを読み込み
   function loadLocationTrendGraph() {
     document.getElementById('location-trend-loading').classList.remove('hidden');
-    document.getElementById('location-trend-chart').classList.add('hidden');
+    document.getElementById('location-trend-chart-container').classList.add('hidden');
 
     let url = `/analysis/api/graph-data/?graph_type=incident_trend_by_location&period=${currentPeriod}&offset=${currentOffset}&location=${currentLocation}`;
     if (currentGenre) url += `&genre=${currentGenre}`;
@@ -598,7 +612,7 @@
       .then(data => {
         drawLocationTrendChart(data);
         document.getElementById('location-trend-loading').classList.add('hidden');
-        document.getElementById('location-trend-chart').classList.remove('hidden');
+        document.getElementById('location-trend-chart-container').classList.remove('hidden');
       })
       .catch(error => {
         console.error('Error:', error);
@@ -622,8 +636,9 @@
           borderColor: 'rgb(13, 148, 136)',
           backgroundColor: 'rgba(13, 148, 136, 0.10)',
           borderWidth: 2,
-          tension: 0.1,
-          fill: true
+          tension: 0.4,
+          fill: true,
+          pointRadius: 0
         }]
       },
       options: {
