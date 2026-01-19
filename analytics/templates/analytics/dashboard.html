@@ -369,10 +369,6 @@
       url += `&genre=${currentGenre}`;
     }
 
-    if (currentGraphType === 'incident_by_location' && currentScope === 'all') {
-      url += '&compare=1';
-    }
-
     fetch(url)
       .then(response => {
         if (!response.ok) throw new Error('データの取得に失敗しました');
@@ -402,16 +398,16 @@
     const chartKind = data.chart_kind || (hasDatasets ? 'bar' : 'line');
     const chartType = chartKind;
 
-    let compareMode = false;
-    if (chartKind === 'bar' && hasDatasets) {
-      compareMode = data.datasets.some(ds => ds.label && ds.label.indexOf('（自店舗）') !== -1);
-    }
-    const isStackedChart = (chartType === 'bar' && hasDatasets && !compareMode);
+    // 比較モード（差分表示）の判定
+    const isComparisonMode = data.is_comparison === true;
+
+    const isStackedChart = (chartType === 'bar' && hasDatasets && !isComparisonMode);
 
     let datasets;
 
     if (chartKind === 'bar' && hasDatasets) {
-      if (compareMode) {
+      if (isComparisonMode) {
+        // 比較モード：差分表示用の設定
         datasets = data.datasets.map((dataset) => {
           const baseColor = dataset.backgroundColor;
           const gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -432,9 +428,9 @@
             backgroundColor: gradientApplied ? gradient : baseColor,
             borderWidth: 0,
             borderRadius: 0,
-            borderSkipped: 'bottom',
-            barPercentage: 0.8,
-            categoryPercentage: 0.9
+            borderSkipped: false,
+            barPercentage: 0.95,
+            categoryPercentage: 0.95
           };
         });
       } else {
@@ -459,8 +455,8 @@
             borderWidth: 0,
             borderRadius: 0,
             borderSkipped: false,
-            barPercentage: 0.8,
-            categoryPercentage: 0.9,
+            barPercentage: 0.95,
+            categoryPercentage: 0.95,
             maxBarThickness: 60
           };
         });
@@ -496,8 +492,42 @@
     }
 
     let yStepSize = currentGraphType === 'sales' ? 100000 : (currentGraphType === 'customer_count' ? 100 : 1);
-    if (compareMode && chartType === 'bar' && currentGraphType !== 'sales' && currentGraphType !== 'customer_count') {
+    if (isComparisonMode && chartType === 'bar' && currentGraphType !== 'sales' && currentGraphType !== 'customer_count') {
       yStepSize = 0.5;
+    }
+
+    // 比較モードの場合、Y軸の範囲を計算
+    let yAxisConfig = {
+      stacked: isStackedChart,  // 比較モードでは積み上げない
+      beginAtZero: !isComparisonMode,
+      grid: {
+        color: function(context) {
+          if (isComparisonMode && context.tick.value === 0) {
+            return 'rgba(0, 0, 0, 0.3)'; // ゼロラインを強調
+          }
+          return 'rgba(0, 0, 0, 0.06)';
+        },
+        lineWidth: function(context) {
+          if (isComparisonMode && context.tick.value === 0) {
+            return 2; // ゼロラインを太く
+          }
+          return 1;
+        },
+        drawBorder: false
+      },
+      ticks: {
+        stepSize: yStepSize,
+        font: { size: 11 },
+        callback: function(value) {
+          if (currentGraphType === 'sales') return '¥' + value.toLocaleString();
+          if (yStepSize < 1) return value.toString();
+          return value;
+        }
+      }
+    };
+
+    if (!isComparisonMode) {
+      yAxisConfig.min = 0;
     }
 
     currentChart = new Chart(ctx, {
@@ -515,37 +545,7 @@
               usePointStyle: true,
               pointStyle: 'circle',
               padding: 15,
-              font: { size: 12, weight: '500' },
-              generateLabels: function(chart) {
-                if (!compareMode) {
-                  return Chart.defaults.plugins.legend.labels.generateLabels(chart);
-                }
-                const ds = chart.data.datasets || [];
-                const unique = {};
-                ds.forEach((d, i) => {
-                  const loc = d.location_label || ('' + d.label).replace(/（.*）$/, '');
-                  if (!unique[loc]) unique[loc] = { text: loc, fillStyle: d.backgroundColor, hidden: false, datasetIndex: i };
-                });
-                return Object.keys(unique).map(k => ({
-                  text: unique[k].text,
-                  fillStyle: unique[k].fillStyle,
-                  hidden: unique[k].hidden,
-                  datasetIndex: unique[k].datasetIndex
-                }));
-              }
-            },
-            onClick: function(e, legendItem) {
-              if (!compareMode) {
-                Chart.defaults.plugins.legend.onClick.call(this, e, legendItem);
-                return;
-              }
-              const chart = this.chart;
-              const label = legendItem.text;
-              chart.data.datasets.forEach(ds => {
-                const loc = ds.location_label || ('' + ds.label).replace(/（.*）$/, '');
-                if (loc === label) ds.hidden = !ds.hidden;
-              });
-              chart.update();
+              font: { size: 12, weight: '500' }
             }
           },
           title: {
@@ -572,25 +572,11 @@
         },
         scales: {
           x: {
-            stacked: isStackedChart || compareMode,
+            stacked: isStackedChart,  // 比較モードでは積み上げない
             grid: { display: false },
             ticks: { font: { size: 11 } }
           },
-          y: {
-            stacked: isStackedChart || compareMode,
-            beginAtZero: true,
-            min: 0,
-            grid: { color: 'rgba(0, 0, 0, 0.06)', drawBorder: false },
-            ticks: {
-              stepSize: yStepSize,
-              font: { size: 11 },
-              callback: function(value) {
-                if (currentGraphType === 'sales') return '¥' + value.toLocaleString();
-                if (yStepSize < 1) return value.toString();
-                return value;
-              }
-            }
-          }
+          y: yAxisConfig
         }
       }
     });

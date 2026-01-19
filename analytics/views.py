@@ -240,6 +240,10 @@ def get_graph_data(request):
     if 'chart_kind' in chart_data:
         response_data['chart_kind'] = chart_data['chart_kind']
 
+    # 比較モードフラグがある場合は追加
+    if 'is_comparison' in chart_data:
+        response_data['is_comparison'] = chart_data['is_comparison']
+
     return JsonResponse(response_data)
 
 

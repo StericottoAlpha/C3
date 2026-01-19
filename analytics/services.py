@@ -362,12 +362,12 @@ class AnalyticsService:
 
             # 日付×場所ごとに自店舗と他店舗合計を取得
             self_counts = {}
-            other_totals = {}
+            other_averages = {}
             for date in date_range:
                 if date > today:
                     continue
                 self_counts[date] = {}
-                other_totals[date] = {}
+                other_averages[date] = {}
                 for location_code, location_label, color in locations:
                     q_self = DailyReport.objects.filter(date=date, location=location_code, store=base_store)
                     if genre:
@@ -383,50 +383,36 @@ class AnalyticsService:
                     else:
                         # ネガティブジャンル：クレームと事故のみ
                         q_other = q_other.filter(genre__in=['claim', 'accident'])
-                    other_totals[date][location_code] = q_other.count()
+                    other_total = q_other.count()
 
-            # 各場所ごとに自店舗と他店平均の2系列を作る
-            # ここでは「自店舗スタック」と「他店平均スタック」を作り、それぞれのスタックに場所ごとのセグメントを積む
+                    # 他店舗平均を計算
+                    if other_store_count > 0:
+                        other_averages[date][location_code] = round(other_total / other_store_count, 2)
+                    else:
+                        other_averages[date][location_code] = 0.0
+
+            # 各場所ごとに差分（自店舗 - 他店舗平均）を計算
             for location_code, location_label, color in locations:
-                self_series = []
-                other_series = []
+                diff_series = []
                 for date in date_range:
                     if date > today:
                         continue
-                    self_series.append(self_counts[date][location_code])
-                    if other_store_count > 0:
-                        avg = other_totals[date][location_code] / other_store_count
-                        # 小数精度を保つ（小数第2位まで丸める）
-                        other_series.append(round(avg, 2))
-                    else:
-                        other_series.append(0.0)
+                    # 差分を計算（自店舗 - 他店舗平均）
+                    diff = self_counts[date][location_code] - other_averages[date][location_code]
+                    diff_series.append(round(diff, 2))
 
-                # 自店舗側のスタックに追加（stack='self'）
                 datasets.append({
-                    'label': f'{location_label}（自店舗）',
-                    'data': self_series,
+                    'label': location_label,
+                    'data': diff_series,
                     'backgroundColor': color,
-                    'stack': 'self',
                     'location_code': location_code,
                     'location_label': location_label,
-                    'role': 'self',
-                })
-
-                # 他店平均側のスタックに追加（stack='other'） - 透過色にして見分ける
-                other_bg = color.replace('rgb', 'rgba').replace(')', ', 0.6)') if isinstance(color, str) else color
-                datasets.append({
-                    'label': f'{location_label}（他店平均）',
-                    'data': other_series,
-                    'backgroundColor': other_bg,
-                    'stack': 'other',
-                    'location_code': location_code,
-                    'location_label': location_label,
-                    'role': 'other',
                 })
 
             return {
                 'labels': labels,
                 'datasets': datasets,
+                'is_comparison': True,  # 比較モードであることを示すフラグ
             }
 
         # 従来モード：全日付・全場所のデータを先に取得
@@ -521,13 +507,13 @@ class AnalyticsService:
 
             # 週×場所ごとに自店舗と他店舗合計を取得
             self_counts = {}
-            other_totals = {}
+            other_averages = {}
             for week_start, week_end, week_label in weeks:
                 # 未来の週はスキップ
                 if week_start > today:
                     continue
                 self_counts[week_label] = {}
-                other_totals[week_label] = {}
+                other_averages[week_label] = {}
                 for location_code, location_label, color in locations:
                     # 週の範囲内でクエリ
                     q_self = DailyReport.objects.filter(
@@ -553,48 +539,36 @@ class AnalyticsService:
                     else:
                         # ネガティブジャンル：クレームと事故のみ
                         q_other = q_other.filter(genre__in=['claim', 'accident'])
-                    other_totals[week_label][location_code] = q_other.count()
+                    other_total = q_other.count()
 
-            # 各場所ごとに自店舗と他店平均の2系列を作る
+                    # 他店舗平均を計算
+                    if other_store_count > 0:
+                        other_averages[week_label][location_code] = round(other_total / other_store_count, 2)
+                    else:
+                        other_averages[week_label][location_code] = 0.0
+
+            # 各場所ごとに差分（自店舗 - 他店舗平均）を計算
             for location_code, location_label, color in locations:
-                self_series = []
-                other_series = []
+                diff_series = []
                 for week_start, week_end, week_label in weeks:
                     if week_start > today:
                         continue
-                    self_series.append(self_counts[week_label][location_code])
-                    if other_store_count > 0:
-                        avg = other_totals[week_label][location_code] / other_store_count
-                        other_series.append(round(avg, 2))
-                    else:
-                        other_series.append(0.0)
+                    # 差分を計算（自店舗 - 他店舗平均）
+                    diff = self_counts[week_label][location_code] - other_averages[week_label][location_code]
+                    diff_series.append(round(diff, 2))
 
-                # 自店舗側のスタックに追加
                 datasets.append({
-                    'label': f'{location_label}（自店舗）',
-                    'data': self_series,
+                    'label': location_label,
+                    'data': diff_series,
                     'backgroundColor': color,
-                    'stack': 'self',
                     'location_code': location_code,
                     'location_label': location_label,
-                    'role': 'self',
-                })
-
-                # 他店平均側のスタックに追加
-                other_bg = color.replace('rgb', 'rgba').replace(')', ', 0.6)') if isinstance(color, str) else color
-                datasets.append({
-                    'label': f'{location_label}（他店平均）',
-                    'data': other_series,
-                    'backgroundColor': other_bg,
-                    'stack': 'other',
-                    'location_code': location_code,
-                    'location_label': location_label,
-                    'role': 'other',
                 })
 
             return {
                 'labels': labels,
                 'datasets': datasets,
+                'is_comparison': True,  # 比較モードであることを示すフラグ
             }
 
         # 従来モード：全週・全場所のデータを先に取得
