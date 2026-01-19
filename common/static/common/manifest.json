@@ -1,6 +1,6 @@
 {
-  "name": "GenbaNote",
-  "short_name": "genba note",
+  "name": "Genba Note",
+  "short_name": "Genba Note",
   "description": "店舗管理・日報・分析アプリ by ステリコットα",
   "start_url": "/",
   "display": "standalone",

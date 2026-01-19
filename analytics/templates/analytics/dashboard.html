@@ -45,9 +45,8 @@
               background-size:22px 22px;"></div>
 </div>
 
-<div class="max-w-4xl mx-auto px-0 sm:px-6 pt-6 pb-28">
-  <!-- ✅ 外枠フレーム（装飾）※グラデ無しに変更 -->
-  <div class="rounded-3xl border border-gray-200 shadow-sm bg-white/75 p-4 sm:p-6">
+<div class="max-w-4xl mx-auto px-2 sm:px-4 pt-6 pb-28">
+  <div class="p-0 sm:p-0">
 
   <!-- ===== Header / Controls Card ===== -->
   <div class="rounded-2xl bg-white border border-gray-200 shadow-sm p-5 sm:p-6">
@@ -98,7 +97,7 @@
           <div class="h-4 w-px bg-gray-200 mx-1"></div>
           <label class="inline-flex items-center gap-2 text-sm text-gray-700">
             <input type="radio" name="scope" value="all" id="scope-all" class="h-4 w-4 accent-teal-600" />
-            全店舗
+            他店舗比較
           </label>
         </div>
       </div>
@@ -120,7 +119,7 @@
             <div class="h-4 w-px bg-gray-200 mx-1"></div>
             <label class="inline-flex items-center gap-2 text-sm text-gray-700">
               <input type="radio" name="period" value="preview" id="period-preview" class="h-4 w-4 accent-teal-600" />
-              プレビュー
+              月間プレビュー
             </label>
           </div>
 
@@ -218,7 +217,9 @@
       </div>
 
       <div id="location-trend-loading" class="text-center py-10 text-gray-500 hidden">データを読み込み中...</div>
-      <canvas id="location-trend-chart" class="hidden"></canvas>
+      <div id="location-trend-chart-container" class="hidden">
+        <canvas id="location-trend-chart"></canvas>
+      </div>
     </div>
   </div>
 
@@ -239,7 +240,7 @@
   let currentGoalMonth = null;
   let currentLocation = 'all';
 
-  // スコープ切替（自店舗 / 全店舗）
+  // スコープ切替（自店舗 / 他店舗比較）
   document.querySelectorAll('input[name="scope"]').forEach(function(radio) {
     radio.addEventListener('change', function(e) {
       currentScope = e.target.value;
@@ -256,6 +257,10 @@
           loadMonthlyGoal();
         } else {
           loadGraph();
+          // 場所別できごとの場合は推移グラフも再読み込み
+          if (currentGraphType === 'incident_by_location') {
+            loadLocationTrendGraph();
+          }
         }
       }
     });
@@ -358,8 +363,7 @@
   // グラフデータを読み込み
   function loadGraph() {
     document.getElementById('loading').classList.remove('hidden');
-    document.getElementById('chart-container').classList.remove('hidden');
-    document.getElementById('analytics-chart').classList.add('hidden');
+    document.getElementById('chart-container').classList.add('hidden');
     document.getElementById('monthly-goal-container').classList.add('hidden');
     document.getElementById('error-message').classList.add('hidden');
 
@@ -367,10 +371,6 @@
 
     if (currentGraphType === 'incident_by_location' && currentGenre) {
       url += `&genre=${currentGenre}`;
-    }
-
-    if (currentGraphType === 'incident_by_location' && currentScope === 'all') {
-      url += '&compare=1';
     }
 
     fetch(url)
@@ -382,6 +382,7 @@
         document.getElementById('period-label').textContent = data.period_label;
         drawChart(data);
         document.getElementById('loading').classList.add('hidden');
+        document.getElementById('chart-container').classList.remove('hidden');
         document.getElementById('analytics-chart').classList.remove('hidden');
       })
       .catch(error => {
@@ -402,16 +403,16 @@
     const chartKind = data.chart_kind || (hasDatasets ? 'bar' : 'line');
     const chartType = chartKind;
 
-    let compareMode = false;
-    if (chartKind === 'bar' && hasDatasets) {
-      compareMode = data.datasets.some(ds => ds.label && ds.label.indexOf('（自店舗）') !== -1);
-    }
-    const isStackedChart = (chartType === 'bar' && hasDatasets && !compareMode);
+    // 比較モード（差分表示）の判定
+    const isComparisonMode = data.is_comparison === true;
+
+    const isStackedChart = (chartType === 'bar' && hasDatasets && !isComparisonMode);
 
     let datasets;
 
     if (chartKind === 'bar' && hasDatasets) {
-      if (compareMode) {
+      if (isComparisonMode) {
+        // 比較モード：差分表示用の設定
         datasets = data.datasets.map((dataset) => {
           const baseColor = dataset.backgroundColor;
           const gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -432,9 +433,9 @@
             backgroundColor: gradientApplied ? gradient : baseColor,
             borderWidth: 0,
             borderRadius: 0,
-            borderSkipped: 'bottom',
-            barPercentage: 0.8,
-            categoryPercentage: 0.9
+            borderSkipped: false,
+            barPercentage: 0.95,
+            categoryPercentage: 0.95
           };
         });
       } else {
@@ -459,13 +460,15 @@
             borderWidth: 0,
             borderRadius: 0,
             borderSkipped: false,
-            barPercentage: 0.8,
-            categoryPercentage: 0.9,
+            barPercentage: 0.95,
+            categoryPercentage: 0.95,
             maxBarThickness: 60
           };
         });
       }
     } else if (chartKind === 'line' && hasDatasets) {
+      // 月表示の場合は点を非表示にする（データ点が多くて見づらいため）
+      const hidePoints = currentPeriod === 'month';
       datasets = data.datasets.map((dataset) => {
         const border = dataset.borderColor || 'rgb(13, 148, 136)'; // teal-600
         let bg = dataset.backgroundColor || border;
@@ -478,10 +481,12 @@
           backgroundColor: bg,
           fill: false,
           tension: dataset.tension !== undefined ? dataset.tension : 0.3,
-          pointRadius: dataset.pointRadius !== undefined ? dataset.pointRadius : 3,
+          pointRadius: hidePoints ? 0 : (dataset.pointRadius !== undefined ? dataset.pointRadius : 3),
         };
       });
     } else {
+      // 月表示の場合は点を非表示にする（データ点が多くて見づらいため）
+      const hidePoints = currentPeriod === 'month';
       datasets = [{
         label: data.title,
         data: data.data,
@@ -490,14 +495,55 @@
         tension: 0.3,
         fill: true,
         borderWidth: 2,
-        pointRadius: 4,
+        pointRadius: hidePoints ? 0 : 4,
         pointBackgroundColor: 'rgb(13, 148, 136)',
       }];
     }
 
     let yStepSize = currentGraphType === 'sales' ? 100000 : (currentGraphType === 'customer_count' ? 100 : 1);
-    if (compareMode && chartType === 'bar' && currentGraphType !== 'sales' && currentGraphType !== 'customer_count') {
+    if (isComparisonMode && chartType === 'bar' && currentGraphType !== 'sales' && currentGraphType !== 'customer_count') {
       yStepSize = 0.5;
+    }
+
+    // 比較モードの場合、Y軸の範囲を計算
+    let yAxisConfig = {
+      stacked: isStackedChart,  // 比較モードでは積み上げない
+      beginAtZero: !isComparisonMode,
+      grid: {
+        color: function(context) {
+          if (isComparisonMode && context.tick.value === 0) {
+            return 'rgba(0, 0, 0, 0.3)'; // ゼロラインを強調
+          }
+          return 'rgba(0, 0, 0, 0.06)';
+        },
+        lineWidth: function(context) {
+          if (isComparisonMode && context.tick.value === 0) {
+            return 2; // ゼロラインを太く
+          }
+          return 1;
+        },
+        drawBorder: false
+      },
+      ticks: {
+        stepSize: yStepSize,
+        font: { size: 11 },
+        callback: function(value) {
+          // 比較モードで0の場合は「平均」と表示
+          if (isComparisonMode && value === 0) return '平均';
+          if (currentGraphType === 'sales') return '¥' + value.toLocaleString();
+          if (yStepSize < 1) return value.toString();
+          return value;
+        }
+      },
+      title: {
+        display: currentGraphType === 'incident_by_location',
+        text: '（件）',
+        font: { size: 12 }
+      }
+    };
+
+    if (!isComparisonMode) {
+      yAxisConfig.min = 0;
     }
 
     currentChart = new Chart(ctx, {
@@ -506,6 +552,7 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: currentGraphType === 'incident_by_location' ? false : true,
         interaction: { mode: 'index', intersect: false },
         plugins: {
           legend: {
@@ -515,37 +562,7 @@
               usePointStyle: true,
               pointStyle: 'circle',
               padding: 15,
-              font: { size: 12, weight: '500' },
-              generateLabels: function(chart) {
-                if (!compareMode) {
-                  return Chart.defaults.plugins.legend.labels.generateLabels(chart);
-                }
-                const ds = chart.data.datasets || [];
-                const unique = {};
-                ds.forEach((d, i) => {
-                  const loc = d.location_label || ('' + d.label).replace(/（.*）$/, '');
-                  if (!unique[loc]) unique[loc] = { text: loc, fillStyle: d.backgroundColor, hidden: false, datasetIndex: i };
-                });
-                return Object.keys(unique).map(k => ({
-                  text: unique[k].text,
-                  fillStyle: unique[k].fillStyle,
-                  hidden: unique[k].hidden,
-                  datasetIndex: unique[k].datasetIndex
-                }));
-              }
-            },
-            onClick: function(e, legendItem) {
-              if (!compareMode) {
-                Chart.defaults.plugins.legend.onClick.call(this, e, legendItem);
-                return;
-              }
-              const chart = this.chart;
-              const label = legendItem.text;
-              chart.data.datasets.forEach(ds => {
-                const loc = ds.location_label || ('' + ds.label).replace(/（.*）$/, '');
-                if (loc === label) ds.hidden = !ds.hidden;
-              });
-              chart.update();
+              font: { size: 12, weight: '500' }
             }
           },
           title: {
@@ -572,25 +589,11 @@
         },
         scales: {
           x: {
-            stacked: isStackedChart || compareMode,
+            stacked: isStackedChart,  // 比較モードでは積み上げない
             grid: { display: false },
             ticks: { font: { size: 11 } }
           },
-          y: {
-            stacked: isStackedChart || compareMode,
-            beginAtZero: true,
-            min: 0,
-            grid: { color: 'rgba(0, 0, 0, 0.06)', drawBorder: false },
-            ticks: {
-              stepSize: yStepSize,
-              font: { size: 11 },
-              callback: function(value) {
-                if (currentGraphType === 'sales') return '¥' + value.toLocaleString();
-                if (yStepSize < 1) return value.toString();
-                return value;
-              }
-            }
-          }
+          y: yAxisConfig
         }
       }
     });
@@ -599,9 +602,9 @@
   // 場所別インシデント推移グラフを読み込み
   function loadLocationTrendGraph() {
     document.getElementById('location-trend-loading').classList.remove('hidden');
-    document.getElementById('location-trend-chart').classList.add('hidden');
+    document.getElementById('location-trend-chart-container').classList.add('hidden');
 
-    let url = `/analysis/api/graph-data/?graph_type=incident_trend_by_location&period=${currentPeriod}&offset=${currentOffset}&location=${currentLocation}`;
+    let url = `/analysis/api/graph-data/?graph_type=incident_trend_by_location&period=${currentPeriod}&offset=${currentOffset}&location=${currentLocation}&scope=${currentScope}`;
     if (currentGenre) url += `&genre=${currentGenre}`;
 
     fetch(url)
@@ -612,7 +615,7 @@
       .then(data => {
         drawLocationTrendChart(data);
         document.getElementById('location-trend-loading').classList.add('hidden');
-        document.getElementById('location-trend-chart').classList.remove('hidden');
+        document.getElementById('location-trend-chart-container').classList.remove('hidden');
       })
       .catch(error => {
         console.error('Error:', error);
@@ -626,19 +629,30 @@
 
     if (locationTrendChart) locationTrendChart.destroy();
 
+    // datasetsがある場合（比較モード）とない場合（従来モード）で分岐
+    let datasets;
+    if (data.datasets) {
+      // 比較モード：サーバーから返されたdatasetsをそのまま使用
+      datasets = data.datasets;
+    } else {
+      // 従来モード：単一の折れ線
+      datasets = [{
+        label: data.title,
+        data: data.data,
+        borderColor: 'rgb(13, 148, 136)',
+        backgroundColor: 'rgba(13, 148, 136, 0.10)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointRadius: 0
+      }];
+    }
+
     locationTrendChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: data.labels,
-        datasets: [{
-          label: data.title,
-          data: data.data,
-          borderColor: 'rgb(13, 148, 136)',
-          backgroundColor: 'rgba(13, 148, 136, 0.10)',
-          borderWidth: 2,
-          tension: 0.1,
-          fill: true
-        }]
+        datasets: datasets
       },
       options: {
         responsive: true,
