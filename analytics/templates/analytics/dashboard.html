@@ -45,9 +45,8 @@
               background-size:22px 22px;"></div>
 </div>
 
-<div class="max-w-4xl mx-auto px-0 sm:px-6 pt-6 pb-28">
-  <!-- ✅ 外枠フレーム（装飾）※グラデ無しに変更 -->
-  <div class="rounded-3xl border border-gray-200 shadow-sm bg-white/75 p-4 sm:p-6">
+<div class="max-w-4xl mx-auto px-2 sm:px-4 pt-6 pb-28">
+  <div class="p-0 sm:p-0">
 
   <!-- ===== Header / Controls Card ===== -->
   <div class="rounded-2xl bg-white border border-gray-200 shadow-sm p-5 sm:p-6">
@@ -241,7 +240,7 @@
   let currentGoalMonth = null;
   let currentLocation = 'all';
 
-  // スコープ切替（自店舗 / 全店舗）
+  // スコープ切替（自店舗 / 他店舗比較）
   document.querySelectorAll('input[name="scope"]').forEach(function(radio) {
     radio.addEventListener('change', function(e) {
       currentScope = e.target.value;
@@ -258,6 +257,10 @@
           loadMonthlyGoal();
         } else {
           loadGraph();
+          // 場所別できごとの場合は推移グラフも再読み込み
+          if (currentGraphType === 'incident_by_location') {
+            loadLocationTrendGraph();
+          }
         }
       }
     });
@@ -601,7 +604,7 @@
     document.getElementById('location-trend-loading').classList.remove('hidden');
     document.getElementById('location-trend-chart-container').classList.add('hidden');
 
-    let url = `/analysis/api/graph-data/?graph_type=incident_trend_by_location&period=${currentPeriod}&offset=${currentOffset}&location=${currentLocation}`;
+    let url = `/analysis/api/graph-data/?graph_type=incident_trend_by_location&period=${currentPeriod}&offset=${currentOffset}&location=${currentLocation}&scope=${currentScope}`;
     if (currentGenre) url += `&genre=${currentGenre}`;
 
     fetch(url)
@@ -626,20 +629,30 @@
 
     if (locationTrendChart) locationTrendChart.destroy();
 
+    // datasetsがある場合（比較モード）とない場合（従来モード）で分岐
+    let datasets;
+    if (data.datasets) {
+      // 比較モード：サーバーから返されたdatasetsをそのまま使用
+      datasets = data.datasets;
+    } else {
+      // 従来モード：単一の折れ線
+      datasets = [{
+        label: data.title,
+        data: data.data,
+        borderColor: 'rgb(13, 148, 136)',
+        backgroundColor: 'rgba(13, 148, 136, 0.10)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointRadius: 0
+      }];
+    }
+
     locationTrendChart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: data.labels,
-        datasets: [{
-          label: data.title,
-          data: data.data,
-          borderColor: 'rgb(13, 148, 136)',
-          backgroundColor: 'rgba(13, 148, 136, 0.10)',
-          borderWidth: 2,
-          tension: 0.4,
-          fill: true,
-          pointRadius: 0
-        }]
+        datasets: datasets
       },
       options: {
         responsive: true,
