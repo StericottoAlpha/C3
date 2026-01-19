@@ -1,225 +1,356 @@
 {% extends 'base.html' %}
 {% load bbs_extras %}
 
-{% block title %}掲示板一覧 - C3 ステリコットα{% endblock %}
+{% block title %}掲示板一覧 - GenbaNote{% endblock %}
 
 {% block content %}
-<div class="min-h-screen py-8 px-4">
-    <div class="max-w-6xl mx-auto">
-        <div class="bg-white rounded-lg shadow-md p-6">
-            
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold text-gray-800">掲示板一覧</h1>
-                <a href="{% url 'bbs:register' %}" class="bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200">
-                    新規投稿
-                </a>
-            </div>
+<div class="min-h-screen bg-[#b9cfcc] relative overflow-hidden pb-44">
 
-            <div class="mb-6 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <form method="get" action="" class="space-y-3">
-                    <div class="flex gap-2">
-                        <input type="text" name="query" value="{{ query|default:'' }}" 
-                               placeholder="キーワードを入力 （デフォルトではor検索）"
-                               class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm">
-                        <button type="submit" class="bg-teal-600 text-white font-bold px-6 py-2 rounded-lg text-sm shadow hover:bg-teal-700 transition duration-200">
-                            検索
-                        </button>
-                    </div>
+  <!-- 背景：控えめ（紙感＋薄いグラデ） -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/5"></div>
+    <div class="absolute inset-0 opacity-[0.045]"
+         style="background-image: radial-gradient(rgba(0,0,0,.35) 0.6px, transparent 0.6px);
+                background-size: 14px 14px;"></div>
+  </div>
 
-                    <div class="flex gap-2">
-                        <div class="relative w-1/2 md:w-1/3">
-                            <select name="genre" onchange="this.form.submit()" 
-                                    class="w-full appearance-none bg-white border border-gray-300 text-gray-700 py-2 px-3 pr-8 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                <option value="">全てのジャンル</option>
-                                {% for code, label in genre_choices %}
-                                    <option value="{{ code }}" {% if current_genre == code %}selected{% endif %}>
-                                        {{ label }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                            </div>
-                        </div>
-                        <div class="relative w-1/2 md:w-1/3">
-                            <select name="sort" onchange="this.form.submit()" 
-                                    class="w-full appearance-none bg-white border border-gray-300 text-gray-700 py-2 px-3 pr-8 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                <option value="newest" {% if sort == 'newest' %}selected{% endif %}>日付: 新しい順</option>
-                                <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>日付: 古い順</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            
+  <!-- 装飾：少なめ（角に薄い波紋1〜2個だけ） -->
+  <div class="absolute inset-0 pointer-events-none z-0">
+    <div class="absolute left-6 top-16 w-28 h-28 rounded-full border border-white/18"></div>
+    <div class="absolute right-8 bottom-28 w-36 h-36 rounded-full border border-white/12"></div>
+  </div>
 
-            {% if posts %}
-                <div class="space-y-4">
-                {% for post in posts %}
-                    <a href="{% url 'bbs:detail' post.post_id %}"
-                    class="block border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-teal-500 transition duration-200">
+  <div class="relative z-10 max-w-6xl mx-auto px-4 pt-8">
 
-                        <div class="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-gray-100 mt-2">
-                            
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                    {{ post.get_genre_display }}
-                                </span>
-                                <h2 class="text-xl font-semibold text-gray-800">
-                                    {{ post.title }}
-                                </h2>
-                            </div>
+    <!-- ヘッダー -->
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-[#2f2f2f] tracking-wide">掲示板</h1>
+        <p class="mt-1 text-sm text-white/90">共有・相談・気づきを残せます</p>
+      </div>
 
-                            <span class="text-sm text-gray-500 whitespace-nowrap">
-                                {{ post.created_at|date:"Y/m/d H:i" }}
-                            </span>
-                        </div>
-
-                        <div class="mb-3 mt-2">
-                            <p class="text-gray-700 line-clamp-2 text-sm">
-                                {{ post.body|default:post.content|truncatechars:60 }}
-                            </p>
-                        </div>
-
-                        <div class="flex items-center justify-between text-sm text-gray-500">
-                            <div class="flex items-center gap-4">
-                                
-                                <div class="flex items-center gap-1">
-                                    <span>{{ post.user.username }}</span>
-                                </div>
-
-                                <div class="flex items-center gap-1">
-                                    <span>{{ post.store.store_name }}</span>
-                                </div>
-
-                                <div class="flex items-center gap-1">
-                                    <span>{{ post.comment_count }}件</span>
-                                </div>
-
-                                {% if post.report %}
-                                    <div class="flex items-center gap-1">
-                                        <span>日報関連</span>
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="flex gap-2">
-                                {% is_reacted post user 'naruhodo' as is_naruhodo %}
-                                {% count_reactions post 'naruhodo' as naruhodo_count %}
-
-                                <button type="button"
-                                    onclick="toggleReaction(event, 'post', {{ post.post_id }}, 'naruhodo')"
-                                    id="btn-reaction-post-{{ post.post_id }}-naruhodo"
-                                    class="flex items-center gap-1 px-3 py-1 rounded-full border text-sm transition-colors duration-200
-                                    {% if is_naruhodo %}
-                                        bg-blue-100 border-blue-300 text-blue-700
-                                    {% else %}
-                                        bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100
-                                    {% endif %}">
-                                    <span>💡 なるほど</span>
-                                    <span id="count-reaction-post-{{ post.post_id }}-naruhodo"
-                                        class="font-bold ml-1">{{ naruhodo_count }}</span>
-                                </button>
-
-                                {% is_reacted post user 'iine' as is_iine %}
-                                {% count_reactions post 'iine' as iine_count %}
-
-                                <button type="button"
-                                    onclick="toggleReaction(event, 'post', {{ post.post_id }}, 'iine')"
-                                    id="btn-reaction-post-{{ post.post_id }}-iine"
-                                    class="flex items-center gap-1 px-3 py-1 rounded-full border text-sm transition-colors duration-200
-                                    {% if is_iine %}
-                                        bg-pink-100 border-pink-300 text-pink-700
-                                    {% else %}
-                                        bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100
-                                    {% endif %}">
-                                    <span>❤️ いいね</span>
-                                    <span id="count-reaction-post-{{ post.post_id }}-iine"
-                                        class="font-bold ml-1">{{ iine_count }}</span>
-                                </button>
-                            </div>
-                        </div>
-
-                    </a>
-                {% endfor %}
-            </div>
-
-            {% else %}
-                <div class="text-center py-12">
-                    <p class="text-gray-600 text-lg">まだ投稿がありません</p>
-                    <p class="text-gray-500 mt-2">最初の投稿を作成してみましょう</p>
-                </div>
-            {% endif %}
-        </div>
+      <a href="{% url 'bbs:register' %}"
+         class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl
+                bg-primary hover:bg-primary-dark text-white font-bold shadow transition">
+        <span class="text-lg">＋</span>
+        <span class="text-sm">新規投稿</span>
+      </a>
     </div>
+
+    <!-- 検索＆フィルタ -->
+    <div class="mt-6 bg-white/75 border border-white/70 rounded-2xl shadow-[0_14px_30px_rgba(0,0,0,0.12)]">
+      <form method="get" action="" class="p-4 sm:p-5 space-y-3">
+
+        <!-- キーワード -->
+        <div class="flex gap-2">
+          <div class="flex-1">
+            <input type="text" name="query" value="{{ query|default:'' }}"
+                   placeholder="キーワード（スペース区切りでOR検索）"
+                   class="w-full rounded-xl border border-black/10 bg-white/70 px-4 py-3 text-sm
+                          focus:outline-none focus:ring-2 focus:ring-black/10 text-[#2f2f2f] placeholder:text-[#2f2f2f]/35">
+          </div>
+          <button type="submit"
+                  class="px-5 py-3 rounded-xl bg-[#2f2f2f] text-white font-bold text-sm
+                         hover:opacity-90 transition shadow">
+            検索
+          </button>
+        </div>
+
+        <!-- フィルタ -->
+        <div class="grid grid-cols-2 gap-2 sm:max-w-xl">
+          <div class="relative">
+            <select name="genre" onchange="this.form.submit()"
+                    class="w-full appearance-none rounded-xl border border-black/10 bg-white/70 px-4 py-3 pr-10 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-black/10 text-[#2f2f2f]">
+              <option value="">全てのジャンル</option>
+              {% for code, label in genre_choices %}
+                <option value="{{ code }}" {% if current_genre == code %}selected{% endif %}>
+                  {{ label }}
+                </option>
+              {% endfor %}
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#2f2f2f]/60">
+              <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="relative">
+            <select name="sort" onchange="this.form.submit()"
+                    class="w-full appearance-none rounded-xl border border-black/10 bg-white/70 px-4 py-3 pr-10 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-black/10 text-[#2f2f2f]">
+              <option value="newest" {% if sort == 'newest' %}selected{% endif %}>新しい順</option>
+              <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>古い順</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#2f2f2f]/60">
+              <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- メッセージ -->
+    {% if messages %}
+      <div class="mt-5 space-y-3">
+        {% for message in messages %}
+          <div class="rounded-2xl px-4 py-3 shadow-sm border border-white/60 bg-white/70
+                      {% if message.tags == 'error' %}text-rose-800{% else %}text-emerald-800{% endif %}">
+            <p class="text-sm font-semibold">
+              {% if message.tags == 'error' %}⚠️{% else %}✅{% endif %}
+              {{ message }}
+            </p>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- 投稿一覧 -->
+    <div class="mt-6">
+      {% if posts %}
+        <div class="space-y-3">
+          {% for post in posts %}
+            <a href="{% url 'bbs:detail' post.post_id %}"
+               class="group block rounded-2xl bg-white/80 border border-white/70
+                      shadow-[0_10px_22px_rgba(0,0,0,0.10)] hover:shadow-[0_16px_34px_rgba(0,0,0,0.14)]
+                      transition overflow-hidden">
+
+              <div class="p-4 sm:p-5">
+                <!-- 上：ジャンル＋日時 -->
+                <div class="flex items-center justify-between gap-3">
+                  <span class="inline-flex items-center gap-2 text-xs font-bold px-3 py-1 rounded-full
+                               bg-black/5 text-[#2f2f2f]/80 border border-black/10">
+                    {{ post.get_genre_display }}
+                  </span>
+
+                  <span class="text-xs text-[#2f2f2f]/60 whitespace-nowrap">
+                    {{ post.created_at|date:"Y/m/d H:i" }}
+                  </span>
+                </div>
+
+                <!-- タイトル -->
+                <h2 class="mt-3 text-lg sm:text-xl font-bold text-[#2f2f2f] group-hover:opacity-90 transition">
+                  {{ post.title }}
+                </h2>
+
+                <!-- 本文プレビュー -->
+                <p class="mt-2 text-sm text-[#2f2f2f]/80 line-clamp-2">
+                  {{ post.body|default:post.content|truncatechars:80 }}
+                </p>
+
+                <!-- 下：メタ情報 -->
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[#2f2f2f]/65">
+                  <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <!-- ユーザー -->
+                    <div class="inline-flex items-center gap-1">
+                      <svg class="w-4 h-4 text-[#2f2f2f]/55" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 21a8 8 0 1 0-16 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      <span>{{ post.user.username }}</span>
+                    </div>
+
+                    <!-- 店舗（シンプルアイコン） -->
+                    <div class="inline-flex items-center gap-1">
+                      <svg class="w-4 h-4 text-[#2f2f2f]/55" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 10l2-6h12l2 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M5 10v10h14V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M9 20v-6h6v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                      </svg>
+                      <span>{{ post.store.store_name }}</span>
+                    </div>
+
+                    <!-- コメント数 -->
+                    <div class="inline-flex items-center gap-1">
+                      <svg class="w-4 h-4 text-[#2f2f2f]/55" viewBox="0 0 24 24" fill="none">
+                        <path d="M21 12c0 4.4-4 8-9 8-1.3 0-2.6-.2-3.7-.6L3 20l1.3-4.1C3.5 14.8 3 13.4 3 12c0-4.4 4-8 9-8s9 3.6 9 8Z"
+                              stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                      </svg>
+                      <span>{{ post.comment_count }}件</span>
+                    </div>
+
+                    {% if post.report %}
+                      <div class="inline-flex items-center gap-1">
+                        <svg class="w-4 h-4 text-[#2f2f2f]/55" viewBox="0 0 24 24" fill="none">
+                          <path d="M7 3h8l3 3v15a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/>
+                          <path d="M15 3v4h4" stroke="currentColor" stroke-width="1.8"/>
+                          <path d="M8 11h8M8 15h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                        <span>日報関連</span>
+                      </div>
+                    {% endif %}
+                  </div>
+
+                  <!-- リアクション（シンプルアイコン） -->
+                  <div class="flex gap-2">
+                    {% is_reacted post user 'naruhodo' as is_naruhodo %}
+                    {% count_reactions post 'naruhodo' as naruhodo_count %}
+
+                    <button type="button"
+                      onclick="toggleReaction(event, 'post', {{ post.post_id }}, 'naruhodo')"
+                      id="btn-reaction-post-{{ post.post_id }}-naruhodo"
+                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-bold transition-colors duration-200
+                      {% if is_naruhodo %}
+                        bg-blue-100 border-blue-300 text-blue-700
+                      {% else %}
+                        bg-white/70 border-black/10 text-[#2f2f2f]/70 hover:bg-black/5
+                      {% endif %}">
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 18h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M10 22h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M8 10a4 4 0 1 1 8 0c0 1.8-1 2.7-2 3.7-.6.6-1 1.2-1 2.3h-2c0-1.1-.4-1.7-1-2.3-1-1-2-1.9-2-3.7Z"
+                              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                      <span>なるほど</span>
+                      <span id="count-reaction-post-{{ post.post_id }}-naruhodo" class="ml-1">{{ naruhodo_count }}</span>
+                    </button>
+
+                    {% is_reacted post user 'iine' as is_iine %}
+                    {% count_reactions post 'iine' as iine_count %}
+
+                    <button type="button"
+                      onclick="toggleReaction(event, 'post', {{ post.post_id }}, 'iine')"
+                      id="btn-reaction-post-{{ post.post_id }}-iine"
+                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-bold transition-colors duration-200
+                      {% if is_iine %}
+                        bg-pink-100 border-pink-300 text-pink-700
+                      {% else %}
+                        bg-white/70 border-black/10 text-[#2f2f2f]/70 hover:bg-black/5
+                      {% endif %}">
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 21s-7-4.6-9.2-9C1 8.6 3.2 6 6 6c1.7 0 3.1.9 4 2.1C10.9 6.9 12.3 6 14 6c2.8 0 5 2.6 3.2 6-2.2 4.4-9.2 9-9.2 9Z"
+                              stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                      </svg>
+                      <span>いいね</span>
+                      <span id="count-reaction-post-{{ post.post_id }}-iine" class="ml-1">{{ iine_count }}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+
+        <div class="mt-8 flex justify-center">
+          <nav class="inline-flex items-center gap-1 rounded-2xl
+                      bg-white/80 border border-white/70
+                      shadow px-3 py-2">
+
+            {% if posts.has_previous %}
+              <a href="?page=1{% if query_string %}&{{ query_string }}{% endif %}"
+                class="px-3 py-1.5 rounded-lg text-sm font-bold
+                        text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                «
+              </a>
+              <a href="?page={{ posts.previous_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+                class="px-3 py-1.5 rounded-lg text-sm font-bold
+                        text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                ‹
+              </a>
+            {% endif %}
+
+            <span class="px-4 py-1.5 rounded-lg text-sm font-bold
+                        bg-[#2f2f2f] text-white">
+              {{ posts.number }} / {{ posts.paginator.num_pages }}
+            </span>
+
+            {% if posts.has_next %}
+              <a href="?page={{ posts.next_page_number }}{% if query_string %}&{{ query_string }}{% endif %}"
+                class="px-3 py-1.5 rounded-lg text-sm font-bold
+                        text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                ›
+              </a>
+              <a href="?page={{ posts.paginator.num_pages }}{% if query_string %}&{{ query_string }}{% endif %}"
+                class="px-3 py-1.5 rounded-lg text-sm font-bold
+                        text-[#2f2f2f]/70 hover:bg-black/5 transition">
+                »
+              </a>
+            {% endif %}
+          </nav>
+        </div>
+
+      {% else %}
+        <div class="mt-10 text-center bg-white/70 border border-white/70 rounded-2xl p-10 shadow-sm">
+          <p class="text-[#2f2f2f] text-lg font-bold">まだ投稿がありません</p>
+          <p class="text-[#2f2f2f]/70 mt-2 text-sm">最初の投稿を作成してみましょう</p>
+          <div class="mt-5">
+            <a href="{% url 'bbs:register' %}"
+               class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-primary hover:bg-primary-dark
+                      text-white font-bold shadow transition">
+              <span>＋</span><span>新規投稿</span>
+            </a>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  {% csrf_token %}
+
+  <script>
+  async function toggleReaction(event, targetType, targetId, reactionType) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const url = "{% url 'bbs:toggle_reaction' %}";
+      const btnId = `btn-reaction-${targetType}-${targetId}-${reactionType}`;
+      const countId = `count-reaction-${targetType}-${targetId}-${reactionType}`;
+
+      const btn = document.getElementById(btnId);
+      const countSpan = document.getElementById(countId);
+
+      const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+
+      try {
+          const response = await fetch(url, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': csrfToken
+              },
+              body: JSON.stringify({
+                  target_type: targetType,
+                  target_id: targetId,
+                  reaction_type: reactionType
+              })
+          });
+
+          if (!response.ok) throw new Error('Network response was not ok');
+          const data = await response.json();
+
+          if (data.status === 'success') {
+              if(countSpan) countSpan.textContent = data.count;
+
+              // スタイルの切り替え
+              if (data.action === 'added') {
+                  if (reactionType === 'naruhodo') {
+                      btn.classList.remove('bg-white/70', 'border-black/10', 'text-[#2f2f2f]/70', 'hover:bg-black/5');
+                      btn.classList.add('bg-blue-100', 'border-blue-300', 'text-blue-700');
+                  } else if (reactionType === 'iine') {
+                      btn.classList.remove('bg-white/70', 'border-black/10', 'text-[#2f2f2f]/70', 'hover:bg-black/5');
+                      btn.classList.add('bg-pink-100', 'border-pink-300', 'text-pink-700');
+                  }
+              } else {
+                  if (reactionType === 'naruhodo') {
+                      btn.classList.remove('bg-blue-100', 'border-blue-300', 'text-blue-700');
+                      btn.classList.add('bg-white/70', 'border-black/10', 'text-[#2f2f2f]/70', 'hover:bg-black/5');
+                  } else if (reactionType === 'iine') {
+                      btn.classList.remove('bg-pink-100', 'border-pink-300', 'text-pink-700');
+                      btn.classList.add('bg-white/70', 'border-black/10', 'text-[#2f2f2f]/70', 'hover:bg-black/5');
+                  }
+              }
+          }
+      } catch (error) {
+          console.error('Error:', error);
+          alert('処理に失敗しました');
+      }
+  }
+  </script>
+
 </div>
-
-{% csrf_token %}
-
-<script>
-async function toggleReaction(event, targetType, targetId, reactionType) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    // 統合APIのエンドポイント
-    const url = "{% url 'bbs:toggle_reaction' %}";
-    
-    // ID生成ルール: btn-reaction-{targetType}-{id}-{reactionType}
-    const btnId = `btn-reaction-${targetType}-${targetId}-${reactionType}`;
-    const countId = `count-reaction-${targetType}-${targetId}-${reactionType}`;
-    
-    const btn = document.getElementById(btnId);
-    const countSpan = document.getElementById(countId);
-    
-    // CSRFトークンの取得
-    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                target_type: targetType,
-                target_id: targetId,
-                reaction_type: reactionType
-            })
-        });
-
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-
-        if (data.status === 'success') {
-            if(countSpan) countSpan.textContent = data.count;
-
-            // スタイルの切り替え
-            if (data.action === 'added') {
-                if (reactionType === 'naruhodo') {
-                    btn.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-500', 'hover:bg-gray-100');
-                    btn.classList.add('bg-blue-100', 'border-blue-300', 'text-blue-700');
-                } else if (reactionType === 'iine') {
-                    btn.classList.remove('bg-gray-50', 'border-gray-200', 'text-gray-500', 'hover:bg-gray-100');
-                    btn.classList.add('bg-pink-100', 'border-pink-300', 'text-pink-700');
-                }
-            } else {
-                if (reactionType === 'naruhodo') {
-                    btn.classList.remove('bg-blue-100', 'border-blue-300', 'text-blue-700');
-                    btn.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-500', 'hover:bg-gray-100');
-                } else if (reactionType === 'iine') {
-                    btn.classList.remove('bg-pink-100', 'border-pink-300', 'text-pink-700');
-                    btn.classList.add('bg-gray-50', 'border-gray-200', 'text-gray-500', 'hover:bg-gray-100');
-                }
-            }
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('処理に失敗しました');
-    }
-}
-</script>
 {% endblock %}

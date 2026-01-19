@@ -7,7 +7,7 @@ import json
 from .models import BBSPost, BBSComment, BBSReaction, BBSCommentReaction
 from .forms import BBSPostForm, BBSCommentForm
 from django.db.models import Q
-
+from django.core.paginator import Paginator
 
 @login_required
 def bbs_register(request):
@@ -31,6 +31,9 @@ def bbs_register(request):
 @login_required
 def bbs_list(request):
     """掲示板一覧ビュー"""
+    NUM_BB_PER_PAGE = 10
+
+
     posts = BBSPost.objects.select_related('user', 'store')
     
     genre = request.GET.get('genre')
@@ -57,12 +60,24 @@ def bbs_list(request):
     else:
         posts = posts.order_by('-created_at')
 
+    paginator = Paginator(posts, NUM_BB_PER_PAGE)
+
+    page_number = request.GET.get("page")
+    posts_pagenated = paginator.get_page(page_number)
+
+    # ページネーション用のクエリ文字列を構築（pageパラメータを除く）
+    query_params = request.GET.copy()
+    if 'page' in query_params:
+        del query_params['page']
+    query_string = query_params.urlencode()
+
     context = {
-        'posts': posts,
+        'posts': posts_pagenated,
         'query': query,
         'sort': sort_option,
         'genre_choices': BBSPost.GENRE_CHOICES,
         'current_genre': genre,
+        'query_string': query_string,
     }
     return render(request, 'bbs/list.html', context)
 
@@ -98,6 +113,9 @@ def bbs_comment(request, bbs_id):
             bbs_comment.user = request.user
             bbs_comment.post = bbs_post
             bbs_comment.save()
+            # コメント数を更新
+            bbs_post.comment_count = bbs_post.comments.count()
+            bbs_post.save(update_fields=['comment_count'])
         else:
             pass
 

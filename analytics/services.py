@@ -232,11 +232,17 @@ class AnalyticsService:
                     q_self = DailyReport.objects.filter(date=date, location=location_code, store=base_store)
                     if genre:
                         q_self = q_self.filter(genre=genre)
+                    else:
+                        # ネガティブジャンル：クレームと事故のみ
+                        q_self = q_self.filter(genre__in=['claim', 'accident'])
                     self_counts[date][location_code] = q_self.count()
 
                     q_other = DailyReport.objects.filter(date=date, location=location_code).exclude(store__store_name='本部').exclude(store=base_store)
                     if genre:
                         q_other = q_other.filter(genre=genre)
+                    else:
+                        # ネガティブジャンル：クレームと事故のみ
+                        q_other = q_other.filter(genre__in=['claim', 'accident'])
                     other_totals[date][location_code] = q_other.count()
 
             # 差異（自店舗 - 平均）のデータセットを作成（折れ線）
@@ -298,6 +304,9 @@ class AnalyticsService:
                     query = query.exclude(store__store_name='本部')
                 if genre:
                     query = query.filter(genre=genre)
+                else:
+                    # ネガティブジャンル：クレームと事故のみ
+                    query = query.filter(genre__in=['claim', 'accident'])
                 all_data[date][location_code] = query.count()
 
         # 各場所ごとのデータを集計（折れ線グラフ用）
@@ -378,6 +387,9 @@ class AnalyticsService:
                     )
                     if genre:
                         q_self = q_self.filter(genre=genre)
+                    else:
+                        # ネガティブジャンル：クレームと事故のみ
+                        q_self = q_self.filter(genre__in=['claim', 'accident'])
                     self_counts[week_label][location_code] = q_self.count()
 
                     q_other = DailyReport.objects.filter(
@@ -387,6 +399,9 @@ class AnalyticsService:
                     ).exclude(store__store_name='本部').exclude(store=base_store)
                     if genre:
                         q_other = q_other.filter(genre=genre)
+                    else:
+                        # ネガティブジャンル：クレームと事故のみ
+                        q_other = q_other.filter(genre__in=['claim', 'accident'])
                     other_totals[week_label][location_code] = q_other.count()
 
             # 差異（自店舗 - 平均）のデータセットを作成（折れ線）
@@ -449,6 +464,9 @@ class AnalyticsService:
                     query = query.exclude(store__store_name='本部')
                 if genre:
                     query = query.filter(genre=genre)
+                else:
+                    # ネガティブジャンル：クレームと事故のみ
+                    query = query.filter(genre__in=['claim', 'accident'])
                 all_data[week_label][location_code] = query.count()
 
         # 各場所ごとのデータを集計（折れ線グラフ用）
@@ -571,7 +589,14 @@ class AnalyticsService:
                     # 小数第1位まで
                     data_avg.append(round(total / other_store_count, 1))
                 else:
-                    data_avg.append(0.0)
+                    query = query.exclude(store__store_name='本部')
+                if genre:
+                    query = query.filter(genre=genre)
+                else:
+                    # ネガティブジャンル：クレームと事故のみ
+                    query = query.filter(genre__in=['claim', 'accident'])
+
+                data.append(query.count())
 
             return {
                 'labels': labels,
@@ -609,6 +634,46 @@ class AnalyticsService:
                     'fill': True,
                 }]
             }
+
+        # 週選択時は日単位で集計
+        date_range = []
+        current_date = start_date
+        while current_date <= end_date:
+            date_range.append(current_date)
+            current_date += timedelta(days=1)
+
+        labels = []
+        data = []
+
+        for date in date_range:
+            if date > today:
+                continue
+            # プレビューモードの場合はラベルを空文字列に
+            if period == 'preview':
+                labels.append('')
+            else:
+                labels.append(date.strftime('%m/%d'))
+
+            query = DailyReport.objects.filter(date=date)
+            # 場所フィルタ（'all'の場合は全場所）
+            if location != 'all':
+                query = query.filter(location=location)
+            if store:
+                query = query.filter(store=store)
+            else:
+                query = query.exclude(store__store_name='本部')
+            if genre:
+                query = query.filter(genre=genre)
+            else:
+                # ネガティブジャンル：クレームと事故のみ
+                query = query.filter(genre__in=['claim', 'accident'])
+
+            data.append(query.count())
+
+        return {
+            'labels': labels,
+            'data': data,
+        }
 
     @staticmethod
     def get_week_range(base_date=None):
@@ -778,8 +843,8 @@ class AnalyticsService:
                 'report': '報告',
                 'other': 'その他',
             }
-            genre_label = genre_labels.get(genre, '全ジャンル') if genre else '全ジャンル'
-            title = f'場所別インシデント数（{genre_label}）'
+            genre_label = genre_labels.get(genre, 'ネガティブジャンル') if genre else 'ネガティブジャンル'
+            title = f'場所別できごと（{genre_label}）'
         elif graph_type == 'incident_trend_by_location':
             if not location:
                 raise ValueError('場所が指定されていません')
@@ -806,8 +871,8 @@ class AnalyticsService:
                 'report': '報告',
                 'other': 'その他',
             }
-            genre_label = genre_labels.get(genre, '全ジャンル') if genre else '全ジャンル'
-            title = f'{location_label}のインシデント推移（{genre_label}）'
+            genre_label = genre_labels.get(genre, 'ﾈｶﾞﾃｨﾌﾞｼﾞｬﾝﾙ') if genre else 'ﾈｶﾞﾃｨﾌﾞｼﾞｬﾝﾙ'
+            title = f'{location_label}での出来事数推移({genre_label})'
         else:
             raise ValueError(f'不正なグラフタイプです: {graph_type}')
 

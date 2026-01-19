@@ -1,44 +1,115 @@
 {% extends "base.html" %}
 {% block content %}
-<style>
-  .dwrap{ max-width:700px; margin:18px auto; padding:0 14px; }
-  .back{ font-size:22px; text-decoration:none; color:#333; }
-  .card{ background:#f3f6f6; border-radius:14px; padding:18px; margin-top:10px; }
-  .avatar{ width:70px; height:70px; border-radius:50%; background:#ddd; margin:0 auto 10px; }
-  .genre{ text-align:center; font-weight:900; margin-bottom:8px; }
-  .genre.claim{ color:#e74c3c; }
-  .genre.trouble{ color:#f1c40f; }
-  .genre.praise{ color:#2ecc71; }
-  .genre.report{ color:#3498db; }
-  .genre.other{ color:#9b59b6; }
 
-  .title{ text-align:center; font-size:22px; font-weight:900; margin:6px 0; }
-  .place{ text-align:center; color:#666; margin-bottom:10px; }
-  .body{ background:#fff; border:1px solid #cfd8d8; border-radius:10px; padding:12px; color:#333; }
-  .dt{ text-align:center; color:#777; margin-top:10px; }
-</style>
+<!-- ✅ 背景（ホーム風：単色・グラデ無し） -->
+<div aria-hidden="true"
+     class="fixed inset-0 -z-10 overflow-hidden pointer-events-none"
+     style="background:#c8d8d6;">
+  <!-- 薄い輪っか（装飾：グラデ無し） -->
+  <svg class="absolute -top-24 -left-24 w-[360px] h-[360px] opacity-35" viewBox="0 0 360 360" fill="none">
+    <circle cx="110" cy="110" r="95" stroke="white" stroke-width="2"/>
+    <circle cx="170" cy="140" r="140" stroke="white" stroke-width="1.6" opacity="0.65"/>
+  </svg>
 
-<div class="dwrap">
-  <a class="back" href="javascript:history.back()">←</a>
+  <!-- うっすら波線 -->
+  <svg class="absolute top-10 left-10 w-[260px] h-[120px] opacity-30" viewBox="0 0 260 120" fill="none">
+    <path d="M5 70 C60 30, 120 110, 255 55" stroke="white" stroke-width="2" opacity="0.55"/>
+    <path d="M10 90 C70 40, 130 115, 250 70" stroke="white" stroke-width="1.6" opacity="0.35"/>
+  </svg>
 
-  <div class="card">
-    <div class="avatar"></div>
+  <!-- 下の折れ線っぽい線 -->
+  <svg class="absolute bottom-20 left-1/2 -translate-x-1/2 w-[520px] h-[180px] opacity-35" viewBox="0 0 520 180" fill="none">
+    <path d="M40 150 L270 80 L480 140" stroke="white" stroke-width="3" opacity="0.55"/>
+    <path d="M40 150 L270 80 L480 140" stroke="#0f172a" stroke-width="6" opacity="0.10"/>
+    <circle cx="270" cy="80" r="7" fill="#0f172a" opacity="0.35"/>
+  </svg>
+</div>
 
-    <div class="genre {{ genre_key }}">{{ genre_label }}</div>
+<div class="max-w-2xl mx-auto px-4 sm:px-6 pt-6 pb-28">
+  <!-- 外枠フレーム（グラデ無し） -->
+  <div class="rounded-3xl border border-gray-200 shadow-sm bg-white/70 p-4 sm:p-6">
 
-    <div class="title">
-      {{ report.title|default:"（タイトル未設定）" }}
+    <!-- 戻る -->
+    <div class="flex items-center gap-3">
+      <a href="javascript:history.back()"
+         class="inline-flex items-center justify-center h-10 w-10 rounded-xl border border-gray-200 bg-white
+                text-gray-700 hover:bg-gray-50 transition"
+         aria-label="戻る">
+        <span class="text-xl leading-none">←</span>
+      </a>
+
+      <div>
+        <p class="text-xs text-gray-500">インシデント詳細</p>
+        <h1 class="text-lg sm:text-xl font-extrabold text-gray-900">詳細</h1>
+      </div>
     </div>
 
-    <div class="place">
-      場所：{{ report.place|default:"-" }}
+    <!-- 本体カード -->
+    <div class="mt-4 rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+      <!-- 上部 -->
+      <div class="p-5 sm:p-6 border-b border-gray-100">
+        <div class="flex items-start gap-4">
+          <!-- アバター（仮） -->
+          <div class="shrink-0 h-14 w-14 rounded-full bg-gray-200 grid place-items-center text-gray-600 font-extrabold">
+            {{ genre_label|slice:":1"|default:"?" }}
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <!-- ジャンルバッジ -->
+            {% if genre_key == "claim" %}
+              <span class="inline-flex items-center rounded-full bg-red-50 text-red-700 ring-1 ring-red-200 px-3 py-1 text-xs font-bold">
+                {{ genre_label }}
+              </span>
+            {% elif genre_key == "trouble" %}
+              <span class="inline-flex items-center rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200 px-3 py-1 text-xs font-bold">
+                {{ genre_label }}
+              </span>
+            {% elif genre_key == "praise" %}
+              <span class="inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 px-3 py-1 text-xs font-bold">
+                {{ genre_label }}
+              </span>
+            {% elif genre_key == "report" %}
+              <span class="inline-flex items-center rounded-full bg-sky-50 text-sky-700 ring-1 ring-sky-200 px-3 py-1 text-xs font-bold">
+                {{ genre_label }}
+              </span>
+            {% else %}
+              <span class="inline-flex items-center rounded-full bg-violet-50 text-violet-700 ring-1 ring-violet-200 px-3 py-1 text-xs font-bold">
+                {{ genre_label }}
+              </span>
+            {% endif %}
+
+            <!-- タイトル -->
+            <div class="mt-2 text-lg sm:text-xl font-extrabold text-gray-900 break-words">
+              {{ report.title|default:"（タイトル未設定）" }}
+            </div>
+
+            <!-- メタ情報 -->
+            <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
+              <div class="inline-flex items-center gap-2">
+                <span class="text-gray-400">場所</span>
+                <span class="font-semibold text-gray-800">{{ report.place|default:"-" }}</span>
+              </div>
+              <div class="inline-flex items-center gap-2">
+                <span class="text-gray-400">日時</span>
+                <span class="font-semibold text-gray-800">{{ dt_label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 本文 -->
+      <div class="p-5 sm:p-6">
+        <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 sm:p-5">
+          <div class="text-sm font-bold text-gray-600 mb-2">内容</div>
+          <div class="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
+            {{ report.body|default:report.content|default:"（本文なし）" }}
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="body">
-      {{ report.body|default:report.content|default:"（本文なし）" }}
-    </div>
-
-    <div class="dt">{{ dt_label }}</div>
   </div>
 </div>
+
 {% endblock %}

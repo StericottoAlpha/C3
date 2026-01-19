@@ -1,18 +1,39 @@
 {% extends "base.html" %}
 
-{% block content %}
-<div class="flex justify-center items-center min-h-screen bg-gray-100">
+{% block title %}AIチャット - GenbaNote{% endblock %}
 
-  <!-- チャット全体 -->
-  <div class="flex flex-col w-full max-w-3xl h-[80vh] bg-white border rounded-lg">
+{% block content %}
+<div class="h-screen bg-[#b9cfcc] relative overflow-hidden">
+
+  <!-- 背景：控えめ（紙感＋薄いグラデ） -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/5"></div>
+    <div class="absolute inset-0 opacity-[0.045]"
+         style="background-image: radial-gradient(rgba(0,0,0,.35) 0.6px, transparent 0.6px);
+                background-size: 14px 14px;"></div>
+  </div>
+
+  <!-- 装飾：少なめ（角に薄い波紋1〜2個だけ） -->
+  <div class="absolute inset-0 pointer-events-none z-0">
+    <div class="absolute left-6 top-16 w-28 h-28 rounded-full border border-white/18"></div>
+    <div class="absolute right-8 bottom-28 w-36 h-36 rounded-full border border-white/12"></div>
+  </div>
+
+  <div class="relative z-10 max-w-3xl mx-auto px-4 pt-8">
 
     <!-- ヘッダー -->
-    <div class="flex items-center justify-between px-4 py-3 border-b bg-white">
-      <h2 class="text-lg font-semibold text-gray-800">AIチャット</h2>
+    <div class="flex items-start justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-[#2f2f2f] tracking-wide">AIチャット</h1>
+        <p class="mt-1 text-sm text-white/90">AIアシスタントに質問できます</p>
+      </div>
+
       <button
         id="clear-history-button"
         onclick="confirmClearHistory()"
-        class="flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg transition"
+        class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl
+               bg-white/70 border border-white/70 text-rose-600 font-bold text-sm shadow
+               hover:bg-rose-50 transition"
         title="会話履歴を削除"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,37 +43,42 @@
       </button>
     </div>
 
-    <!-- メッセージ表示エリア -->
-    <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-100"></div>
+    <!-- チャットコンテナ -->
+    <div class="bg-white/75 border border-white/70 rounded-2xl shadow-[0_14px_30px_rgba(0,0,0,0.12)] overflow-hidden">
 
-    <!-- 入力欄（下固定） -->
-    <div class="border-t p-3 flex items-center gap-2 bg-white">
-      <div
-        id="chat-error"
-        class="hidden text-sm text-red-600 px-4 py-2 bg-red-50 border-t"
-      ></div>
-      <input
-        id="chat-input"
-        type="text"
-        placeholder="メッセージを入力"
-        class="flex-1 border rounded-full px-4 py-2 focus:outline-none"
-        disabled
-      />
-      <button
-        id="send-button"
-        type="submit"
-        onClick="postHandler()"
-        class="bg-green-500 text-white px-4 py-2 rounded-full opacity-50 cursor-not-allowed"
-        disabled
-      >
-        送信
-      </button>
+      <!-- メッセージ表示エリア -->
+      <div id="chat-container" class="h-[55vh] overflow-y-auto p-4 sm:p-5 space-y-3 bg-black/[0.02]"></div>
+
+      <!-- 入力欄 -->
+      <div class="border-t border-black/5 p-4 flex items-center gap-3 bg-white/50">
+        <div
+          id="chat-error"
+          class="hidden text-sm text-rose-600 px-4 py-2 bg-rose-50 rounded-xl"
+        ></div>
+        <input
+          id="chat-input"
+          type="text"
+          placeholder="メッセージを入力..."
+          class="flex-1 rounded-xl border border-black/10 bg-white/70 px-4 py-3 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-black/10 text-[#2f2f2f] placeholder:text-[#2f2f2f]/35"
+          disabled
+        />
+        <button
+          id="send-button"
+          type="submit"
+          onClick="postHandler()"
+          class="px-5 py-3 rounded-xl bg-primary text-white font-bold text-sm
+                 shadow transition opacity-50 cursor-not-allowed"
+          disabled
+        >
+          送信
+        </button>
+      </div>
+
     </div>
 
   </div>
 </div>
-
-
 
 {% endblock %}
 
@@ -62,7 +88,7 @@
 <style>
   /* Markdown (prose) スタイル */
   .markdown-content {
-    color: #374151;
+    color: #2f2f2f;
     line-height: 1.75;
   }
   .markdown-content > * + * {
@@ -114,19 +140,20 @@
     margin-bottom: 0.25em;
   }
   .markdown-content code {
-    background-color: #f3f4f6;
+    background-color: rgba(0,0,0,0.05);
     padding: 0.2em 0.4em;
     border-radius: 0.25rem;
     font-size: 0.875em;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
   .markdown-content pre {
-    background-color: #f6f8fa;
-    border-radius: 0.5rem;
+    background-color: rgba(0,0,0,0.03);
+    border-radius: 0.75rem;
     padding: 1em;
     overflow-x: auto;
     margin-top: 1em;
     margin-bottom: 1em;
+    border: 1px solid rgba(0,0,0,0.1);
   }
   .markdown-content pre code {
     background-color: transparent;
@@ -135,18 +162,18 @@
     line-height: 1.5;
   }
   .markdown-content blockquote {
-    border-left: 4px solid #e5e7eb;
+    border-left: 4px solid rgba(0,0,0,0.1);
     padding-left: 1em;
     margin-left: 0;
     font-style: italic;
-    color: #6b7280;
+    color: rgba(47,47,47,0.7);
   }
   .markdown-content a {
-    color: #2563eb;
+    color: #0d9488;
     text-decoration: underline;
   }
   .markdown-content a:hover {
-    color: #1d4ed8;
+    color: #0f766e;
   }
   .markdown-content strong {
     font-weight: 600;
@@ -156,7 +183,7 @@
   }
   .markdown-content hr {
     border: 0;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid rgba(0,0,0,0.1);
     margin-top: 1.5em;
     margin-bottom: 1.5em;
   }
@@ -167,13 +194,36 @@
     margin-bottom: 1em;
   }
   .markdown-content th, .markdown-content td {
-    border: 1px solid #e5e7eb;
+    border: 1px solid rgba(0,0,0,0.1);
     padding: 0.5em;
     text-align: left;
   }
   .markdown-content th {
-    background-color: #f9fafb;
+    background-color: rgba(0,0,0,0.03);
     font-weight: 600;
+  }
+
+  /* ユーザーメッセージバブル */
+  .user-bubble {
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    border-bottom-right-radius: 0.25rem;
+    max-width: 80%;
+    word-break: break-word;
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+  }
+
+  /* AIメッセージバブル */
+  .ai-bubble {
+    background: rgba(255,255,255,0.9);
+    border: 1px solid rgba(255,255,255,0.7);
+    padding: 0.75rem 1rem;
+    border-radius: 1rem;
+    border-bottom-left-radius: 0.25rem;
+    max-width: 85%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   }
 </style>
 {% endblock %}
@@ -243,13 +293,13 @@ function showEmptyHistoryMessage() {
   const container = document.getElementById('chat-container');
   const emptyMessage = document.createElement('div');
   emptyMessage.id = 'empty-history-message';
-  emptyMessage.className = 'flex flex-col items-center justify-center h-full text-gray-400';
+  emptyMessage.className = 'flex flex-col items-center justify-center h-full text-[#2f2f2f]/50';
   emptyMessage.innerHTML = `
     <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
     </svg>
-    <p class="text-lg font-medium">会話履歴がありません</p>
-    <p class="text-sm mt-2">メッセージを送信して会話を始めましょう</p>
+    <p class="text-lg font-bold text-[#2f2f2f]">会話履歴がありません</p>
+    <p class="text-sm mt-2 text-[#2f2f2f]/60">メッセージを送信して会話を始めましょう</p>
   `;
   container.appendChild(emptyMessage);
 }
@@ -271,8 +321,8 @@ function appendMessage(text, sender) {
   const bubble = document.createElement('div');
   bubble.className =
     sender === 'user'
-      ? 'bg-green-500 text-white px-4 py-2 rounded-2xl max-w-xl break-words'
-      : 'bg-white px-4 py-2 rounded-2xl max-w-xl border markdown-content';
+      ? 'user-bubble'
+      : 'ai-bubble markdown-content';
 
   // AIメッセージの場合はマークダウンをレンダリング
   if (sender === 'assistant') {
@@ -314,6 +364,13 @@ function setupInputHandler() {
       button.classList.add('opacity-50', 'cursor-not-allowed');
     }
   });
+
+  // Enterキーで送信
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !button.disabled) {
+      postHandler();
+    }
+  });
 }
 
 function postHandler(){
@@ -351,7 +408,7 @@ function handleStreamingChat(message, button) {
   wrapper.className = 'flex justify-start';
 
   const bubble = document.createElement('div');
-  bubble.className = 'bg-white px-4 py-2 rounded-2xl max-w-xl border markdown-content';
+  bubble.className = 'ai-bubble markdown-content';
   bubble.innerText = ''; // 空で開始
 
   wrapper.appendChild(bubble);
@@ -457,7 +514,7 @@ function appendLoadingMessage() {
   wrapper.className = 'flex justify-start';
 
   const bubble = document.createElement('div');
-  bubble.className = 'bg-white px-4 py-2 rounded-2xl max-w-xs border text-gray-400';
+  bubble.className = 'ai-bubble text-[#2f2f2f]/50';
   bubble.innerText = '入力中…';
 
   wrapper.appendChild(bubble);

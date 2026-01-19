@@ -1,12 +1,18 @@
+import uuid
+import os
 from django.db import models
 from django.conf import settings
 
 
 def report_image_upload_path(instance, filename):
-    """日報画像のアップロードパスを生成"""
+    """日報画像のアップロードパスを生成（ファイル名をUUIDに変換）"""
     store_id = instance.report.store_id
     date = instance.report.date
-    return f'reports/store_{store_id}/{date.year}/{date.month:02d}/{date.day:02d}/{filename}'
+    # 拡張子を取得
+    ext = os.path.splitext(filename)[1].lower()
+    # UUIDでファイル名を生成（日本語などの非ASCII文字を回避）
+    new_filename = f'{uuid.uuid4().hex}{ext}'
+    return f'reports/store_{store_id}/{date.year}/{date.month:02d}/{date.day:02d}/{new_filename}'
 
 
 class DailyReport(models.Model):
