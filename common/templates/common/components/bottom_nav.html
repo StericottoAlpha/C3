@@ -19,21 +19,6 @@
         <span>日報</span>
       </a>
 
-      <a href="{% url 'analytics:dashboard' %}"
-         class="flex flex-col items-center gap-1 transition
-         {% if current == 'analytics:dashboard' %}
-           text-primary
-         {% else %}
-           text-gray-400 hover:text-primary
-         {% endif %}">
-        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="3" y="10" width="4" height="10" rx="1"/>
-          <rect x="10" y="6" width="4" height="14" rx="1"/>
-          <rect x="17" y="3" width="4" height="17" rx="1"/>
-        </svg>
-        <span class="leading-none">分析</span>
-      </a>
-
       <a href="{% url 'bbs:list' %}"
          class="flex flex-col items-center gap-1 transition
          {% if current == 'bbs:list' %}
@@ -120,6 +105,21 @@
         <div class="h-px bg-gray-200 my-4"></div>
 
         <div class="grid grid-cols-3 gap-x-6 gap-y-8 justify-items-center">
+
+          <a href="{% url 'analytics:dashboard' %}" data-drawer-close="1"
+             class="group flex flex-col items-center gap-2.5">
+            <div class="w-20 h-20 rounded-2xl bg-white border border-gray-200 shadow-sm
+                        group-hover:shadow-md group-hover:border-teal-200 transition
+                        flex items-center justify-center">
+              <svg class="w-9 h-9 text-gray-600 group-hover:text-teal-600 transition"
+                   fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="10" width="4" height="10" rx="1"/>
+                <rect x="10" y="6" width="4" height="14" rx="1"/>
+                <rect x="17" y="3" width="4" height="17" rx="1"/>
+              </svg>
+            </div>
+            <span class="text-sm font-semibold text-gray-700">分析</span>
+          </a>
 
           <a href="/accounts/profile" data-drawer-close="1"
              class="group flex flex-col items-center gap-2.5">
@@ -209,15 +209,6 @@
               <span class="text-sm font-semibold text-gray-400">準備中</span>
             </button>
           {% endif %}
-          <button type="button" disabled
-            class="flex flex-col items-center gap-2.5 opacity-60 cursor-not-allowed">
-            <div class="w-20 h-20 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center">
-              <svg class="w-9 h-9 text-gray-300" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 7a5 5 0 015 5c0 1.7-.8 3.2-2 4.1V18a3 3 0 01-6 0v-1.9A5 5 0 017 12a5 5 0 015-5zm-1 13h2v-2h-2v2z"/>
-              </svg>
-            </div>
-            <span class="text-sm font-semibold text-gray-400">準備中</span>
-          </button>
 
           <button type="button" disabled
             class="flex flex-col items-center gap-2.5 opacity-60 cursor-not-allowed">

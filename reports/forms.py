@@ -34,7 +34,7 @@ class DailyReportForm(forms.ModelForm):
                 'maxlength': 200
             }),
             'content': forms.Textarea(attrs={
-                'class': 'form-control',
+                'class': 'form-control w-full max-w-full',
                 'placeholder': '例：状況／原因／対応／再発防止を簡潔に',
                 'rows': 5,
                 'required': True
