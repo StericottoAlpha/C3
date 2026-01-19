@@ -104,6 +104,21 @@
           ※ 権限や所属情報の変更が必要な場合は管理者へ連絡してください。
         </div>
 
+        <!-- パスワード変更 -->
+        <div class="pt-3">
+          <button type="button"
+                  id="change-password-btn"
+                  class="w-full rounded-2xl border border-blue-200 bg-white/70 hover:bg-blue-50
+                         text-blue-600 font-bold py-3 shadow-sm transition flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <rect x="5" y="10" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="12" cy="15" r="1" fill="currentColor"/>
+            </svg>
+            パスワード変更
+          </button>
+        </div>
+
         <!-- ログアウト -->
         <div class="pt-3">
           <form action="{% url 'accounts:logout' %}" method="post">
@@ -125,6 +140,43 @@
     </div>
 
   </div>
+
+  <!-- パスワード変更ダイアログ -->
+  <div id="password-change-dialog" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <!-- 背景オーバーレイ -->
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" id="dialog-overlay"></div>
+
+    <!-- モーダルコンテンツ -->
+    <div class="relative bg-white rounded-3xl shadow-2xl max-w-md mx-4 p-8 border border-white/70">
+      <!-- アイコン -->
+      <div class="flex justify-center mb-4">
+        <div class="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center">
+          <svg class="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 16v.01M12 12v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- タイトル -->
+      <h2 class="text-2xl font-bold text-[#2f2f2f] text-center mb-3">
+        パスワード変更について
+      </h2>
+
+      <!-- メッセージ -->
+      <p class="text-[#2f2f2f]/70 text-center mb-6 leading-relaxed">
+        デモ中のため、パスワード変更機能は<br>ご利用いただけません。
+      </p>
+
+      <!-- 閉じるボタン -->
+      <button type="button"
+              id="close-dialog-btn"
+              class="w-full rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 shadow-sm transition">
+        閉じる
+      </button>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -173,6 +225,36 @@
       } catch (e) {
         // 失敗時：何もしない（必要ならアラート出してもOK）
         console.error(e);
+      }
+    });
+  })();
+
+  // パスワード変更ダイアログ
+  (function () {
+    const dialog = document.getElementById('password-change-dialog');
+    const openBtn = document.getElementById('change-password-btn');
+    const closeBtn = document.getElementById('close-dialog-btn');
+    const overlay = document.getElementById('dialog-overlay');
+
+    if (!dialog || !openBtn || !closeBtn || !overlay) return;
+
+    // ダイアログを開く
+    openBtn.addEventListener('click', () => {
+      dialog.classList.remove('hidden');
+    });
+
+    // ダイアログを閉じる
+    function closeDialog() {
+      dialog.classList.add('hidden');
+    }
+
+    closeBtn.addEventListener('click', closeDialog);
+    overlay.addEventListener('click', closeDialog);
+
+    // ESCキーで閉じる
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !dialog.classList.contains('hidden')) {
+        closeDialog();
       }
     });
   })();
