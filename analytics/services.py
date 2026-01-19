@@ -22,16 +22,17 @@ class AnalyticsService:
     """分析データを集計するサービスクラス"""
 
     @staticmethod
-    def get_sales_data(store, start_date, end_date):
+    def get_sales_data(store, start_date, end_date, base_store=None):
         """売上データを取得
 
         Args:
             store: 店舗オブジェクト
             start_date: 開始日
             end_date: 終了日
+            base_store: 比較用の自店舗（全店舗モード時に指定）
 
         Returns:
-            dict: {labels: [...], data: [...]}
+            dict: {labels: [...], data: [...]} または {labels: [...], datasets: [...]}
         """
         # 日付範囲内の全日付を生成
         date_range = []
@@ -68,10 +69,73 @@ class AnalyticsService:
                 'data': data,
             }
 
-        # store=None のときは店舗ごとの折れ線データを返す
+        # store=None かつ base_store指定時は自店舗と他店舗平均の2本のラインを返す
         datasets = []
         # 本部は除外する
         stores = Store.objects.exclude(store_name='本部').order_by('store_id')
+
+        if base_store:
+            # 他店舗（自店舗を除く）
+            other_stores = stores.exclude(pk=base_store.pk)
+            other_store_count = other_stores.count()
+
+            # 自店舗データ
+            self_data = []
+            for date in date_range:
+                if date > today:
+                    continue
+                perf = StoreDailyPerformance.objects.filter(store=base_store, date=date).first()
+                self_data.append(perf.sales_amount if perf else 0)
+
+            # 他店舗平均データ
+            other_average_data = []
+            for date in date_range:
+                if date > today:
+                    continue
+                # その日の他店舗の売上を集計
+                daily_sales = StoreDailyPerformance.objects.filter(
+                    store__in=other_stores,
+                    date=date
+                ).aggregate(total=Sum('sales_amount'))
+
+                # 平均を計算
+                if other_store_count > 0 and daily_sales['total'] is not None:
+                    other_average_data.append(round(daily_sales['total'] / other_store_count, 2))
+                else:
+                    other_average_data.append(0)
+
+            # 自店舗の折れ線
+            datasets.append({
+                'label': '自店舗',
+                'data': self_data,
+                'borderColor': 'rgb(13, 148, 136)',  # teal-600
+                'backgroundColor': 'rgba(13, 148, 136, 0.1)',
+                'tension': 0.3,
+                'fill': False,
+                'borderWidth': 3,
+                'pointRadius': 4,
+            })
+
+            # 他店舗平均の折れ線
+            datasets.append({
+                'label': '他店舗平均',
+                'data': other_average_data,
+                'borderColor': 'rgb(107, 114, 128)',  # gray-500
+                'backgroundColor': 'rgba(107, 114, 128, 0.1)',
+                'tension': 0.3,
+                'fill': False,
+                'borderWidth': 3,
+                'pointRadius': 4,
+                'borderDash': [5, 5],  # 破線スタイル
+            })
+
+            return {
+                'labels': labels,
+                'datasets': datasets,
+                'chart_kind': 'line',
+            }
+
+        # base_storeが指定されていない場合は全店舗の個別ライン（後方互換性のため残す）
         for idx, s in enumerate(stores):
             store_data = []
             for date in date_range:
@@ -99,16 +163,17 @@ class AnalyticsService:
         }
 
     @staticmethod
-    def get_customer_count_data(store, start_date, end_date):
+    def get_customer_count_data(store, start_date, end_date, base_store=None):
         """客数データを取得
 
         Args:
             store: 店舗オブジェクト
             start_date: 開始日
             end_date: 終了日
+            base_store: 比較用の自店舗（全店舗モード時に指定）
 
         Returns:
-            dict: {labels: [...], data: [...]}
+            dict: {labels: [...], data: [...]} または {labels: [...], datasets: [...]}
         """
         # 日付範囲内の全日付を生成
         date_range = []
@@ -145,10 +210,73 @@ class AnalyticsService:
                 'data': data,
             }
 
-        # store=None のときは店舗ごとの折れ線データを返す
+        # store=None かつ base_store指定時は自店舗と他店舗平均の2本のラインを返す
         datasets = []
         # 本部は除外する
         stores = Store.objects.exclude(store_name='本部').order_by('store_id')
+
+        if base_store:
+            # 他店舗（自店舗を除く）
+            other_stores = stores.exclude(pk=base_store.pk)
+            other_store_count = other_stores.count()
+
+            # 自店舗データ
+            self_data = []
+            for date in date_range:
+                if date > today:
+                    continue
+                perf = StoreDailyPerformance.objects.filter(store=base_store, date=date).first()
+                self_data.append(perf.customer_count if perf else 0)
+
+            # 他店舗平均データ
+            other_average_data = []
+            for date in date_range:
+                if date > today:
+                    continue
+                # その日の他店舗の客数を集計
+                daily_customers = StoreDailyPerformance.objects.filter(
+                    store__in=other_stores,
+                    date=date
+                ).aggregate(total=Sum('customer_count'))
+
+                # 平均を計算
+                if other_store_count > 0 and daily_customers['total'] is not None:
+                    other_average_data.append(round(daily_customers['total'] / other_store_count, 2))
+                else:
+                    other_average_data.append(0)
+
+            # 自店舗の折れ線
+            datasets.append({
+                'label': '自店舗',
+                'data': self_data,
+                'borderColor': 'rgb(13, 148, 136)',  # teal-600
+                'backgroundColor': 'rgba(13, 148, 136, 0.1)',
+                'tension': 0.3,
+                'fill': False,
+                'borderWidth': 3,
+                'pointRadius': 4,
+            })
+
+            # 他店舗平均の折れ線
+            datasets.append({
+                'label': '他店舗平均',
+                'data': other_average_data,
+                'borderColor': 'rgb(107, 114, 128)',  # gray-500
+                'backgroundColor': 'rgba(107, 114, 128, 0.1)',
+                'tension': 0.3,
+                'fill': False,
+                'borderWidth': 3,
+                'pointRadius': 4,
+                'borderDash': [5, 5],  # 破線スタイル
+            })
+
+            return {
+                'labels': labels,
+                'datasets': datasets,
+                'chart_kind': 'line',
+            }
+
+        # base_storeが指定されていない場合は全店舗の個別ライン（後方互換性のため残す）
         for idx, s in enumerate(stores):
             store_data = []
             for date in date_range:
@@ -763,10 +891,10 @@ class AnalyticsService:
             ValueError: 不正なグラフタイプの場合
         """
         if graph_type == 'sales':
-            chart_data = AnalyticsService.get_sales_data(store, start_date, end_date)
+            chart_data = AnalyticsService.get_sales_data(store, start_date, end_date, base_store=base_store)
             title = '売上推移'
         elif graph_type == 'customer_count':
-            chart_data = AnalyticsService.get_customer_count_data(store, start_date, end_date)
+            chart_data = AnalyticsService.get_customer_count_data(store, start_date, end_date, base_store=base_store)
             title = '客数推移'
         elif graph_type == 'incident_by_location':
             chart_data = AnalyticsService.get_incident_by_location_data(store, start_date, end_date, genre, base_store, period)

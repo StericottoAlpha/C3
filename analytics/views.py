@@ -194,11 +194,20 @@ def get_graph_data(request):
     offset = int(request.GET.get('offset', 0))
     genre = request.GET.get('genre', None)
     location = request.GET.get('location', None)
+    scope = request.GET.get('scope', 'own')
 
     # ユーザーの所属店舗を取得
-    store = request.user.store
-    if not store:
+    user_store = request.user.store
+    if not user_store:
         return JsonResponse({'error': '店舗が設定されていません'}, status=400)
+
+    # スコープに応じて店舗を設定
+    if scope == 'all':
+        store = None  # 全店舗モード
+        base_store = user_store  # 比較用の自店舗
+    else:
+        store = user_store
+        base_store = None
 
     # 期間の日付範囲とラベルを計算
     start_date, end_date, period_label = AnalyticsService.calculate_period_dates(period, offset)
@@ -206,7 +215,7 @@ def get_graph_data(request):
     # グラフデータを取得
     try:
         result = AnalyticsService.get_graph_data_by_type(
-            graph_type, store, start_date, end_date, genre, period=period, location=location
+            graph_type, store, start_date, end_date, genre, base_store=base_store, period=period, location=location
         )
     except ValueError as e:
         return JsonResponse({'error': str(e)}, status=400)
@@ -226,6 +235,10 @@ def get_graph_data(request):
         response_data['datasets'] = chart_data['datasets']
     else:
         response_data['data'] = chart_data['data']
+
+    # chart_kindがある場合は追加
+    if 'chart_kind' in chart_data:
+        response_data['chart_kind'] = chart_data['chart_kind']
 
     return JsonResponse(response_data)
 
