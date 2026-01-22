@@ -6,7 +6,7 @@ from django.views.decorators.http import require_POST
 import json
 from .models import BBSPost, BBSComment, BBSReaction, BBSCommentReaction
 from .forms import BBSPostForm, BBSCommentForm
-from django.db.models import Q
+from django.db.models import Q, Count, Exists, OuterRef
 from django.core.paginator import Paginator
 from stores.models import Store
 
@@ -35,8 +35,25 @@ def bbs_list(request):
     NUM_BB_PER_PAGE = 10
 
 
-    posts = BBSPost.objects.select_related('user', 'store')
-    
+    posts = BBSPost.objects.select_related('user', 'store').annotate(
+        naruhodo_count=Count('reactions', filter=Q(reactions__reaction_type='naruhodo')),
+        iine_count=Count('reactions', filter=Q(reactions__reaction_type='iine')),
+        is_naruhodo=Exists(
+            BBSReaction.objects.filter(
+                post=OuterRef('pk'),
+                user=request.user,
+                reaction_type='naruhodo'
+            )
+        ),
+        is_iine=Exists(
+            BBSReaction.objects.filter(
+                post=OuterRef('pk'),
+                user=request.user,
+                reaction_type='iine'
+            )
+        ),
+    )
+
     genre = request.GET.get('genre')
     if genre:
         posts = posts.filter(genre=genre)

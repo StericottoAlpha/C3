@@ -205,14 +205,11 @@
 
                   <!-- リアクション（シンプルアイコン） -->
                   <div class="flex gap-2">
-                    {% is_reacted post user 'naruhodo' as is_naruhodo %}
-                    {% count_reactions post 'naruhodo' as naruhodo_count %}
-
                     <button type="button"
                       onclick="toggleReaction(event, 'post', {{ post.post_id }}, 'naruhodo')"
                       id="btn-reaction-post-{{ post.post_id }}-naruhodo"
                       class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-bold transition-colors duration-200
-                      {% if is_naruhodo %}
+                      {% if post.is_naruhodo %}
                         bg-blue-100 border-blue-300 text-blue-700
                       {% else %}
                         bg-white/70 border-black/10 text-[#2f2f2f]/70 hover:bg-black/5
@@ -224,17 +221,14 @@
                               stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                       </svg>
                       <span>なるほど</span>
-                      <span id="count-reaction-post-{{ post.post_id }}-naruhodo" class="ml-1">{{ naruhodo_count }}</span>
+                      <span id="count-reaction-post-{{ post.post_id }}-naruhodo" class="ml-1">{{ post.naruhodo_count }}</span>
                     </button>
-
-                    {% is_reacted post user 'iine' as is_iine %}
-                    {% count_reactions post 'iine' as iine_count %}
 
                     <button type="button"
                       onclick="toggleReaction(event, 'post', {{ post.post_id }}, 'iine')"
                       id="btn-reaction-post-{{ post.post_id }}-iine"
                       class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-bold transition-colors duration-200
-                      {% if is_iine %}
+                      {% if post.is_iine %}
                         bg-pink-100 border-pink-300 text-pink-700
                       {% else %}
                         bg-white/70 border-black/10 text-[#2f2f2f]/70 hover:bg-black/5
@@ -244,7 +238,7 @@
                               stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                       </svg>
                       <span>いいね</span>
-                      <span id="count-reaction-post-{{ post.post_id }}-iine" class="ml-1">{{ iine_count }}</span>
+                      <span id="count-reaction-post-{{ post.post_id }}-iine" class="ml-1">{{ post.iine_count }}</span>
                     </button>
                   </div>
                 </div>
