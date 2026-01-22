@@ -79,14 +79,13 @@ def search_daily_reports(query: str = "", store_id: int = 0, days: int = 60) -> 
 
 
 @tool
-def search_bbs_posts(query: str = "", store_id: int = 0, days: int = 30) -> str:
+def search_bbs_posts(query: str = "", days: int = 30) -> str:
     """
-    自店舗の掲示板の投稿を検索し、各投稿のコメント（議論の流れ）も一緒に返します。
-    これにより、どんな議論があってどんな結論になったかを把握できます。
+    全店舗の掲示板の投稿を検索し、各投稿のコメント（議論の流れ）も一緒に返します。
+    本部からのお知らせや他店舗の投稿も含めて検索できます。
 
     Args:
-        query: 検索クエリ（例: "シフト調整", "設備トラブル"）
-        store_id: 店舗ID
+        query: 検索クエリ（例: "シフト調整", "設備トラブル", "営業時間"）
         days: 検索対象日数（デフォルト: 30日）
 
     Returns:
@@ -103,10 +102,10 @@ def search_bbs_posts(query: str = "", store_id: int = 0, days: int = 30) -> str:
         # 日付フィルタ
         date_from = (date.today() - timedelta(days=days)).isoformat()
 
-        # ベクトル検索実行（投稿のみ検索、コメントはDBから取得）
+        # ベクトル検索実行（全店舗対象、store_id=None）
         search_results = VectorSearchService.search_documents(
             query=query,
-            store_id=store_id,
+            store_id=None,  # 全店舗検索
             source_types=['bbs_post'],
             filters={'date_from': date_from},
             top_k=top_k
@@ -119,6 +118,233 @@ def search_bbs_posts(query: str = "", store_id: int = 0, days: int = 30) -> str:
             post_id = item.get('source_id')
 
             # 投稿のコメントをDBから取得
+            comments_data = []
+            best_answer = None
+            store_name = metadata.get('store_name', '不明')
+            try:
+                post = BBSPost.objects.select_related('store').prefetch_related('comments__user').get(post_id=post_id)
+                store_name = post.store.store_name if post.store else '不明'
+                for comment in post.comments.all().order_by('created_at'):
+                    comment_info = {
+                        "author": comment.user.email if comment.user else "不明",
+                        "content": comment.content,
+                        "date": str(comment.created_at.date()),
+                        "is_best_answer": comment.is_best_answer
+                    }
+                    comments_data.append(comment_info)
+                    if comment.is_best_answer:
+                        best_answer = comment.content
+            except BBSPost.DoesNotExist:
+                pass
+
+            formatted_results.append({
+                "date": metadata.get('date', '不明'),
+                "store_name": store_name,
+                "title": metadata.get('title', '不明'),
+                "author": metadata.get('author_name', '不明'),
+                "category": metadata.get('category', '未分類'),
+                "content": item.get('content', ''),
+                "similarity": round(float(item.get('similarity', 0)), 3),
+                "comment_count": len(comments_data),
+                "comments": comments_data,
+                "best_answer": best_answer,
+                "has_conclusion": best_answer is not None
+            })
+
+        result = {
+            "status": "success",
+            "query": query,
+            "scope": "全店舗",
+            "days": days,
+            "top_k": top_k,
+            "results": formatted_results,
+            "total": len(formatted_results)
+        }
+
+        return json.dumps(result, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        logger.error(f"Error in search_bbs_posts: {e}", exc_info=True)
+        return json.dumps({
+            "status": "error",
+            "message": f"検索エラー: {str(e)}"
+        }, ensure_ascii=False)
+
+
+@tool
+def search_bbs_by_keyword(keyword: str, days: int = 60) -> str:
+    """
+    全店舗の掲示板をキーワードで直接検索します（DB検索）。
+    ベクトル検索ではなく、タイトル・内容に含まれるキーワードで確実に検索します。
+    本部からのお知らせや他店舗の投稿も含めて検索できます。
+
+    When to use this tool:
+    - When looking for posts containing specific words (営業時間, シフト, 休み, etc.)
+    - When vector search (search_bbs_posts) returns no results but user insists data exists
+    - When searching for announcements or notices (お知らせ, 連絡, 報告)
+    - Keywords: ○○について, ○○の投稿, ○○が書いてある
+
+    Args:
+        keyword: 検索キーワード（タイトルまたは内容に含まれる単語）
+        days: 検索対象日数（デフォルト: 60日）
+
+    Returns:
+        キーワードを含む投稿とそのコメント一覧
+    """
+    try:
+        from bbs.models import BBSPost
+        from django.db.models import Q
+        from datetime import date, timedelta
+
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days)
+
+        # デバッグログ
+        logger.info(f"[search_bbs_by_keyword] keyword={keyword}, days={days}, start_date={start_date}, end_date={end_date}")
+
+        # まず全投稿数を確認
+        total_posts = BBSPost.objects.count()
+        logger.info(f"[search_bbs_by_keyword] Total posts in DB: {total_posts}")
+
+        # 日付範囲内の投稿数
+        date_filtered = BBSPost.objects.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date
+        ).count()
+        logger.info(f"[search_bbs_by_keyword] Posts in date range: {date_filtered}")
+
+        # キーワードでDB直接検索（全店舗対象、タイトルまたは内容に含まれる）
+        posts = BBSPost.objects.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date
+        ).filter(
+            Q(title__icontains=keyword) | Q(content__icontains=keyword)
+        ).select_related('store').prefetch_related(
+            'comments__user', 'user'
+        ).order_by('-created_at')[:20]
+
+        logger.info(f"[search_bbs_by_keyword] Posts matching keyword: {len(posts)}")
+
+        # コメント内にキーワードがある投稿も検索（全店舗）
+        from bbs.models import BBSComment
+        comment_post_ids = BBSComment.objects.filter(
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date,
+            content__icontains=keyword
+        ).values_list('post_id', flat=True).distinct()
+
+        # コメントでヒットした投稿も追加
+        comment_posts = BBSPost.objects.filter(
+            post_id__in=comment_post_ids
+        ).exclude(
+            post_id__in=[p.post_id for p in posts]
+        ).select_related('store').prefetch_related(
+            'comments__user', 'user'
+        ).order_by('-created_at')[:10]
+
+        # 結果を整形
+        formatted_results = []
+
+        def format_post(post, match_type):
+            comments_data = []
+            best_answer = None
+            for comment in post.comments.all().order_by('created_at'):
+                comment_info = {
+                    "author": comment.user.email if comment.user else "不明",
+                    "content": comment.content,
+                    "date": str(comment.created_at.date()),
+                    "is_best_answer": comment.is_best_answer,
+                    "contains_keyword": keyword.lower() in comment.content.lower()
+                }
+                comments_data.append(comment_info)
+                if comment.is_best_answer:
+                    best_answer = comment.content
+
+            return {
+                "date": str(post.created_at.date()),
+                "store_name": post.store.store_name if post.store else "不明",
+                "title": post.title,
+                "author": post.user.email if post.user else "不明",
+                "genre": post.genre,
+                "content": post.content,
+                "match_type": match_type,
+                "comment_count": len(comments_data),
+                "comments": comments_data,
+                "best_answer": best_answer,
+                "has_conclusion": best_answer is not None
+            }
+
+        # 投稿本文でヒットしたもの
+        for post in posts:
+            formatted_results.append(format_post(post, "タイトル/本文"))
+
+        # コメントでヒットしたもの
+        for post in comment_posts:
+            formatted_results.append(format_post(post, "コメント"))
+
+        if not formatted_results:
+            return json.dumps({
+                "status": "no_data",
+                "message": f"「{keyword}」を含む掲示板投稿が見つかりませんでした。",
+                "keyword": keyword,
+                "scope": "全店舗",
+                "days": days
+            }, ensure_ascii=False)
+
+        result = {
+            "status": "success",
+            "keyword": keyword,
+            "scope": "全店舗",
+            "days": days,
+            "results": formatted_results,
+            "total": len(formatted_results)
+        }
+
+        return json.dumps(result, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        logger.error(f"Error in search_bbs_by_keyword: {e}", exc_info=True)
+        return json.dumps({
+            "status": "error",
+            "message": f"キーワード検索エラー: {str(e)}"
+        }, ensure_ascii=False)
+
+
+@tool
+def search_bbs_posts_my_store(query: str = "", store_id: int = 0, days: int = 30) -> str:
+    """
+    自店舗の掲示板の投稿のみを検索します。自店舗内での議論やできごとを確認できます。
+
+    Args:
+        query: 検索クエリ（例: "シフト調整", "設備トラブル"）
+        store_id: 店舗ID
+        days: 検索対象日数（デフォルト: 30日）
+
+    Returns:
+        自店舗の投稿とそのコメント一覧
+    """
+    try:
+        from ai_features.services.core_services import VectorSearchService, QueryClassifier
+        from bbs.models import BBSPost
+        from datetime import date, timedelta
+
+        top_k = QueryClassifier.classify_and_get_top_k(query)
+        date_from = (date.today() - timedelta(days=days)).isoformat()
+
+        # 自店舗のみベクトル検索
+        search_results = VectorSearchService.search_documents(
+            query=query,
+            store_id=store_id,  # 自店舗のみ
+            source_types=['bbs_post'],
+            filters={'date_from': date_from},
+            top_k=top_k
+        )
+
+        formatted_results = []
+        for item in search_results:
+            metadata = item.get('metadata', {})
+            post_id = item.get('source_id')
+
             comments_data = []
             best_answer = None
             try:
@@ -152,9 +378,9 @@ def search_bbs_posts(query: str = "", store_id: int = 0, days: int = 30) -> str:
         result = {
             "status": "success",
             "query": query,
+            "scope": "自店舗",
             "store_id": store_id,
             "days": days,
-            "top_k": top_k,
             "results": formatted_results,
             "total": len(formatted_results)
         }
@@ -162,10 +388,123 @@ def search_bbs_posts(query: str = "", store_id: int = 0, days: int = 30) -> str:
         return json.dumps(result, ensure_ascii=False, indent=2)
 
     except Exception as e:
-        logger.error(f"Error in search_bbs_posts: {e}", exc_info=True)
+        logger.error(f"Error in search_bbs_posts_my_store: {e}", exc_info=True)
         return json.dumps({
             "status": "error",
             "message": f"検索エラー: {str(e)}"
+        }, ensure_ascii=False)
+
+
+@tool
+def search_bbs_by_keyword_my_store(keyword: str, store_id: int = 0, days: int = 60) -> str:
+    """
+    自店舗の掲示板をキーワードで検索します（DB検索）。自店舗内の投稿のみを対象とします。
+
+    Args:
+        keyword: 検索キーワード（タイトルまたは内容に含まれる単語）
+        store_id: 店舗ID
+        days: 検索対象日数（デフォルト: 60日）
+
+    Returns:
+        自店舗でキーワードを含む投稿とそのコメント一覧
+    """
+    try:
+        from bbs.models import BBSPost, BBSComment
+        from django.db.models import Q
+        from datetime import date, timedelta
+
+        end_date = date.today()
+        start_date = end_date - timedelta(days=days)
+
+        # 自店舗のみキーワード検索
+        posts = BBSPost.objects.filter(
+            store_id=store_id,
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date
+        ).filter(
+            Q(title__icontains=keyword) | Q(content__icontains=keyword)
+        ).prefetch_related(
+            'comments__user', 'user'
+        ).order_by('-created_at')[:20]
+
+        # コメント内検索も自店舗のみ
+        comment_post_ids = BBSComment.objects.filter(
+            post__store_id=store_id,
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date,
+            content__icontains=keyword
+        ).values_list('post_id', flat=True).distinct()
+
+        comment_posts = BBSPost.objects.filter(
+            post_id__in=comment_post_ids
+        ).exclude(
+            post_id__in=[p.post_id for p in posts]
+        ).prefetch_related(
+            'comments__user', 'user'
+        ).order_by('-created_at')[:10]
+
+        formatted_results = []
+
+        def format_post(post, match_type):
+            comments_data = []
+            best_answer = None
+            for comment in post.comments.all().order_by('created_at'):
+                comment_info = {
+                    "author": comment.user.email if comment.user else "不明",
+                    "content": comment.content,
+                    "date": str(comment.created_at.date()),
+                    "is_best_answer": comment.is_best_answer,
+                    "contains_keyword": keyword.lower() in comment.content.lower()
+                }
+                comments_data.append(comment_info)
+                if comment.is_best_answer:
+                    best_answer = comment.content
+
+            return {
+                "date": str(post.created_at.date()),
+                "title": post.title,
+                "author": post.user.email if post.user else "不明",
+                "genre": post.genre,
+                "content": post.content,
+                "match_type": match_type,
+                "comment_count": len(comments_data),
+                "comments": comments_data,
+                "best_answer": best_answer,
+                "has_conclusion": best_answer is not None
+            }
+
+        for post in posts:
+            formatted_results.append(format_post(post, "タイトル/本文"))
+
+        for post in comment_posts:
+            formatted_results.append(format_post(post, "コメント"))
+
+        if not formatted_results:
+            return json.dumps({
+                "status": "no_data",
+                "message": f"自店舗で「{keyword}」を含む掲示板投稿が見つかりませんでした。",
+                "keyword": keyword,
+                "scope": "自店舗",
+                "days": days
+            }, ensure_ascii=False)
+
+        result = {
+            "status": "success",
+            "keyword": keyword,
+            "scope": "自店舗",
+            "store_id": store_id,
+            "days": days,
+            "results": formatted_results,
+            "total": len(formatted_results)
+        }
+
+        return json.dumps(result, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        logger.error(f"Error in search_bbs_by_keyword_my_store: {e}", exc_info=True)
+        return json.dumps({
+            "status": "error",
+            "message": f"キーワード検索エラー: {str(e)}"
         }, ensure_ascii=False)
 
 

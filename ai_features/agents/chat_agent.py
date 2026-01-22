@@ -27,6 +27,9 @@ def _get_cached_tools_for_store(store_id: int) -> Tuple:
     from ai_features.tools.search_tools import (
         search_daily_reports as _search_daily_reports,
         search_bbs_posts as _search_bbs_posts,
+        search_bbs_by_keyword as _search_bbs_by_keyword,
+        search_bbs_posts_my_store as _search_bbs_posts_my_store,
+        search_bbs_by_keyword_my_store as _search_bbs_by_keyword_my_store,
         search_manual,
         search_by_genre as _search_by_genre,
         search_by_location as _search_by_location,
@@ -38,6 +41,8 @@ def _get_cached_tools_for_store(store_id: int) -> Tuple:
     from ai_features.tools.analytics_tools import (
         get_claim_statistics as _get_claim_statistics,
         get_sales_trend as _get_sales_trend,
+        get_sales_by_date as _get_sales_by_date,
+        get_sales_by_date_range as _get_sales_by_date_range,
         get_cash_difference_analysis as _get_cash_difference_analysis,
         get_report_statistics as _get_report_statistics,
         get_monthly_goal_status as _get_monthly_goal_status,
@@ -68,8 +73,8 @@ def _get_cached_tools_for_store(store_id: int) -> Tuple:
     @tool
     def search_bbs_posts(query: str = "", days: int = 30) -> str:
         """
-        Search bulletin board posts with full discussion threads (all comments included).
-        Returns the complete conversation flow and conclusions (best answers) for each post.
+        Search bulletin board posts across ALL stores (includes HQ announcements).
+        Returns full discussion threads with all comments.
 
         When to use this tool:
         - When checking discussions or opinions among staff members
@@ -83,7 +88,55 @@ def _get_cached_tools_for_store(store_id: int) -> Tuple:
         Returns:
             Posts with all comments, best_answer (if exists), and has_conclusion flag
         """
-        return _search_bbs_posts.invoke({"query": query, "store_id": store_id, "days": days})
+        return _search_bbs_posts.invoke({"query": query, "days": days})
+
+    @tool
+    def search_bbs_by_keyword(keyword: str, days: int = 60) -> str:
+        """
+        Search bulletin board by KEYWORD across ALL stores (direct DB search).
+        Use this when you need to find posts containing specific words.
+        Includes HQ announcements and notices.
+
+        When to use this tool:
+        - When looking for posts containing specific terms (営業時間, シフト, 休み, お知らせ)
+        - When vector search (search_bbs_posts) returns no results
+        - When searching for announcements or official notices
+        - Keywords: ○○について, ○○の投稿, ○○が書いてある
+
+        Args:
+            keyword: Keyword to search (will match in title, content, or comments)
+            days: Search period in days (default: 60)
+
+        Returns:
+            Posts containing the keyword with all comments
+        """
+        return _search_bbs_by_keyword.invoke({"keyword": keyword, "days": days})
+
+    @tool
+    def search_bbs_posts_my_store(query: str = "", days: int = 30) -> str:
+        """
+        Search bulletin board posts in MY STORE ONLY.
+        ⚠️ ONLY use this when user EXPLICITLY says: "うちの店", "自店舗", "自分の店", "店内"
+        For general BBS queries, use search_bbs_posts instead.
+
+        Args:
+            query: Search keyword
+            days: Search period in days (default: 30)
+        """
+        return _search_bbs_posts_my_store.invoke({"query": query, "store_id": store_id, "days": days})
+
+    @tool
+    def search_bbs_by_keyword_my_store(keyword: str, days: int = 60) -> str:
+        """
+        Search bulletin board by KEYWORD in MY STORE ONLY (direct DB search).
+        ⚠️ ONLY use this when user EXPLICITLY says: "うちの店で○○", "自店舗の○○"
+        For general keyword searches, use search_bbs_by_keyword instead.
+
+        Args:
+            keyword: Keyword to search
+            days: Search period in days (default: 60)
+        """
+        return _search_bbs_by_keyword_my_store.invoke({"keyword": keyword, "store_id": store_id, "days": days})
 
     @tool
     def get_claim_statistics(days: int = 30) -> str:
@@ -106,14 +159,51 @@ def _get_cached_tools_for_store(store_id: int) -> Tuple:
         Get sales trend data (total, average, trend, weekly breakdown).
 
         When to use this tool:
-        - When checking sales trends or patterns
+        - When checking sales trends or patterns over a period
         - When comparison with previous week/month is needed
-        - When checking sales goal achievement status
+        - When user asks general questions like "今月の売上" without specific dates
 
         Args:
             days: Aggregation period in days (default: 30)
         """
         return _get_sales_trend.invoke({"store_id": store_id, "days": days})
+
+    @tool
+    def get_sales_by_date(date: str) -> str:
+        """
+        Get sales and customer data for a SPECIFIC DATE.
+
+        When to use this tool:
+        - When user asks about a specific date (1/24の売上, 昨日の売上, 1月24日の客数)
+        - When user mentions a particular day's performance
+        - Keywords: ○月○日の売上, ○/○の客数, 特定日
+
+        Args:
+            date: Target date in YYYY-MM-DD format (e.g., "2026-01-24")
+
+        Returns:
+            Sales amount, customer count, and average per customer for the date
+        """
+        return _get_sales_by_date.invoke({"store_id": store_id, "date": date})
+
+    @tool
+    def get_sales_by_date_range(start_date: str, end_date: str) -> str:
+        """
+        Get sales and customer data for a DATE RANGE.
+
+        When to use this tool:
+        - When user asks about a date range (1/20から1/24までの売上)
+        - When user specifies start and end dates
+        - Keywords: ○日から○日まで, ○月○日〜○月○日
+
+        Args:
+            start_date: Start date in YYYY-MM-DD format (e.g., "2026-01-20")
+            end_date: End date in YYYY-MM-DD format (e.g., "2026-01-24")
+
+        Returns:
+            Aggregated summary and daily breakdown for the period
+        """
+        return _get_sales_by_date_range.invoke({"store_id": store_id, "start_date": start_date, "end_date": end_date})
 
     @tool
     def get_cash_difference_analysis(days: int = 30) -> str:
@@ -375,14 +465,23 @@ def _get_cached_tools_for_store(store_id: int) -> Tuple:
         return gather_topic_related_data_all_stores.invoke({"topic": topic, "days": days})
 
     tools = (
-        # 自店舗ツール
-        search_daily_reports,
+        # 掲示板検索（全店舗）
         search_bbs_posts,
-        search_manual,  # 全店舗共通（ナレッジベース）
+        search_bbs_by_keyword,
+        # 掲示板検索（自店舗のみ）
+        search_bbs_posts_my_store,
+        search_bbs_by_keyword_my_store,
+        # 日報検索（自店舗）
+        search_daily_reports,
         search_by_genre,
         search_by_location,
+        # マニュアル（全店舗共通）
+        search_manual,
+        # 統計ツール（自店舗）
         get_claim_statistics,
         get_sales_trend,
+        get_sales_by_date,
+        get_sales_by_date_range,
         get_cash_difference_analysis,
         get_report_statistics,
         get_monthly_goal_status,
@@ -506,16 +605,21 @@ You are NOT just a data retrieval assistant. You are a **strategic advisor** hel
 
 ## Available Tools (12 tools)
 
-### Search Tools (5 tools)
-- **search_daily_reports**: General search across all daily reports (best for exploratory queries)
-- **search_by_genre**: Search within specific genre (claim/praise/accident/report/other)
-- **search_by_location**: Search within specific location (kitchen/hall/cashier/toilet/other)
-- **search_bbs_posts**: Search bulletin board posts with full discussion threads and conclusions
-- **search_manual**: Search manuals and guidelines
+### Search Tools (8 tools)
+- **search_daily_reports**: Search daily reports (自店舗)
+- **search_by_genre**: Search by genre - claim/praise/accident/report/other (自店舗)
+- **search_by_location**: Search by location - kitchen/hall/cashier/toilet/other (自店舗)
+- **search_bbs_posts**: Search bulletin board (全店舗, includes HQ announcements)
+- **search_bbs_by_keyword**: Search BBS by keyword (全店舗, use for 営業時間, お知らせ)
+- **search_bbs_posts_my_store**: Search bulletin board (自店舗のみ, for うちの店の議論)
+- **search_bbs_by_keyword_my_store**: Search BBS by keyword (自店舗のみ)
+- **search_manual**: Search manuals and guidelines (全店舗共通)
 
-### Analytics Tools (5 tools)
+### Analytics Tools (7 tools)
 - **get_claim_statistics**: Claim counts, trends, category breakdown
-- **get_sales_trend**: Sales data, customer count, daily/weekly trends
+- **get_sales_trend**: Sales data over a period (use for "今月の売上", "最近の売上推移")
+- **get_sales_by_date**: Sales for a SPECIFIC DATE (use for "1/24の売上", "昨日の客数")
+- **get_sales_by_date_range**: Sales for a DATE RANGE (use for "1/20〜1/24の売上")
 - **get_cash_difference_analysis**: Register discrepancies, plus/minus breakdown
 - **get_report_statistics**: Overall daily report statistics by genre/location
 - **get_monthly_goal_status**: Current month's goal and achievement rate
@@ -540,9 +644,30 @@ Example (general): "先週の問題" → search_daily_reports(query="問題", da
 Example (specific genre): "先週の事故" → search_by_genre(query="事故", genre="accident", days=7)
 Example (specific genre): "クレームの内容" → search_by_genre(query="", genre="claim", days=30)
 
+### BBS Search - IMPORTANT DEFAULT BEHAVIOR:
+**DEFAULT: Always use ALL-STORES search (search_bbs_posts, search_bbs_by_keyword)**
+Only use my-store search when user EXPLICITLY mentions: "うちの店", "自店舗", "自分の店", "店内"
+
+→ DEFAULT (no store specification): Use **search_bbs_posts** or **search_bbs_by_keyword**
+Example: "年末年始の営業時間" → search_bbs_by_keyword(keyword="営業時間", days=60)
+Example: "お知らせについて" → search_bbs_by_keyword(keyword="お知らせ", days=60)
+Example: "シフトの投稿" → search_bbs_posts(query="シフト", days=30)
+Example: "掲示板で何か話してる？" → search_bbs_posts(query="", days=30)
+
+→ ONLY when user EXPLICITLY says "うちの店/自店舗/自分の店": Use **search_bbs_posts_my_store** or **search_bbs_by_keyword_my_store**
+Example: "うちの店の掲示板" → search_bbs_posts_my_store(query="", days=30)
+Example: "自店舗でシフトについて" → search_bbs_by_keyword_my_store(keyword="シフト", days=60)
+
 ### When user asks about STATISTICS or COUNTS:
 → Use **analytics tools** (get_claim_statistics, get_sales_trend, etc.)
 Example: "先週のクレーム件数" → get_claim_statistics(days=7)
+
+### When user asks about SPECIFIC DATE sales/customers:
+→ Use **get_sales_by_date** for single date
+→ Use **get_sales_by_date_range** for date range
+Example: "1/24の売上" → get_sales_by_date(date="2026-01-24")
+Example: "1/20から1/24の客数" → get_sales_by_date_range(start_date="2026-01-20", end_date="2026-01-24")
+Example: "昨日の売上" → get_sales_by_date(date="YYYY-MM-DD of yesterday")
 
 ### When user specifies GENRE or LOCATION filter:
 → Use **search_by_genre** or **search_by_location**
@@ -844,16 +969,21 @@ You are NOT just a data retrieval assistant. You are a **strategic advisor** hel
 
 ## Available Tools (12 tools)
 
-### Search Tools (5 tools)
-- **search_daily_reports**: General search across all daily reports (best for exploratory queries)
-- **search_by_genre**: Search within specific genre (claim/praise/accident/report/other)
-- **search_by_location**: Search within specific location (kitchen/hall/cashier/toilet/other)
-- **search_bbs_posts**: Search bulletin board posts with full discussion threads and conclusions
-- **search_manual**: Search manuals and guidelines
+### Search Tools (8 tools)
+- **search_daily_reports**: Search daily reports (自店舗)
+- **search_by_genre**: Search by genre - claim/praise/accident/report/other (自店舗)
+- **search_by_location**: Search by location - kitchen/hall/cashier/toilet/other (自店舗)
+- **search_bbs_posts**: Search bulletin board (全店舗, includes HQ announcements)
+- **search_bbs_by_keyword**: Search BBS by keyword (全店舗, use for 営業時間, お知らせ)
+- **search_bbs_posts_my_store**: Search bulletin board (自店舗のみ, for うちの店の議論)
+- **search_bbs_by_keyword_my_store**: Search BBS by keyword (自店舗のみ)
+- **search_manual**: Search manuals and guidelines (全店舗共通)
 
-### Analytics Tools (5 tools)
+### Analytics Tools (7 tools)
 - **get_claim_statistics**: Claim counts, trends, category breakdown
-- **get_sales_trend**: Sales data, customer count, daily/weekly trends
+- **get_sales_trend**: Sales data over a period (use for "今月の売上", "最近の売上推移")
+- **get_sales_by_date**: Sales for a SPECIFIC DATE (use for "1/24の売上", "昨日の客数")
+- **get_sales_by_date_range**: Sales for a DATE RANGE (use for "1/20〜1/24の売上")
 - **get_cash_difference_analysis**: Register discrepancies, plus/minus breakdown
 - **get_report_statistics**: Overall daily report statistics by genre/location
 - **get_monthly_goal_status**: Current month's goal and achievement rate
@@ -878,9 +1008,30 @@ Example (general): "先週の問題" → search_daily_reports(query="問題", da
 Example (specific genre): "先週の事故" → search_by_genre(query="事故", genre="accident", days=7)
 Example (specific genre): "クレームの内容" → search_by_genre(query="", genre="claim", days=30)
 
+### BBS Search - IMPORTANT DEFAULT BEHAVIOR:
+**DEFAULT: Always use ALL-STORES search (search_bbs_posts, search_bbs_by_keyword)**
+Only use my-store search when user EXPLICITLY mentions: "うちの店", "自店舗", "自分の店", "店内"
+
+→ DEFAULT (no store specification): Use **search_bbs_posts** or **search_bbs_by_keyword**
+Example: "年末年始の営業時間" → search_bbs_by_keyword(keyword="営業時間", days=60)
+Example: "お知らせについて" → search_bbs_by_keyword(keyword="お知らせ", days=60)
+Example: "シフトの投稿" → search_bbs_posts(query="シフト", days=30)
+Example: "掲示板で何か話してる？" → search_bbs_posts(query="", days=30)
+
+→ ONLY when user EXPLICITLY says "うちの店/自店舗/自分の店": Use **search_bbs_posts_my_store** or **search_bbs_by_keyword_my_store**
+Example: "うちの店の掲示板" → search_bbs_posts_my_store(query="", days=30)
+Example: "自店舗でシフトについて" → search_bbs_by_keyword_my_store(keyword="シフト", days=60)
+
 ### When user asks about STATISTICS or COUNTS:
 → Use **analytics tools** (get_claim_statistics, get_sales_trend, etc.)
 Example: "先週のクレーム件数" → get_claim_statistics(days=7)
+
+### When user asks about SPECIFIC DATE sales/customers:
+→ Use **get_sales_by_date** for single date
+→ Use **get_sales_by_date_range** for date range
+Example: "1/24の売上" → get_sales_by_date(date="2026-01-24")
+Example: "1/20から1/24の客数" → get_sales_by_date_range(start_date="2026-01-20", end_date="2026-01-24")
+Example: "昨日の売上" → get_sales_by_date(date="YYYY-MM-DD of yesterday")
 
 ### When user specifies GENRE or LOCATION filter:
 → Use **search_by_genre** or **search_by_location**
