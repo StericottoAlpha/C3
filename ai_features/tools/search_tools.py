@@ -81,7 +81,8 @@ def search_daily_reports(query: str = "", store_id: int = 0, days: int = 60) -> 
 @tool
 def search_bbs_posts(query: str = "", store_id: int = 0, days: int = 30) -> str:
     """
-    自店舗の掲示板の投稿とコメントを検索します。店舗内のコミュニケーション履歴を確認できます。
+    自店舗の掲示板の投稿を検索し、各投稿のコメント（議論の流れ）も一緒に返します。
+    これにより、どんな議論があってどんな結論になったかを把握できます。
 
     Args:
         query: 検索クエリ（例: "シフト調整", "設備トラブル"）
@@ -89,10 +90,11 @@ def search_bbs_posts(query: str = "", store_id: int = 0, days: int = 30) -> str:
         days: 検索対象日数（デフォルト: 30日）
 
     Returns:
-        検索結果のJSON文字列
+        検索結果のJSON文字列（投稿とそのコメント一覧を含む）
     """
     try:
         from ai_features.services.core_services import VectorSearchService, QueryClassifier
+        from bbs.models import BBSPost
         from datetime import date, timedelta
 
         # クエリの性質に応じてTop-K値を決定
@@ -101,40 +103,51 @@ def search_bbs_posts(query: str = "", store_id: int = 0, days: int = 30) -> str:
         # 日付フィルタ
         date_from = (date.today() - timedelta(days=days)).isoformat()
 
-        # ベクトル検索実行（投稿とコメント両方）
+        # ベクトル検索実行（投稿のみ検索、コメントはDBから取得）
         search_results = VectorSearchService.search_documents(
             query=query,
             store_id=store_id,
-            source_types=['bbs_post', 'bbs_comment'],
+            source_types=['bbs_post'],
             filters={'date_from': date_from},
             top_k=top_k
         )
 
-        # 結果を整形
+        # 結果を整形（スレッド単位）
         formatted_results = []
         for item in search_results:
             metadata = item.get('metadata', {})
-            source_type = item.get('source_type', '')
+            post_id = item.get('source_id')
 
-            if source_type == 'bbs_post':
-                formatted_results.append({
-                    "date": metadata.get('date', '不明'),
-                    "type": "投稿",
-                    "title": metadata.get('title', '不明'),
-                    "author": metadata.get('author_name', '不明'),
-                    "category": metadata.get('category', '未分類'),
-                    "content": item.get('content', ''),
-                    "similarity": round(float(item.get('similarity', 0)), 3)
-                })
-            elif source_type == 'bbs_comment':
-                formatted_results.append({
-                    "date": metadata.get('date', '不明'),
-                    "type": "コメント",
-                    "post_title": metadata.get('post_title', '不明'),
-                    "author": metadata.get('author_name', '不明'),
-                    "content": item.get('content', ''),
-                    "similarity": round(float(item.get('similarity', 0)), 3)
-                })
+            # 投稿のコメントをDBから取得
+            comments_data = []
+            best_answer = None
+            try:
+                post = BBSPost.objects.prefetch_related('comments__user').get(post_id=post_id)
+                for comment in post.comments.all().order_by('created_at'):
+                    comment_info = {
+                        "author": comment.user.email if comment.user else "不明",
+                        "content": comment.content,
+                        "date": str(comment.created_at.date()),
+                        "is_best_answer": comment.is_best_answer
+                    }
+                    comments_data.append(comment_info)
+                    if comment.is_best_answer:
+                        best_answer = comment.content
+            except BBSPost.DoesNotExist:
+                pass
+
+            formatted_results.append({
+                "date": metadata.get('date', '不明'),
+                "title": metadata.get('title', '不明'),
+                "author": metadata.get('author_name', '不明'),
+                "category": metadata.get('category', '未分類'),
+                "content": item.get('content', ''),
+                "similarity": round(float(item.get('similarity', 0)), 3),
+                "comment_count": len(comments_data),
+                "comments": comments_data,
+                "best_answer": best_answer,
+                "has_conclusion": best_answer is not None
+            })
 
         result = {
             "status": "success",
@@ -455,7 +468,8 @@ def search_daily_reports_all_stores(query: str = "", days: int = 60) -> str:
 @tool
 def search_bbs_posts_all_stores(query: str = "", days: int = 30) -> str:
     """
-    全店舗の掲示板投稿とコメントを検索します。他店舗での議論や解決策を参考にできます。
+    全店舗の掲示板投稿を検索し、各投稿のコメント（議論の流れ）も一緒に返します。
+    他店舗での議論や解決策を参考にできます。
 
     When to use this tool:
     - When user wants to see discussions from other stores (他店の意見, 他店舗の議論)
@@ -467,10 +481,11 @@ def search_bbs_posts_all_stores(query: str = "", days: int = 30) -> str:
         days: 検索対象日数（デフォルト: 30日）
 
     Returns:
-        全店舗の検索結果のJSON文字列
+        全店舗の検索結果のJSON文字列（投稿とそのコメント一覧を含む）
     """
     try:
         from ai_features.services.core_services import VectorSearchService, QueryClassifier
+        from bbs.models import BBSPost
         from datetime import date, timedelta
 
         # クエリの性質に応じてTop-K値を決定
@@ -479,41 +494,52 @@ def search_bbs_posts_all_stores(query: str = "", days: int = 30) -> str:
         # 日付フィルタ
         date_from = (date.today() - timedelta(days=days)).isoformat()
 
-        # ベクトル検索実行（全店舗）
+        # ベクトル検索実行（全店舗、投稿のみ検索）
         search_results = VectorSearchService.search_documents(
             query=query,
             store_id=None,  # 全店舗
-            source_types=['bbs_post', 'bbs_comment'],
+            source_types=['bbs_post'],
             filters={'date_from': date_from},
             top_k=top_k * 2  # 全店舗なので件数を増やす
         )
 
-        # 結果を整形
+        # 結果を整形（スレッド単位）
         formatted_results = []
         for item in search_results:
             metadata = item.get('metadata', {})
-            source_type = item.get('source_type', '')
+            post_id = item.get('source_id')
 
-            if source_type == 'bbs_post':
-                formatted_results.append({
-                    "date": metadata.get('date', '不明'),
-                    "type": "投稿",
-                    "store_name": metadata.get('store_name', '不明'),
-                    "title": metadata.get('title', '不明'),
-                    "author": metadata.get('author_name', '不明'),
-                    "category": metadata.get('category', '未分類'),
-                    "content": item.get('content', ''),
-                    "similarity": round(float(item.get('similarity', 0)), 3)
-                })
-            elif source_type == 'bbs_comment':
-                formatted_results.append({
-                    "date": metadata.get('date', '不明'),
-                    "type": "コメント",
-                    "post_title": metadata.get('post_title', '不明'),
-                    "author": metadata.get('author_name', '不明'),
-                    "content": item.get('content', ''),
-                    "similarity": round(float(item.get('similarity', 0)), 3)
-                })
+            # 投稿のコメントをDBから取得
+            comments_data = []
+            best_answer = None
+            try:
+                post = BBSPost.objects.prefetch_related('comments__user').get(post_id=post_id)
+                for comment in post.comments.all().order_by('created_at'):
+                    comment_info = {
+                        "author": comment.user.email if comment.user else "不明",
+                        "content": comment.content,
+                        "date": str(comment.created_at.date()),
+                        "is_best_answer": comment.is_best_answer
+                    }
+                    comments_data.append(comment_info)
+                    if comment.is_best_answer:
+                        best_answer = comment.content
+            except BBSPost.DoesNotExist:
+                pass
+
+            formatted_results.append({
+                "date": metadata.get('date', '不明'),
+                "store_name": metadata.get('store_name', '不明'),
+                "title": metadata.get('title', '不明'),
+                "author": metadata.get('author_name', '不明'),
+                "category": metadata.get('category', '未分類'),
+                "content": item.get('content', ''),
+                "similarity": round(float(item.get('similarity', 0)), 3),
+                "comment_count": len(comments_data),
+                "comments": comments_data,
+                "best_answer": best_answer,
+                "has_conclusion": best_answer is not None
+            })
 
         result = {
             "status": "success",

@@ -68,15 +68,20 @@ def _get_cached_tools_for_store(store_id: int) -> Tuple:
     @tool
     def search_bbs_posts(query: str = "", days: int = 30) -> str:
         """
-        Search bulletin board posts and comments for discussions and opinions among staff.
+        Search bulletin board posts with full discussion threads (all comments included).
+        Returns the complete conversation flow and conclusions (best answers) for each post.
 
         When to use this tool:
         - When checking discussions or opinions among staff members
-        - When searching for posts about specific topics
+        - When you need to understand how a discussion concluded
+        - When searching for posts about specific topics with their comments
 
         Args:
             query: Search keyword (e.g., "シフト", "メニュー改善")
             days: Search period in days (default: 30)
+
+        Returns:
+            Posts with all comments, best_answer (if exists), and has_conclusion flag
         """
         return _search_bbs_posts.invoke({"query": query, "store_id": store_id, "days": days})
 
@@ -254,12 +259,13 @@ def _get_cached_tools_for_store(store_id: int) -> Tuple:
     @tool
     def search_bbs_posts_all_stores_tool(query: str = "", days: int = 30) -> str:
         """
-        Search BBS posts and comments across ALL stores for discussions and solutions.
+        Search BBS posts across ALL stores with full discussion threads (all comments included).
+        Returns the complete conversation flow and conclusions (best answers) for each post.
 
         When to use this tool:
         - When user wants to see discussions from other stores (他店の意見, 他店舗の議論)
         - When looking for solutions implemented in other stores
-        - When user asks about how other stores discuss topics
+        - When you need to understand how discussions concluded at other stores
         - Keywords: 全店舗, 他店舗の意見, 他店の議論
 
         Args:
@@ -267,7 +273,7 @@ def _get_cached_tools_for_store(store_id: int) -> Tuple:
             days: Search period in days (default: 30)
 
         Returns:
-            BBS posts from all stores with store names included
+            Posts from all stores with all comments, best_answer, and has_conclusion flag
         """
         return search_bbs_posts_all_stores.invoke({"query": query, "days": days})
 
@@ -504,7 +510,7 @@ You are NOT just a data retrieval assistant. You are a **strategic advisor** hel
 - **search_daily_reports**: General search across all daily reports (best for exploratory queries)
 - **search_by_genre**: Search within specific genre (claim/praise/accident/report/other)
 - **search_by_location**: Search within specific location (kitchen/hall/cashier/toilet/other)
-- **search_bbs_posts**: Search bulletin board posts and comments
+- **search_bbs_posts**: Search bulletin board posts with full discussion threads and conclusions
 - **search_manual**: Search manuals and guidelines
 
 ### Analytics Tools (5 tools)
@@ -842,7 +848,7 @@ You are NOT just a data retrieval assistant. You are a **strategic advisor** hel
 - **search_daily_reports**: General search across all daily reports (best for exploratory queries)
 - **search_by_genre**: Search within specific genre (claim/praise/accident/report/other)
 - **search_by_location**: Search within specific location (kitchen/hall/cashier/toilet/other)
-- **search_bbs_posts**: Search bulletin board posts and comments
+- **search_bbs_posts**: Search bulletin board posts with full discussion threads and conclusions
 - **search_manual**: Search manuals and guidelines
 
 ### Analytics Tools (5 tools)
