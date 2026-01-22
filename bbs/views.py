@@ -8,6 +8,7 @@ from .models import BBSPost, BBSComment, BBSReaction, BBSCommentReaction
 from .forms import BBSPostForm, BBSCommentForm
 from django.db.models import Q
 from django.core.paginator import Paginator
+from stores.models import Store
 
 @login_required
 def bbs_register(request):
@@ -40,6 +41,10 @@ def bbs_list(request):
     if genre:
         posts = posts.filter(genre=genre)
 
+    store_id = request.GET.get('store')
+    if store_id:
+        posts = posts.filter(store_id=store_id)
+
     query = request.GET.get('query')
     if query:
 
@@ -71,12 +76,16 @@ def bbs_list(request):
         del query_params['page']
     query_string = query_params.urlencode()
 
+    stores = Store.objects.all().order_by('store_name')
+
     context = {
         'posts': posts_pagenated,
         'query': query,
         'sort': sort_option,
         'genre_choices': BBSPost.GENRE_CHOICES,
         'current_genre': genre,
+        'stores': stores,
+        'current_store': store_id,
         'query_string': query_string,
     }
     return render(request, 'bbs/list.html', context)
