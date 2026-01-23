@@ -53,7 +53,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING('既存データを削除しています...'))
             truncate_sql = """
                 TRUNCATE
-                    ai_chat_history,
                     bbs_comment_reactions,
                     bbs_reactions,
                     bbs_comments,
@@ -97,7 +96,6 @@ class Command(BaseCommand):
                 ('bbs_comments', '掲示板コメント'),
                 ('bbs_reactions', '掲示板リアクション'),
                 ('monthly_goals', '月次目標'),
-                ('ai_chat_history', 'AIチャット履歴'),
             ]
 
             with connection.cursor() as cursor:
