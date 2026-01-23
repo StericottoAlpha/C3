@@ -4,25 +4,6 @@
 
 <div aria-hidden="true" class="fixed inset-0 -z-10 overflow-hidden pointer-events-none"
      style="background:#c8d8d6;">
-  <svg class="absolute -top-24 -left-24 w-[360px] h-[360px] opacity-35" viewBox="0 0 360 360" fill="none">
-    <circle cx="110" cy="110" r="95" stroke="white" stroke-width="2"/>
-    <circle cx="170" cy="140" r="140" stroke="white" stroke-width="1.6" opacity="0.65"/>
-  </svg>
-
-  <svg class="absolute top-10 left-10 w-[260px] h-[120px] opacity-30" viewBox="0 0 260 120" fill="none">
-    <path d="M5 70 C60 30, 120 110, 255 55" stroke="white" stroke-width="2" opacity="0.55"/>
-    <path d="M10 90 C70 40, 130 115, 250 70" stroke="white" stroke-width="1.6" opacity="0.35"/>
-  </svg>
-
-  <svg class="absolute bottom-20 left-1/2 -translate-x-1/2 w-[520px] h-[180px] opacity-35" viewBox="0 0 520 180" fill="none">
-    <path d="M40 150 L270 80 L480 140" stroke="white" stroke-width="3" opacity="0.55"/>
-    <path d="M40 150 L270 80 L480 140" stroke="#0f172a" stroke-width="6" opacity="0.10"/>
-    <circle cx="270" cy="80" r="7" fill="#0f172a" opacity="0.35"/>
-  </svg>
-
-  <div class="absolute inset-0 opacity-[0.08]"
-       style="background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.8) 1px, transparent 1px);
-              background-size:22px 22px;"></div>
 </div>
 
 <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-28">
@@ -50,31 +31,31 @@
         </a>
       </div>
 
-      <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-2">
+      <div class="mt-5 flex flex-col lg:flex-row items-center justify-between gap-5">
+        <div class="flex items-center justify-center w-full lg:w-auto gap-1.5 sm:gap-2">
           <a href="?year={{ prev.year }}&month={{ prev.month }}"
-            class="h-10 px-3 inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white
-                    text-gray-700 hover:bg-gray-50 transition">
+            class="h-9 px-3 inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white
+                    text-gray-700 text-xs sm:text-sm font-bold hover:bg-gray-50 transition shrink-0 shadow-sm">
             <span class="text-lg leading-none mr-1">&lsaquo;</span> 前へ
           </a>
 
-          <div class="px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-900">
+          <div class="px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 text-xs sm:text-sm font-bold text-gray-900 whitespace-nowrap shadow-inner">
             {{ year }}年 {{ month_name }}
           </div>
 
           <a href="?year={{ next.year }}&month={{ next.month }}"
-            class="h-10 px-3 inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white
-                    text-gray-700 hover:bg-gray-50 transition">
+            class="h-9 px-3 inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white
+                    text-gray-700 text-xs sm:text-sm font-bold hover:bg-gray-50 transition shrink-0 shadow-sm">
             次へ <span class="text-lg leading-none ml-1">&rsaquo;</span>
           </a>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 text-xs text-gray-600">
-          <div class="inline-flex items-center gap-2"><span class="inline-flex w-3 h-3 rounded-full bg-red-500"></span>クレーム</div>
-          <div class="inline-flex items-center gap-2"><span class="inline-flex w-3 h-3 rounded-full bg-amber-400"></span>故障</div>
-          <div class="inline-flex items-center gap-2"><span class="inline-flex w-3 h-3 rounded-full bg-emerald-500"></span>賞賛</div>
-          <div class="inline-flex items-center gap-2"><span class="inline-flex w-3 h-3 rounded-full bg-sky-500"></span>報告</div>
-          <div class="inline-flex items-center gap-2"><span class="inline-flex w-3 h-3 rounded-full bg-violet-500"></span>その他</div>
+        <div class="flex flex-wrap justify-center items-center gap-3 text-[10px] sm:text-xs text-gray-600">
+          <div class="inline-flex items-center gap-1.5"><span class="inline-flex w-2.5 h-2.5 rounded-full bg-red-500"></span>クレーム</div>
+          <div class="inline-flex items-center gap-1.5"><span class="inline-flex w-2.5 h-2.5 rounded-full bg-amber-400"></span>事故</div>
+          <div class="inline-flex items-center gap-1.5"><span class="inline-flex w-2.5 h-2.5 rounded-full bg-emerald-500"></span>賞賛</div>
+          <div class="inline-flex items-center gap-1.5"><span class="inline-flex w-2.5 h-2.5 rounded-full bg-sky-500"></span>報告</div>
+          <div class="inline-flex items-center gap-1.5"><span class="inline-flex w-2.5 h-2.5 rounded-full bg-violet-500"></span>その他</div>
         </div>
       </div>
     </div>
@@ -219,8 +200,9 @@
   closeBtn.addEventListener("click", closeSheet);
   overlay.addEventListener("click", closeSheet);
 
+  // ✅ JS内のラベル修正: trouble → 事故
   const genreToLabel = (k) => ({
-    claim:"クレーム", trouble:"故障", praise:"賞賛", report:"報告", other:"その他"
+    claim:"クレーム", trouble:"事故", praise:"賞賛", report:"報告", other:"その他"
   }[k] || "その他");
 
   const genreToColor = (k) => ({

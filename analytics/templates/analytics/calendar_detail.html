@@ -1,68 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- ✅ 背景（ホーム風：単色・グラデ無し） -->
 <div aria-hidden="true"
      class="fixed inset-0 -z-10 overflow-hidden pointer-events-none"
      style="background:#c8d8d6;">
-  <!-- 薄い輪っか（装飾：グラデ無し） -->
-  <svg class="absolute -top-24 -left-24 w-[360px] h-[360px] opacity-35" viewBox="0 0 360 360" fill="none">
-    <circle cx="110" cy="110" r="95" stroke="white" stroke-width="2"/>
-    <circle cx="170" cy="140" r="140" stroke="white" stroke-width="1.6" opacity="0.65"/>
-  </svg>
-
-  <!-- うっすら波線 -->
-  <svg class="absolute top-10 left-10 w-[260px] h-[120px] opacity-30" viewBox="0 0 260 120" fill="none">
-    <path d="M5 70 C60 30, 120 110, 255 55" stroke="white" stroke-width="2" opacity="0.55"/>
-    <path d="M10 90 C70 40, 130 115, 250 70" stroke="white" stroke-width="1.6" opacity="0.35"/>
-  </svg>
-
-  <!-- 下の折れ線っぽい線 -->
-  <svg class="absolute bottom-20 left-1/2 -translate-x-1/2 w-[520px] h-[180px] opacity-35" viewBox="0 0 520 180" fill="none">
-    <path d="M40 150 L270 80 L480 140" stroke="white" stroke-width="3" opacity="0.55"/>
-    <path d="M40 150 L270 80 L480 140" stroke="#0f172a" stroke-width="6" opacity="0.10"/>
-    <circle cx="270" cy="80" r="7" fill="#0f172a" opacity="0.35"/>
-  </svg>
 </div>
 
 <div class="max-w-2xl mx-auto px-4 sm:px-6 pt-6 pb-28">
-  <!-- 外枠フレーム（グラデ無し） -->
-  <div class="rounded-3xl border border-gray-200 shadow-sm bg-white/70 p-4 sm:p-6">
+  <div class="p-0 sm:p-2">
 
-    <!-- 戻る -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 mb-4">
       <a href="javascript:history.back()"
          class="inline-flex items-center justify-center h-10 w-10 rounded-xl border border-gray-200 bg-white
-                text-gray-700 hover:bg-gray-50 transition"
+                text-gray-700 hover:bg-gray-50 transition shadow-sm"
          aria-label="戻る">
         <span class="text-xl leading-none">←</span>
       </a>
-
-      <div>
-        <p class="text-xs text-gray-500">インシデント詳細</p>
-        <h1 class="text-lg sm:text-xl font-extrabold text-gray-900">詳細</h1>
-      </div>
     </div>
 
-    <!-- 本体カード -->
-    <div class="mt-4 rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
-      <!-- 上部 -->
+    <div class="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+      
+      <div class="px-5 sm:px-6 py-5 bg-gray-50/50 border-b border-gray-100/50">
+        <div class="flex items-center gap-3">
+          <div class="w-1.5 h-6 bg-teal-500 rounded-full"></div>
+          <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">できごと詳細</h1>
+        </div>
+      </div>
+
       <div class="p-5 sm:p-6 border-b border-gray-100">
         <div class="flex items-start gap-4">
-          <!-- アバター（仮） -->
-          <div class="shrink-0 h-14 w-14 rounded-full bg-gray-200 grid place-items-center text-gray-600 font-extrabold">
+          <div class="shrink-0 h-14 w-14 rounded-full bg-gray-100 grid place-items-center text-gray-600 font-extrabold shadow-inner">
             {{ genre_label|slice:":1"|default:"?" }}
           </div>
 
           <div class="min-w-0 flex-1">
-            <!-- ジャンルバッジ -->
             {% if genre_key == "claim" %}
               <span class="inline-flex items-center rounded-full bg-red-50 text-red-700 ring-1 ring-red-200 px-3 py-1 text-xs font-bold">
                 {{ genre_label }}
               </span>
             {% elif genre_key == "trouble" %}
               <span class="inline-flex items-center rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200 px-3 py-1 text-xs font-bold">
-                {{ genre_label }}
+                事故
               </span>
             {% elif genre_key == "praise" %}
               <span class="inline-flex items-center rounded-full bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 px-3 py-1 text-xs font-bold">
@@ -78,33 +56,28 @@
               </span>
             {% endif %}
 
-            <!-- タイトル -->
-            <div class="mt-2 text-lg sm:text-xl font-extrabold text-gray-900 break-words">
+            <div class="mt-3 text-lg sm:text-xl font-bold text-gray-900 break-words leading-snug">
               {{ report.title|default:"（タイトル未設定）" }}
             </div>
 
-            <!-- メタ情報 -->
-            <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600">
-              <div class="inline-flex items-center gap-2">
-                <span class="text-gray-400">場所</span>
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
+              <div class="inline-flex items-center gap-1.5">
+                <span class="font-bold text-gray-400">場所</span>
                 <span class="font-semibold text-gray-800">{{ report.place|default:"-" }}</span>
               </div>
-              <div class="inline-flex items-center gap-2">
-                <span class="text-gray-400">日時</span>
-                <span class="font-semibold text-gray-800">{{ dt_label }}</span>
+              <div class="inline-flex items-center gap-1.5">
+                <span class="font-bold text-gray-400">日時</span>
+                <span class="font-semibold text-gray-700">{{ dt_label }}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- 本文 -->
-      <div class="p-5 sm:p-6">
-        <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 sm:p-5">
-          <div class="text-sm font-bold text-gray-600 mb-2">内容</div>
-          <div class="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">
-            {{ report.body|default:report.content|default:"（本文なし）" }}
-          </div>
+      <div class="p-5 sm:p-6 bg-white">
+        <div class="rounded-xl border border-gray-100 bg-gray-50/50 p-4 sm:p-5">
+          <div class="text-xs font-bold text-gray-400 mb-3 uppercase tracking-widest">内容</div>
+          <div class="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap break-words">{{ report.body|default:report.content|default:"（本文なし）" }}</div>
         </div>
       </div>
     </div>
