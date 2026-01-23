@@ -57,7 +57,7 @@
         </div>
 
         <!-- フィルタ -->
-        <div class="grid grid-cols-2 gap-2 sm:max-w-xl">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:max-w-3xl">
           <div class="relative">
             <select name="genre" onchange="this.form.submit()"
                     class="w-full appearance-none rounded-xl border border-black/10 bg-white/70 px-4 py-3 pr-10 text-sm
@@ -66,6 +66,24 @@
               {% for code, label in genre_choices %}
                 <option value="{{ code }}" {% if current_genre == code %}selected{% endif %}>
                   {{ label }}
+                </option>
+              {% endfor %}
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#2f2f2f]/60">
+              <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.29a.75.75 0 0 1 .02-1.08z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="relative">
+            <select name="store" onchange="this.form.submit()"
+                    class="w-full appearance-none rounded-xl border border-black/10 bg-white/70 px-4 py-3 pr-10 text-sm
+                           focus:outline-none focus:ring-2 focus:ring-black/10 text-[#2f2f2f]">
+              <option value="">全ての店舗</option>
+              {% for store in stores %}
+                <option value="{{ store.store_id }}" {% if current_store == store.store_id|stringformat:"s" %}selected{% endif %}>
+                  {{ store.store_name }}
                 </option>
               {% endfor %}
             </select>
@@ -187,14 +205,11 @@
 
                   <!-- リアクション（シンプルアイコン） -->
                   <div class="flex gap-2">
-                    {% is_reacted post user 'naruhodo' as is_naruhodo %}
-                    {% count_reactions post 'naruhodo' as naruhodo_count %}
-
                     <button type="button"
                       onclick="toggleReaction(event, 'post', {{ post.post_id }}, 'naruhodo')"
                       id="btn-reaction-post-{{ post.post_id }}-naruhodo"
                       class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-bold transition-colors duration-200
-                      {% if is_naruhodo %}
+                      {% if post.is_naruhodo %}
                         bg-blue-100 border-blue-300 text-blue-700
                       {% else %}
                         bg-white/70 border-black/10 text-[#2f2f2f]/70 hover:bg-black/5
@@ -206,17 +221,14 @@
                               stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                       </svg>
                       <span>なるほど</span>
-                      <span id="count-reaction-post-{{ post.post_id }}-naruhodo" class="ml-1">{{ naruhodo_count }}</span>
+                      <span id="count-reaction-post-{{ post.post_id }}-naruhodo" class="ml-1">{{ post.naruhodo_count }}</span>
                     </button>
-
-                    {% is_reacted post user 'iine' as is_iine %}
-                    {% count_reactions post 'iine' as iine_count %}
 
                     <button type="button"
                       onclick="toggleReaction(event, 'post', {{ post.post_id }}, 'iine')"
                       id="btn-reaction-post-{{ post.post_id }}-iine"
                       class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs font-bold transition-colors duration-200
-                      {% if is_iine %}
+                      {% if post.is_iine %}
                         bg-pink-100 border-pink-300 text-pink-700
                       {% else %}
                         bg-white/70 border-black/10 text-[#2f2f2f]/70 hover:bg-black/5
@@ -226,7 +238,7 @@
                               stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
                       </svg>
                       <span>いいね</span>
-                      <span id="count-reaction-post-{{ post.post_id }}-iine" class="ml-1">{{ iine_count }}</span>
+                      <span id="count-reaction-post-{{ post.post_id }}-iine" class="ml-1">{{ post.iine_count }}</span>
                     </button>
                   </div>
                 </div>
