@@ -34,10 +34,11 @@ def bbs_list(request):
     """掲示板一覧ビュー"""
     NUM_BB_PER_PAGE = 10
 
-
+    # ✅ 修正1: total_reactions（いいね＋なるほどの合計）を計算に追加
     posts = BBSPost.objects.select_related('user', 'store').annotate(
         naruhodo_count=Count('reactions', filter=Q(reactions__reaction_type='naruhodo')),
         iine_count=Count('reactions', filter=Q(reactions__reaction_type='iine')),
+        total_reactions=Count('reactions'),  # 並び替え用に全リアクション数をカウント
         is_naruhodo=Exists(
             BBSReaction.objects.filter(
                 post=OuterRef('pk'),
@@ -64,21 +65,20 @@ def bbs_list(request):
 
     query = request.GET.get('query')
     if query:
-
         keywords = query.replace('　', ' ').split()
-
         if keywords:
             query_condition = Q()
-
             for word in keywords:
-        
                 query_condition |= Q(title__icontains=word) | Q(content__icontains=word)
-
             posts = posts.filter(query_condition)
 
+    # ✅ 修正2: 'popular' (人気順) のソートロジックを追加
     sort_option = request.GET.get('sort')
     if sort_option == 'oldest':
         posts = posts.order_by('created_at')
+    elif sort_option == 'popular':
+        # 合計リアクション数の降順、同数の場合は新しい順
+        posts = posts.order_by('-total_reactions', '-created_at')
     else:
         posts = posts.order_by('-created_at')
 
@@ -116,8 +116,6 @@ def bbs_detail(request, bbs_id):
     all_comments = BBSComment.objects.select_related('user').prefetch_related('reactions').filter(post=post)
 
     # ベストアンサーを先頭に、その他を時系列順にソート
-    # Pythonでは False < True なので、False（ベストアンサー）が先に来る
-
     comments = sorted(all_comments, key=lambda x: (not x.is_best_answer, x.created_at))
 
     context = {
