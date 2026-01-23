@@ -3,67 +3,96 @@
 {% block title %}店舗目標の設定 | C3{% endblock %}
 
 {% block content %}
-<div class="min-h-screen py-8 px-4 flex justify-center items-start bg-[#f4f7f6]">
-    <div class="bg-white w-full max-w-lg rounded-2xl shadow-lg p-8 mt-10">
-        
-        <div class="text-center mb-8">
-            <h1 class="text-2xl font-bold text-gray-800">店舗目標・実績の管理</h1>
-            <div class="mt-2 text-teal-600 font-bold text-lg">
-                {{ year }}年 {{ month }}月
+<div class="min-h-screen bg-[#b9cfcc] relative overflow-hidden py-10 px-4 flex justify-center items-start">
+
+    <!-- 背景：控えめ（紙感＋薄いグラデ） -->
+    <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-black/5"></div>
+        <div class="absolute inset-0 opacity-[0.045]"
+             style="background-image: radial-gradient(rgba(0,0,0,.35) 0.6px, transparent 0.6px);
+                    background-size: 14px 14px;"></div>
+    </div>
+
+    <!-- 装飾：少なめ（角に薄い波紋） -->
+    <div class="absolute inset-0 pointer-events-none z-0">
+        <div class="absolute left-6 top-16 w-28 h-28 rounded-full border border-white/18"></div>
+        <div class="absolute right-8 bottom-28 w-36 h-36 rounded-full border border-white/12"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-lg mt-6">
+        <div class="bg-white/80 border border-white/70 rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.14)] p-6 sm:p-8 overflow-hidden">
+
+            <div class="text-center mb-8">
+                <h1 class="text-xl sm:text-2xl font-bold text-[#2f2f2f]">店舗目標・実績の管理</h1>
+                <div class="mt-3 inline-flex items-center rounded-full bg-white/60 border border-white/60 shadow-sm px-4 py-1.5">
+                    <span class="text-teal-700 font-bold text-sm">
+                        {{ year }}年 {{ month }}月
+                    </span>
+                </div>
+                <p class="text-sm text-[#2f2f2f]/70 mt-2">{{ store.store_name }}</p>
             </div>
-            <p class="text-sm text-gray-500 mt-1">{{ store.store_name }}</p>
-        </div>
 
-        <form method="post">
-            {% csrf_token %}
-            
-            <div class="mb-8">
-                <label class="block text-gray-700 font-bold mb-2 border-l-4 border-teal-500 pl-2">
-                    {{ form.goal_text.label }}
-                </label>
-                {{ form.goal_text }}
-                {% if form.goal_text.errors %}
-                    <div class="text-red-500 text-sm mt-1">{{ form.goal_text.errors }}</div>
-                {% endif %}
-            </div>
+            <form method="post">
+                {% csrf_token %}
 
-            <hr class="border-gray-200 my-8 border-dashed">
-
-            <div class="mb-6">
-                <label class="block text-gray-700 font-bold mb-2 border-l-4 border-yellow-500 pl-2">
-                    実績・振り返り
-                </label>
-                
-                <div class="mb-4">
-                    <label class="block text-sm text-gray-600 mb-1">{{ form.achievement_rate.label }}</label>
-                    <div class="flex items-center gap-2">
-                        <div class="w-24">
-                            {{ form.achievement_rate }}
+                <div class="mb-8">
+                    <label class="block text-[#2f2f2f] font-bold mb-2 border-l-4 border-teal-500 pl-3">
+                        {{ form.goal_text.label }}
+                    </label>
+                    {{ form.goal_text }}
+                    {% if form.goal_text.errors %}
+                        <div class="mt-2 rounded-2xl bg-red-50/80 border border-red-200 text-red-700 text-sm font-bold px-4 py-3">
+                            {{ form.goal_text.errors }}
                         </div>
-                        <span class="text-gray-500">%</span>
-                    </div>
-                    {% if form.achievement_rate.errors %}
-                        <div class="text-red-500 text-sm mt-1">{{ form.achievement_rate.errors }}</div>
                     {% endif %}
                 </div>
 
-                <div class="mb-2">
-                    <label class="block text-sm text-gray-600 mb-1">{{ form.achievement_text.label }}</label>
-                    {{ form.achievement_text }}
-                    {% if form.achievement_text.errors %}
-                        <div class="text-red-500 text-sm mt-1">{{ form.achievement_text.errors }}</div>
-                    {% endif %}
+                <hr class="border-black/10 my-8 border-dashed">
+
+                <div class="mb-6">
+                    <label class="block text-[#2f2f2f] font-bold mb-3 border-l-4 border-yellow-500 pl-3">
+                        実績・振り返り
+                    </label>
+
+                    <div class="mb-5">
+                        <label class="block text-sm font-bold text-[#2f2f2f]/70 mb-1">{{ form.achievement_rate.label }}</label>
+                        <div class="flex items-center gap-2">
+                            <div class="w-24">
+                                {{ form.achievement_rate }}
+                            </div>
+                            <span class="text-[#2f2f2f]/60 font-bold">%</span>
+                        </div>
+                        {% if form.achievement_rate.errors %}
+                            <div class="mt-2 rounded-2xl bg-red-50/80 border border-red-200 text-red-700 text-sm font-bold px-4 py-3">
+                                {{ form.achievement_rate.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="block text-sm font-bold text-[#2f2f2f]/70 mb-1">{{ form.achievement_text.label }}</label>
+                        {{ form.achievement_text }}
+                        {% if form.achievement_text.errors %}
+                            <div class="mt-2 rounded-2xl bg-red-50/80 border border-red-200 text-red-700 text-sm font-bold px-4 py-3">
+                                {{ form.achievement_text.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
-            <div class="flex items-center justify-between gap-4 mt-8">
-                <a href="{% url 'common:index' %}" class="text-gray-500 hover:text-gray-700 text-sm font-bold transition">
-                    キャンセル
-                </a>
-                <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-full shadow-md hover:shadow-lg transition duration-200 transform hover:-translate-y-0.5">
-                    保存する
-                </button>
-            </div>
-        </form>
+
+                <div class="flex items-center justify-between gap-4 mt-8">
+                    <a href="{% url 'common:index' %}"
+                       class="text-[#2f2f2f]/65 hover:text-[#2f2f2f] text-sm font-bold transition">
+                        キャンセル
+                    </a>
+                    <button type="submit"
+                            class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-full shadow-sm hover:shadow-md transition duration-200 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-teal-500/20">
+                        保存する
+                    </button>
+                </div>
+            </form>
+
+        </div>
     </div>
 </div>
 {% endblock %}
