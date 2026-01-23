@@ -230,6 +230,191 @@ def get_sales_trend(store_id: int, days: int = 30) -> str:
 
 
 @tool
+def get_sales_by_date(store_id: int, date: str) -> str:
+    """
+    Get sales and customer data for a SPECIFIC DATE.
+
+    This tool retrieves sales amount, customer count, and average per customer for a single day.
+
+    When to use this tool:
+    - When user asks about a specific date (1/24の売上, 昨日の売上, 1月24日の客数)
+    - When user mentions a particular day's performance
+    - Keywords: ○月○日の売上, ○/○の客数, 特定の日
+
+    Args:
+        store_id: Store ID
+        date: Target date in YYYY-MM-DD format (e.g., "2026-01-24")
+
+    Returns:
+        JSON string containing sales and customer data for the specified date
+    """
+    try:
+        from reports.models import StoreDailyPerformance
+        from datetime import datetime
+
+        # 日付をパース
+        try:
+            target_date = datetime.strptime(date, "%Y-%m-%d").date()
+        except ValueError:
+            return json.dumps({
+                "status": "error",
+                "message": f"日付形式が不正です。YYYY-MM-DD形式で指定してください（例: 2026-01-24）"
+            }, ensure_ascii=False)
+
+        # 指定日のデータを取得
+        performance = StoreDailyPerformance.objects.filter(
+            store_id=store_id,
+            date=target_date
+        ).first()
+
+        if not performance:
+            return json.dumps({
+                "status": "no_data",
+                "message": f"{date}の売上データが登録されていません。",
+                "date": date,
+                "store_id": store_id
+            }, ensure_ascii=False)
+
+        # 客単価計算
+        avg_per_customer = round(performance.sales_amount / performance.customer_count, 0) \
+            if performance.customer_count > 0 else 0
+
+        result = {
+            "status": "success",
+            "store_id": store_id,
+            "date": date,
+            "data": {
+                "sales_amount": performance.sales_amount,
+                "customer_count": performance.customer_count,
+                "avg_per_customer": avg_per_customer,
+                "cash_difference": performance.cash_difference
+            }
+        }
+
+        return json.dumps(result, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        logger.error(f"Error in get_sales_by_date: {e}", exc_info=True)
+        return json.dumps({
+            "status": "error",
+            "message": f"売上取得エラー: {str(e)}"
+        }, ensure_ascii=False)
+
+
+@tool
+def get_sales_by_date_range(store_id: int, start_date: str, end_date: str) -> str:
+    """
+    Get sales and customer data for a DATE RANGE.
+
+    This tool retrieves aggregated and daily sales/customer data for a specified period.
+
+    When to use this tool:
+    - When user asks about a date range (1/20から1/24までの売上, 先週月曜から金曜)
+    - When user specifies start and end dates
+    - Keywords: ○日から○日まで, ○月○日〜○月○日, 期間指定
+
+    Args:
+        store_id: Store ID
+        start_date: Start date in YYYY-MM-DD format (e.g., "2026-01-20")
+        end_date: End date in YYYY-MM-DD format (e.g., "2026-01-24")
+
+    Returns:
+        JSON string containing aggregated summary and daily breakdown for the period
+    """
+    try:
+        from reports.models import StoreDailyPerformance
+        from django.db.models import Sum, Avg, Count
+        from datetime import datetime
+
+        # 日付をパース
+        try:
+            start = datetime.strptime(start_date, "%Y-%m-%d").date()
+            end = datetime.strptime(end_date, "%Y-%m-%d").date()
+        except ValueError:
+            return json.dumps({
+                "status": "error",
+                "message": f"日付形式が不正です。YYYY-MM-DD形式で指定してください（例: 2026-01-20）"
+            }, ensure_ascii=False)
+
+        if start > end:
+            return json.dumps({
+                "status": "error",
+                "message": f"開始日({start_date})が終了日({end_date})より後になっています。"
+            }, ensure_ascii=False)
+
+        # 期間内のデータを取得
+        queryset = StoreDailyPerformance.objects.filter(
+            store_id=store_id,
+            date__gte=start,
+            date__lte=end
+        )
+
+        if not queryset.exists():
+            return json.dumps({
+                "status": "no_data",
+                "message": f"{start_date}〜{end_date}の売上データが登録されていません。",
+                "start_date": start_date,
+                "end_date": end_date,
+                "store_id": store_id
+            }, ensure_ascii=False)
+
+        # 集計
+        aggregates = queryset.aggregate(
+            total_sales=Sum('sales_amount'),
+            avg_sales=Avg('sales_amount'),
+            total_customers=Sum('customer_count'),
+            avg_customers=Avg('customer_count'),
+            data_count=Count('performance_id')
+        )
+
+        # 客単価計算
+        total_sales = aggregates['total_sales'] or 0
+        total_customers = aggregates['total_customers'] or 0
+        avg_per_customer = round(total_sales / total_customers, 0) if total_customers > 0 else 0
+
+        # 日別データ
+        daily_records = queryset.order_by('date').values(
+            'date', 'sales_amount', 'customer_count'
+        )
+
+        daily_data = []
+        for record in daily_records:
+            customer_count = record['customer_count'] or 0
+            sales = record['sales_amount'] or 0
+            daily_data.append({
+                "date": str(record['date']),
+                "sales_amount": sales,
+                "customer_count": customer_count,
+                "avg_per_customer": round(sales / customer_count, 0) if customer_count > 0 else 0
+            })
+
+        result = {
+            "status": "success",
+            "store_id": store_id,
+            "start_date": start_date,
+            "end_date": end_date,
+            "summary": {
+                "data_count": aggregates['data_count'],
+                "total_sales": total_sales,
+                "avg_sales": round(aggregates['avg_sales'], 0) if aggregates['avg_sales'] else 0,
+                "total_customers": total_customers,
+                "avg_customers": round(aggregates['avg_customers'], 1) if aggregates['avg_customers'] else 0,
+                "avg_per_customer": avg_per_customer
+            },
+            "daily_breakdown": daily_data
+        }
+
+        return json.dumps(result, ensure_ascii=False, indent=2)
+
+    except Exception as e:
+        logger.error(f"Error in get_sales_by_date_range: {e}", exc_info=True)
+        return json.dumps({
+            "status": "error",
+            "message": f"売上取得エラー: {str(e)}"
+        }, ensure_ascii=False)
+
+
+@tool
 def get_cash_difference_analysis(store_id: int, days: int = 30) -> str:
     """
     Get cash difference (register discrepancy) analysis including total amount, frequency, and plus/minus breakdown.
