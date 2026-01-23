@@ -2,45 +2,16 @@
 
 {% block content %}
 
-<!-- ✅ 背景UI（ホーム風：単色＋線＋輪っか／グラデ無し） -->
 <div aria-hidden="true" class="fixed inset-0 -z-10 overflow-hidden pointer-events-none"
      style="background:#c8d8d6;">
-  <!-- 左上の輪っか -->
-  <svg class="absolute -top-24 -left-24 w-[360px] h-[360px] opacity-35" viewBox="0 0 360 360" fill="none">
-    <circle cx="110" cy="110" r="95" stroke="white" stroke-width="2"/>
-    <circle cx="170" cy="140" r="140" stroke="white" stroke-width="1.6" opacity="0.65"/>
-  </svg>
-
-  <!-- うっすら波線（左上） -->
-  <svg class="absolute top-10 left-10 w-[260px] h-[120px] opacity-30" viewBox="0 0 260 120" fill="none">
-    <path d="M5 70 C60 30, 120 110, 255 55" stroke="white" stroke-width="2" opacity="0.55"/>
-    <path d="M10 90 C70 40, 130 115, 250 70" stroke="white" stroke-width="1.6" opacity="0.35"/>
-  </svg>
-
-  <!-- 中央下の折れ線っぽい線（スクショの雰囲気） -->
-  <svg class="absolute bottom-20 left-1/2 -translate-x-1/2 w-[520px] h-[180px] opacity-35" viewBox="0 0 520 180" fill="none">
-    <path d="M40 150 L270 80 L480 140" stroke="white" stroke-width="3" opacity="0.55"/>
-    <path d="M40 150 L270 80 L480 140" stroke="#0f172a" stroke-width="6" opacity="0.10"/>
-    <circle cx="270" cy="80" r="7" fill="#0f172a" opacity="0.35"/>
-  </svg>
-
-  <!-- ほんの少しだけノイズっぽい点（任意：いらなければ消してOK） -->
-  <div class="absolute inset-0 opacity-[0.08]"
-       style="background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.8) 1px, transparent 1px);
-              background-size:22px 22px;"></div>
 </div>
 
-
-
-<!-- ✅ コンテンツは背景より上に -->
 <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 pt-6 pb-28">
 
-  <!-- ✅ 外枠フレーム（装飾）※ここで閉じない！全体を包む -->
   <div class="rounded-3xl border border-gray-200 shadow-sm
               bg-gradient-to-b from-teal-50/70 via-white to-white
               p-4 sm:p-6">
 
-    <!-- ===== Header / Controls Card ===== -->
     <div class="rounded-2xl bg-white border border-gray-200 shadow-sm p-5 sm:p-6">
       <div class="flex items-start justify-between gap-4">
         <div>
@@ -49,7 +20,6 @@
           <p class="mt-1 text-sm text-gray-500">日ごとの売上とインシデントを確認できます。</p>
         </div>
 
-        <!-- グラフへ（※日報登録ボタン風） -->
         <a href="{% url 'analytics:dashboard' %}"
           class="shrink-0 inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-teal-700 transition">
           <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -61,38 +31,35 @@
         </a>
       </div>
 
-      <!-- ===== 月移動 ===== -->
-      <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-2">
+      <div class="mt-5 flex flex-col lg:flex-row items-center justify-between gap-5">
+        <div class="flex items-center justify-center w-full lg:w-auto gap-1.5 sm:gap-2">
           <a href="?year={{ prev.year }}&month={{ prev.month }}"
-            class="h-10 px-3 inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white
-                    text-gray-700 hover:bg-gray-50 transition">
+            class="h-9 px-3 inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white
+                    text-gray-700 text-xs sm:text-sm font-bold hover:bg-gray-50 transition shrink-0 shadow-sm">
             <span class="text-lg leading-none mr-1">&lsaquo;</span> 前へ
           </a>
 
-          <div class="px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 text-sm font-semibold text-gray-900">
+          <div class="px-4 py-2 rounded-xl bg-gray-50 border border-gray-200 text-xs sm:text-sm font-bold text-gray-900 whitespace-nowrap shadow-inner">
             {{ year }}年 {{ month_name }}
           </div>
 
           <a href="?year={{ next.year }}&month={{ next.month }}"
-            class="h-10 px-3 inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white
-                    text-gray-700 hover:bg-gray-50 transition">
+            class="h-9 px-3 inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white
+                    text-gray-700 text-xs sm:text-sm font-bold hover:bg-gray-50 transition shrink-0 shadow-sm">
             次へ <span class="text-lg leading-none ml-1">&rsaquo;</span>
           </a>
         </div>
 
-        <!-- 凡例（上だけにする：重複防止） -->
-        <div class="flex flex-wrap items-center gap-3 text-xs text-gray-600">
-          <div class="inline-flex items-center gap-2"><span class="inline-flex w-3 h-3 rounded-full bg-red-500"></span>クレーム</div>
-          <div class="inline-flex items-center gap-2"><span class="inline-flex w-3 h-3 rounded-full bg-amber-400"></span>故障</div>
-          <div class="inline-flex items-center gap-2"><span class="inline-flex w-3 h-3 rounded-full bg-emerald-500"></span>賞賛</div>
-          <div class="inline-flex items-center gap-2"><span class="inline-flex w-3 h-3 rounded-full bg-sky-500"></span>報告</div>
-          <div class="inline-flex items-center gap-2"><span class="inline-flex w-3 h-3 rounded-full bg-violet-500"></span>その他</div>
+        <div class="flex flex-wrap justify-center items-center gap-3 text-[10px] sm:text-xs text-gray-600">
+          <div class="inline-flex items-center gap-1.5"><span class="inline-flex w-2.5 h-2.5 rounded-full bg-red-500"></span>クレーム</div>
+          <div class="inline-flex items-center gap-1.5"><span class="inline-flex w-2.5 h-2.5 rounded-full bg-amber-400"></span>事故</div>
+          <div class="inline-flex items-center gap-1.5"><span class="inline-flex w-2.5 h-2.5 rounded-full bg-emerald-500"></span>賞賛</div>
+          <div class="inline-flex items-center gap-1.5"><span class="inline-flex w-2.5 h-2.5 rounded-full bg-sky-500"></span>報告</div>
+          <div class="inline-flex items-center gap-1.5"><span class="inline-flex w-2.5 h-2.5 rounded-full bg-violet-500"></span>その他</div>
         </div>
       </div>
     </div>
 
-    <!-- ===== Calendar Card ===== -->
     <div class="mt-6 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full table-fixed border-collapse">
@@ -112,9 +79,9 @@
             {% for week in calendar_grid %}
               <tr>
                 {% for cell in week %}
-                  <td class="relative align-top h-[120px] sm:h-[132px] border-t border-gray-200 border-r border-gray-200 last:border-r-0
+                  <td class="relative align-top h-[110px] border-t border-gray-200 border-r border-gray-200 last:border-r-0
                              {% if not cell.in_month %} bg-gray-50 text-gray-400 {% else %} bg-white {% endif %}">
-                    <!-- セル全面クリック（当月だけ反応） -->
+                    
                     <button type="button"
                             class="absolute inset-0 {% if cell.in_month %}hover:bg-gray-50{% endif %} transition"
                             data-ymd="{{ cell.date|date:'Y-m-d' }}"
@@ -128,13 +95,7 @@
                         </div>
                       </div>
 
-                      <div class="mt-3 text-center">
-                        {% if cell.sales_yen %}
-                          <div class="text-base sm:text-lg font-extrabold text-gray-900">¥{{ cell.sales_yen_str }}</div>
-                        {% else %}
-                          <div class="text-base sm:text-lg font-extrabold text-gray-300">&nbsp;</div>
-                        {% endif %}
-                      </div>
+                      <div class="mt-4"></div>
 
                       <div class="mt-3 flex flex-wrap justify-center gap-x-3 gap-y-2 text-sm">
                         {% if cell.claim %}
@@ -178,13 +139,10 @@
       </div>
     </div>
 
-  </div><!-- ✅ 外枠フレームここで閉じる -->
-</div><!-- ✅ relative z-10 wrapper end -->
+  </div>
+</div>
 
 
-<!-- =========================
-     Bottom Sheet（詳細）
-     ========================= -->
 <div id="daySheetOverlay" class="fixed inset-0 bg-black/30 hidden z-40"></div>
 
 <div id="daySheet" class="fixed inset-x-0 bottom-0 z-50 translate-y-full transition-transform duration-200">
@@ -196,7 +154,7 @@
     <div class="px-4 pb-3 border-b border-gray-200 flex items-start justify-between">
       <div>
         <div id="daySheetDate" class="text-lg font-extrabold text-gray-900">----</div>
-        <div id="daySheetSales" class="text-sm text-gray-500 mt-1"></div>
+        <div id="daySheetSales" class="text-sm text-gray-700 mt-1 font-bold"></div>
       </div>
       <button type="button" id="daySheetClose"
               class="h-10 w-10 grid place-items-center rounded-xl hover:bg-gray-100 text-gray-600 transition"
@@ -241,18 +199,14 @@
 
   closeBtn.addEventListener("click", closeSheet);
   overlay.addEventListener("click", closeSheet);
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSheet(); });
 
+  // ✅ JS内のラベル修正: trouble → 事故
   const genreToLabel = (k) => ({
-    claim:"クレーム", trouble:"故障", praise:"賞賛", report:"報告", other:"その他"
+    claim:"クレーム", trouble:"事故", praise:"賞賛", report:"報告", other:"その他"
   }[k] || "その他");
 
   const genreToColor = (k) => ({
-    claim:"#ef4444",
-    trouble:"#fbbf24",
-    praise:"#10b981",
-    report:"#0ea5e9",
-    other:"#8b5cf6"
+    claim:"#ef4444", trouble:"#fbbf24", praise:"#10b981", report:"#0ea5e9", other:"#8b5cf6"
   }[k] || "#8b5cf6");
 
   async function loadDay(ymd){
@@ -262,16 +216,14 @@
 
     try{
       const url = dayApiTemplate.replace("__YMD__", ymd);
-      const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
+      const res = await fetch(url);
       const data = await res.json();
-      if(!data.ok) throw new Error(data.error || "failed");
+      if(!data.ok) throw new Error("failed");
 
       dateEl.textContent = data.date_label || ymd;
 
       if (data.sales_yen !== null && data.sales_yen !== undefined){
-        salesEl.textContent = `売上：¥${data.sales_yen}`;
-      } else {
-        salesEl.textContent = "";
+        salesEl.textContent = `売上：¥${Number(data.sales_yen).toLocaleString()}`;
       }
 
       if(!data.items || data.items.length === 0){
@@ -280,36 +232,30 @@
       }
 
       bodyEl.innerHTML = data.items.map(item => {
-        const bar = genreToColor(item.genre_key);
-        const meta = `${genreToLabel(item.genre_key)}${item.place ? "｜" + item.place : ""}｜${item.time || ""}`;
         const title = (item.title || "（タイトル未設定）");
-
         return `
-          <a class="block rounded-xl border border-gray-200 hover:bg-gray-50 transition p-3 mb-3"
-             href="${item.detail_url}">
+          <a class="block rounded-xl border border-gray-200 hover:bg-gray-50 transition p-3 mb-3" href="${item.detail_url}">
             <div class="flex gap-3">
-              <div class="w-1 rounded-full" style="background:${bar}"></div>
+              <div class="w-1 rounded-full" style="background:${genreToColor(item.genre_key)}"></div>
               <div class="flex-1">
-                <div class="text-xs text-gray-500">${meta}</div>
+                <div class="text-xs text-gray-500">${genreToLabel(item.genre_key)}｜${item.time || ""}</div>
                 <div class="text-sm font-extrabold text-gray-900 mt-1">${title}</div>
               </div>
-              <div class="text-gray-300 text-lg">›</div>
+              <div class="text-gray-300">›</div>
             </div>
           </a>
         `;
       }).join("");
 
     }catch(e){
-      console.error(e);
-      bodyEl.innerHTML = `<div class="text-sm text-gray-500">取得に失敗しました</div>`;
+      bodyEl.innerHTML = `<div class="text-sm text-gray-500">エラーが発生しました</div>`;
     }
   }
 
   document.querySelectorAll("td button[data-ymd]").forEach(btn => {
     btn.addEventListener("click", () => {
       if (btn.dataset.inmonth === "0") return;
-      const ymd = btn.dataset.ymd;
-      if (ymd) loadDay(ymd);
+      loadDay(btn.dataset.ymd);
     });
   });
 })();
