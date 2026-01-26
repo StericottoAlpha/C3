@@ -6,28 +6,28 @@ class BBSPostForm(forms.ModelForm):
 
     class Meta:
         model = BBSPost
-        # 1. fields に 'genre' を追加
+
         fields = ['title', 'genre', 'content', 'report']
         
         widgets = {
             'title': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'form-control w-full',
                 'placeholder': 'タイトルを入力してください',
                 'maxlength': '200',
                 'required': True
             }),
-            # 2. genre 用のウィジェットを追加 (Selectボックス)
+
             'genre': forms.Select(attrs={
-                'class': 'form-control', # 他のフィールドに合わせて form-control を設定
+                'class': 'form-control w-full', # 他のフィールドに合わせて form-control を設定
             }),
             'content': forms.Textarea(attrs={
-                'class': 'form-control',
+                'class': 'form-control w-full',
                 'placeholder': '本文を入力してください',
                 'rows': 5,
                 'required': True
             }),
             'report': forms.Select(attrs={
-                'class': 'form-control'
+                'class': 'form-control w-full'
             }),
         }
         labels = {
