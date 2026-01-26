@@ -20,15 +20,15 @@ class DailyReportForm(forms.ModelForm):
         fields = ['genre', 'location', 'title', 'content', 'post_to_bbs']
         widgets = {
             'genre': forms.Select(attrs={
-                'class': 'form-select',
+                'class': 'form-select w-full',
                 'required': True
             }),
             'location': forms.Select(attrs={
-                'class': 'form-select',
+                'class': 'form-select w-full',
                 'required': True
             }),
             'title': forms.TextInput(attrs={
-                'class': 'form-control',
+                'class': 'form-control w-full',
                 'placeholder': '例：レジで釣銭ミスが発生',
                 'required': True,
                 'maxlength': 200
