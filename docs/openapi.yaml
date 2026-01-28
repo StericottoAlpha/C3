@@ -1,0 +1,915 @@
+openapi: 3.0.3
+info:
+  title: C3 ステリコットα API
+  description: |
+    レストラン日報によるPDCA支援システムのAPI仕様書です。
+
+    ## 認証
+    ほとんどのエンドポイントはセッション認証が必要です。
+    未認証の場合は `/accounts/login/` にリダイレクトされます。
+
+    ## 共通エラーレスポンス
+    - 400: バリデーションエラー
+    - 401/302: 未認証（ログインページへリダイレクト）
+    - 403: 権限不足
+    - 500: サーバーエラー
+  version: 1.0.0
+  contact:
+    name: 開発チーム
+
+servers:
+  - url: https://c3-app.onrender.com
+    description: 本番環境
+  - url: http://localhost:8000
+    description: ローカル開発環境
+
+tags:
+  - name: Common
+    description: 共通機能
+  - name: Accounts
+    description: アカウント管理
+  - name: Stores
+    description: 店舗・目標管理
+  - name: Reports
+    description: 日報管理
+  - name: BBS
+    description: 掲示板
+  - name: Analytics
+    description: 分析ダッシュボード
+  - name: AI
+    description: AIチャット機能
+
+paths:
+  /:
+    get:
+      tags:
+        - Common
+      summary: ホームページ
+      description: ホーム画面を表示
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: HTMLページ
+          content:
+            text/html:
+              schema:
+                type: string
+        '302':
+          description: 未認証の場合ログインページへリダイレクト
+
+  /health/:
+    get:
+      tags:
+        - Common
+      summary: ヘルスチェック
+      description: サーバーの稼働状況を確認
+      responses:
+        '200':
+          description: サーバー稼働中
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /accounts/login/:
+    get:
+      tags:
+        - Accounts
+      summary: ログイン画面
+      description: ログインフォームを表示
+      responses:
+        '200':
+          description: HTMLページ
+    post:
+      tags:
+        - Accounts
+      summary: ログイン処理
+      description: ユーザー認証を実行
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - user_id
+                - password
+              properties:
+                user_id:
+                  type: string
+                  description: ユーザーID
+                  example: admin
+                password:
+                  type: string
+                  format: password
+                  description: パスワード
+      responses:
+        '302':
+          description: ログイン成功（ホームへリダイレクト）
+        '200':
+          description: ログイン失敗（エラーメッセージ表示）
+
+  /accounts/logout/:
+    get:
+      tags:
+        - Accounts
+      summary: ログアウト
+      description: セッションを終了
+      security:
+        - sessionAuth: []
+      responses:
+        '302':
+          description: ログインページへリダイレクト
+
+  /accounts/profile/:
+    get:
+      tags:
+        - Accounts
+      summary: プロフィール表示
+      description: ユーザープロフィールを表示
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: HTMLページ
+    post:
+      tags:
+        - Accounts
+      summary: プロフィール更新
+      description: ユーザー情報を更新
+      security:
+        - sessionAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                last_name:
+                  type: string
+                  description: 姓
+                first_name:
+                  type: string
+                  description: 名
+                email:
+                  type: string
+                  format: email
+                  description: メールアドレス
+      responses:
+        '200':
+          description: 更新成功
+
+  /accounts/signup/:
+    get:
+      tags:
+        - Accounts
+      summary: サインアップ画面
+      description: 新規ユーザー登録フォームを表示
+      responses:
+        '200':
+          description: HTMLページ
+    post:
+      tags:
+        - Accounts
+      summary: 新規ユーザー登録
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - user_id
+                - password
+                - password_confirm
+                - store
+              properties:
+                user_id:
+                  type: string
+                  maxLength: 20
+                password:
+                  type: string
+                  format: password
+                password_confirm:
+                  type: string
+                  format: password
+                store:
+                  type: integer
+                  description: 店舗ID
+      responses:
+        '302':
+          description: 登録成功（ホームへリダイレクト）
+        '200':
+          description: バリデーションエラー
+
+  /accounts/staff-list/:
+    get:
+      tags:
+        - Accounts
+      summary: スタッフ一覧
+      description: 店舗スタッフの一覧を表示（管理者/店長のみ）
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: HTMLページ
+        '403':
+          description: 権限不足
+
+  /accounts/staff-edit/{user_id}/:
+    get:
+      tags:
+        - Accounts
+      summary: スタッフ編集画面
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: HTMLページ
+    post:
+      tags:
+        - Accounts
+      summary: スタッフ情報更新
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 更新成功
+
+  /stores/goal/update/:
+    post:
+      tags:
+        - Stores
+      summary: 月次目標更新
+      description: 当月の月次目標を更新（HTMX）
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - goal_text
+              properties:
+                goal_text:
+                  type: string
+                  description: 目標内容
+                achievement_rate:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                  description: 達成率
+                achievement_text:
+                  type: string
+                  description: 達成状況コメント
+      responses:
+        '200':
+          description: 更新後の目標カードHTML
+
+  /report/register/:
+    get:
+      tags:
+        - Reports
+      summary: 日報作成フォーム
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: HTMLページ
+    post:
+      tags:
+        - Reports
+      summary: 日報登録
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - date
+                - genre
+                - location
+                - title
+                - content
+              properties:
+                date:
+                  type: string
+                  format: date
+                genre:
+                  type: string
+                  enum: [claim, praise, accident, report, other]
+                location:
+                  type: string
+                  enum: [kitchen, hall, cashier, toilet, other]
+                title:
+                  type: string
+                  maxLength: 200
+                content:
+                  type: string
+                post_to_bbs:
+                  type: boolean
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '302':
+          description: 登録成功（一覧へリダイレクト）
+
+  /report/list/:
+    get:
+      tags:
+        - Reports
+      summary: 日報一覧
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: HTMLページ
+
+  /report/view/{report_id}/:
+    get:
+      tags:
+        - Reports
+      summary: 日報詳細
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: HTMLページ
+        '404':
+          description: 日報が見つからない
+
+  /bbs/list/:
+    get:
+      tags:
+        - BBS
+      summary: 投稿一覧
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: genre
+          in: query
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [new, popular]
+            default: new
+      responses:
+        '200':
+          description: HTMLページ
+    post:
+      tags:
+        - BBS
+      summary: 投稿検索
+      security:
+        - sessionAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                genre:
+                  type: string
+                keyword:
+                  type: string
+                sort:
+                  type: string
+      responses:
+        '200':
+          description: HTMLページ
+
+  /bbs/register/:
+    get:
+      tags:
+        - BBS
+      summary: 投稿作成フォーム
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: HTMLページ
+    post:
+      tags:
+        - BBS
+      summary: 投稿登録
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - genre
+                - title
+                - content
+              properties:
+                genre:
+                  type: string
+                title:
+                  type: string
+                  maxLength: 200
+                content:
+                  type: string
+      responses:
+        '302':
+          description: 登録成功
+
+  /bbs/detail/{bbs_id}/:
+    get:
+      tags:
+        - BBS
+      summary: 投稿詳細
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: bbs_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: HTMLページ
+
+  /bbs/{bbs_id}/comment/:
+    post:
+      tags:
+        - BBS
+      summary: コメント追加
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: bbs_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+      responses:
+        '200':
+          description: コメント追加成功
+
+  /bbs/api/reaction/:
+    post:
+      tags:
+        - BBS
+      summary: リアクション切り替え
+      description: 投稿/コメントへのリアクションを追加・削除
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - reaction_type
+              properties:
+                post_id:
+                  type: integer
+                  description: 投稿ID（投稿へのリアクション時）
+                comment_id:
+                  type: integer
+                  description: コメントID（コメントへのリアクション時）
+                reaction_type:
+                  type: string
+                  enum: [naruhodo, iine]
+      responses:
+        '200':
+          description: 更新後のリアクションボタンHTML
+
+  /analysis/:
+    get:
+      tags:
+        - Analytics
+      summary: 分析ダッシュボード
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: HTMLページ
+
+  /analysis/calendar/:
+    get:
+      tags:
+        - Analytics
+      summary: カレンダービュー
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: HTMLページ
+
+  /analysis/calendar/day/{ymd}/:
+    get:
+      tags:
+        - Analytics
+      summary: 特定日のデータ
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: ymd
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+          example: '2024-01-15'
+      responses:
+        '200':
+          description: 日別データ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                  reports:
+                    type: array
+                    items:
+                      type: object
+                  performance:
+                    type: object
+
+  /analysis/calendar/detail/{report_id}/:
+    get:
+      tags:
+        - Analytics
+      summary: 日報詳細（モーダル用）
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: report_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: HTMLフラグメント
+
+  /analysis/api/graph-data/:
+    get:
+      tags:
+        - Analytics
+      summary: グラフデータ取得
+      security:
+        - sessionAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [week, month, year]
+        - name: metric
+          in: query
+          schema:
+            type: string
+            enum: [sales, customers, difference]
+      responses:
+        '200':
+          description: グラフ用データ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  labels:
+                    type: array
+                    items:
+                      type: string
+                  data:
+                    type: array
+                    items:
+                      type: number
+
+  /analysis/api/monthly-goal/:
+    get:
+      tags:
+        - Analytics
+      summary: 月次目標取得
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: 月次目標データ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  year:
+                    type: integer
+                  month:
+                    type: integer
+                  goal_text:
+                    type: string
+                  achievement_rate:
+                    type: integer
+                  achievement_text:
+                    type: string
+
+  /ai/chat/:
+    get:
+      tags:
+        - AI
+      summary: チャット画面
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: HTMLページ
+
+  /ai/api/chat/:
+    post:
+      tags:
+        - AI
+      summary: チャット（非ストリーミング）
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+                  example: 今月のクレーム傾向を教えてください
+      responses:
+        '200':
+          description: AI応答
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  response:
+                    type: string
+
+  /ai/api/chat/stream/:
+    post:
+      tags:
+        - AI
+      summary: チャット（ストリーミング）
+      description: Server-Sent Eventsでストリーミング応答
+      security:
+        - sessionAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+              properties:
+                message:
+                  type: string
+      responses:
+        '200':
+          description: SSEストリーム
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |
+                  data: {"type": "token", "content": "こんにちは"}
+                  data: {"type": "done"}
+
+  /ai/api/chat/history/:
+    get:
+      tags:
+        - AI
+      summary: チャット履歴取得
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: チャット履歴
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  history:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        role:
+                          type: string
+                          enum: [user, assistant]
+                        message:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+
+  /ai/api/chat/history/clear/:
+    post:
+      tags:
+        - AI
+      summary: チャット履歴削除
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: 削除成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+      description: Django session ID
+
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          maxLength: 20
+        store_id:
+          type: integer
+        user_type:
+          type: string
+          enum: [admin, manager, staff]
+        email:
+          type: string
+          format: email
+        last_name:
+          type: string
+        first_name:
+          type: string
+        is_active:
+          type: boolean
+
+    Store:
+      type: object
+      properties:
+        store_id:
+          type: integer
+        store_name:
+          type: string
+        address:
+          type: string
+        manager:
+          type: string
+
+    DailyReport:
+      type: object
+      properties:
+        report_id:
+          type: integer
+        store_id:
+          type: integer
+        user_id:
+          type: string
+        date:
+          type: string
+          format: date
+        genre:
+          type: string
+          enum: [claim, praise, accident, report, other]
+        location:
+          type: string
+          enum: [kitchen, hall, cashier, toilet, other]
+        title:
+          type: string
+        content:
+          type: string
+        post_to_bbs:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    BBSPost:
+      type: object
+      properties:
+        post_id:
+          type: integer
+        store_id:
+          type: integer
+        user_id:
+          type: string
+        genre:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        comment_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    MonthlyGoal:
+      type: object
+      properties:
+        goal_id:
+          type: integer
+        store_id:
+          type: integer
+        year:
+          type: integer
+        month:
+          type: integer
+        goal_text:
+          type: string
+        achievement_rate:
+          type: integer
+          minimum: 0
+          maximum: 100
+        achievement_text:
+          type: string
+
+    ValidationError:
+      type: object
+      properties:
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
