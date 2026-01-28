@@ -1,6 +1,6 @@
 # 開発ガイド
 
-本ドキュメントでは、C3 ステリコットαのローカル開発環境構築と開発手順を記載します。
+本ドキュメントでは、GenbaNoteのローカル開発環境構築と開発手順を記載します。
 
 ---
 
@@ -26,7 +26,7 @@
 ### 1. リポジトリのクローン
 
 ```bash
-git clone https://github.com/your-org/C3.git
+git clone https://github.com/StericottoAlpha/C3.git
 cd C3
 ```
 
