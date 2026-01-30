@@ -47,30 +47,30 @@ INSERT INTO users (user_id, password, last_name, first_name, store_id, user_type
 -- 渋谷道玄坂店
 ('manager_001', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '佐藤', '健一', 2, 'manager', 'shibuya_mgr@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '300 days'),
 ('staff_001', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '田中', '花子', 2, 'staff', 'shibuya_s01@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '290 days'),
-('staff_002', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '高橋', '次郎', 2, 'staff', 'shibuya_s02@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '280 days'),
-('staff_003', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '渡辺', '美咲', 2, 'staff', 'shibuya_s03@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '100 days'),
+('A1', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'A1', 'グループ', 2, 'staff', 'A1@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '280 days'),
+('A2', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'A2', 'グループ', 2, 'staff', 'A2@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '100 days'),
 
 -- 新宿東口店
 ('manager_002', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '鈴木', '一郎', 3, 'manager', 'shinjuku_mgr@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '280 days'),
-('staff_004', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '伊藤', '健太', 3, 'staff', 'shinjuku_s01@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '270 days'),
-('staff_005', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '山本', '由美', 3, 'staff', 'shinjuku_s02@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '260 days'),
-('staff_006', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '中村', '大輔', 3, 'staff', 'shinjuku_s03@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '150 days'),
-('staff_007', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '小林', 'さくら', 3, 'staff', 'shinjuku_s04@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '50 days'),
+('A3', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'A3', 'グループ', 3, 'staff', 'A3@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '270 days'),
+('B1', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'B1', 'グループ', 3, 'staff', 'B1@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '260 days'),
+('B2', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'B2', 'グループ', 3, 'staff', 'B2@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '150 days'),
+('B3', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'B3', 'グループ', 3, 'staff', 'B3@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '50 days'),
 
 -- 池袋西口店
 ('manager_003', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '加藤', '誠', 4, 'manager', 'ikebukuro_mgr@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '250 days'),
-('staff_008', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '吉田', '愛', 4, 'staff', 'ikebukuro_s01@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '240 days'),
-('staff_009', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '山田', '翔太', 4, 'staff', 'ikebukuro_s02@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '200 days'),
+('C1', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'C1', 'グループ', 4, 'staff', 'C1@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '240 days'),
+('C2', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'C2', 'グループ', 4, 'staff', 'C2@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '200 days'),
 
 -- 横浜駅前店
 ('manager_004', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '松本', '浩二', 5, 'manager', 'yokohama_mgr@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '200 days'),
-('staff_010', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '井上', '千尋', 5, 'staff', 'yokohama_s01@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '190 days'),
-('staff_011', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '木村', '雄一', 5, 'staff', 'yokohama_s02@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '180 days'),
-('staff_012', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '林', '真理子', 5, 'staff', 'yokohama_s03@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '80 days'),
+('C3', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'C3', 'グループ', 5, 'staff', 'C3@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '190 days'),
+('D1', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'D1', 'グループ', 5, 'staff', 'D1@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '180 days'),
+('D2', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'D2', 'グループ', 5, 'staff', 'D2@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '80 days'),
 
 -- 大阪梅田店
 ('manager_005', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '清水', '大輔', 6, 'manager', 'osaka_mgr@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '180 days'),
-('staff_013', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '坂本', '恵', 6, 'staff', 'osaka_s01@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '170 days'),
+('D3', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', 'D3', 'グループ', 6, 'staff', 'D3@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '170 days'),
 ('staff_014', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '藤田', '健', 6, 'staff', 'osaka_s02@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '160 days'),
 ('staff_015', 'pbkdf2_sha256$600000$iDOXwH3QX1DHdEW5exHX6Q$sMcKlsSDn5IiEKrRaQfPQFpeUDbedZBjHB2rAA3/1T4=', '橋本', 'めぐみ', 6, 'staff', 'osaka_s03@example.com', false, false, true, '2026-01-30 12:00:00'::TIMESTAMP - INTERVAL '60 days'),
 
@@ -276,15 +276,15 @@ SELECT setval('store_daily_performances_performance_id_seq', (SELECT MAX(perform
 INSERT INTO daily_reports (store_id, user_id, date, genre, location, title, content, post_to_bbs, created_at) VALUES
 -- クレーム系
 (2, 'staff_001', '2026-01-30'::DATE - INTERVAL '1 day', 'claim', 'hall', '接客態度に関するクレーム', 'お客様から「スタッフの対応が遅い」とのご指摘をいただきました。ピーク時の対応について改善が必要です。レジ待ち時間が10分以上かかり、お客様を不快にさせてしまいました。今後はピーク時間帯のスタッフ配置を見直します。', true, '2026-01-30'::DATE - INTERVAL '1 day' + TIME '14:30:00'),
-(2, 'staff_002', '2026-01-30'::DATE - INTERVAL '5 days', 'claim', 'kitchen', '料理提供の遅延について', 'ランチタイムに注文から提供まで25分かかってしまいました。お客様から「遅すぎる」とお叱りを受けました。キッチンとホールの連携を改善する必要があります。注文票の確認フローを見直しました。', true, '2026-01-30'::DATE - INTERVAL '5 days' + TIME '15:00:00'),
-(2, 'staff_003', '2026-01-30'::DATE - INTERVAL '12 days', 'claim', 'hall', '予約確認ミス', 'お客様の予約が入っていなかったため、お待たせしてしまいました。電話予約時の復唱確認を徹底します。幸い空席があり対応できましたが、今後は予約システムへの入力を即時行うようにします。', true, '2026-01-30'::DATE - INTERVAL '12 days' + TIME '19:00:00'),
+(2, 'A1', '2026-01-30'::DATE - INTERVAL '5 days', 'claim', 'kitchen', '料理提供の遅延について', 'ランチタイムに注文から提供まで25分かかってしまいました。お客様から「遅すぎる」とお叱りを受けました。キッチンとホールの連携を改善する必要があります。注文票の確認フローを見直しました。', true, '2026-01-30'::DATE - INTERVAL '5 days' + TIME '15:00:00'),
+(2, 'A2', '2026-01-30'::DATE - INTERVAL '12 days', 'claim', 'hall', '予約確認ミス', 'お客様の予約が入っていなかったため、お待たせしてしまいました。電話予約時の復唱確認を徹底します。幸い空席があり対応できましたが、今後は予約システムへの入力を即時行うようにします。', true, '2026-01-30'::DATE - INTERVAL '12 days' + TIME '19:00:00'),
 (2, 'staff_001', '2026-01-30'::DATE - INTERVAL '20 days', 'claim', 'cashier', 'お会計ミス', 'お会計時に金額を間違えてしまい、お客様にご指摘を受けました。確認不足でした。複数商品のある場合は必ず合計金額を読み上げて確認することを徹底します。', true, '2026-01-30'::DATE - INTERVAL '20 days' + TIME '20:30:00'),
 
 -- 賞賛系
-(2, 'staff_002', '2026-01-30'::DATE - INTERVAL '2 days', 'praise', 'kitchen', '料理の美味しさを褒められました', 'お客様から「今日のハンバーグは特に美味しかった」と直接お褒めの言葉をいただきました。シェフの丁寧な調理が評価されています。秘訣は肉の練り方にあるとのことでした。', true, '2026-01-30'::DATE - INTERVAL '2 days' + TIME '13:00:00'),
+(2, 'A1', '2026-01-30'::DATE - INTERVAL '2 days', 'praise', 'kitchen', '料理の美味しさを褒められました', 'お客様から「今日のハンバーグは特に美味しかった」と直接お褒めの言葉をいただきました。シェフの丁寧な調理が評価されています。秘訣は肉の練り方にあるとのことでした。', true, '2026-01-30'::DATE - INTERVAL '2 days' + TIME '13:00:00'),
 (2, 'staff_001', '2026-01-30'::DATE - INTERVAL '8 days', 'praise', 'hall', '子連れ対応を褒められました', '小さなお子様連れのお客様から「スタッフの気配りが素晴らしかった」とお褒めの言葉をいただきました。子供用の食器やクレヨンを用意したことが好評でした。他店舗でも参考になればと思います。', true, '2026-01-30'::DATE - INTERVAL '8 days' + TIME '16:00:00'),
-(2, 'staff_003', '2026-01-30'::DATE - INTERVAL '15 days', 'praise', 'hall', '外国人観光客への対応', '英語での注文対応がスムーズにできたと、海外からのお客様から感謝されました。翻訳アプリと指差しメニューの併用が効果的でした。', true, '2026-01-30'::DATE - INTERVAL '15 days' + TIME '17:30:00'),
-(2, 'staff_002', '2026-01-30'::DATE - INTERVAL '25 days', 'praise', 'kitchen', '季節限定メニューが好評', '新しく始めた冬季限定のシチューが大変好評です。1日平均30食以上出ています。常連のお客様から「来年も楽しみにしている」とのお声もいただきました。', true, '2026-01-30'::DATE - INTERVAL '25 days' + TIME '14:00:00'),
+(2, 'A2', '2026-01-30'::DATE - INTERVAL '15 days', 'praise', 'hall', '外国人観光客への対応', '英語での注文対応がスムーズにできたと、海外からのお客様から感謝されました。翻訳アプリと指差しメニューの併用が効果的でした。', true, '2026-01-30'::DATE - INTERVAL '15 days' + TIME '17:30:00'),
+(2, 'A1', '2026-01-30'::DATE - INTERVAL '25 days', 'praise', 'kitchen', '季節限定メニューが好評', '新しく始めた冬季限定のシチューが大変好評です。1日平均30食以上出ています。常連のお客様から「来年も楽しみにしている」とのお声もいただきました。', true, '2026-01-30'::DATE - INTERVAL '25 days' + TIME '14:00:00'),
 
 -- 事故・トラブル系
 (2, 'manager_001', '2026-01-30'::DATE - INTERVAL '7 days', 'accident', 'kitchen', '厨房機器の故障', 'オーブンの温度が上がらなくなり、業者を呼んで修理しました。ヒーター部品の交換で復旧。修理費用は35,000円。予防保全の重要性を再認識しました。', true, '2026-01-30'::DATE - INTERVAL '7 days' + TIME '11:00:00'),
@@ -293,38 +293,38 @@ INSERT INTO daily_reports (store_id, user_id, date, genre, location, title, cont
 -- 報告・その他
 (2, 'manager_001', '2026-01-30'::DATE - INTERVAL '3 days', 'report', 'other', '売上報告：過去最高記録', '本日の売上が62万円を記録し、オープン以来最高となりました。週末の天候に恵まれたことと、SNSでの口コミ効果があったようです。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '22:00:00'),
 (2, 'manager_001', '2026-01-30'::DATE - INTERVAL '10 days', 'report', 'other', '新人スタッフの研修完了', '新人の渡辺さんが基本研修を完了しました。接客、レジ操作、基本的な調理補助まで一通りできるようになりました。来週から通常シフトに入る予定です。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '21:00:00'),
-(2, 'staff_002', '2026-01-30'::DATE - INTERVAL '22 days', 'report', 'kitchen', '食材の在庫管理改善', '発注システムを見直し、廃棄ロスを先月比20%削減できました。特に野菜類の鮮度管理が改善されました。', false, '2026-01-30'::DATE - INTERVAL '22 days' + TIME '17:00:00'),
+(2, 'A1', '2026-01-30'::DATE - INTERVAL '22 days', 'report', 'kitchen', '食材の在庫管理改善', '発注システムを見直し、廃棄ロスを先月比20%削減できました。特に野菜類の鮮度管理が改善されました。', false, '2026-01-30'::DATE - INTERVAL '22 days' + TIME '17:00:00'),
 
 -- 新宿東口店の日報
-(3, 'staff_004', '2026-01-30'::DATE - INTERVAL '1 day', 'claim', 'hall', '待ち時間に関するクレーム', '満席時の待ち時間が長く、お客様からご不満の声をいただきました。待合スペースでのドリンクサービスを開始することを検討しています。', true, '2026-01-30'::DATE - INTERVAL '1 day' + TIME '20:00:00'),
-(3, 'staff_005', '2026-01-30'::DATE - INTERVAL '4 days', 'praise', 'hall', 'リピーター様からの感謝', '週に3回来店される常連のお客様から「いつも気持ちよく食事ができる」とのお言葉をいただきました。スタッフ一同励みになります。', true, '2026-01-30'::DATE - INTERVAL '4 days' + TIME '15:00:00'),
-(3, 'staff_006', '2026-01-30'::DATE - INTERVAL '6 days', 'accident', 'kitchen', '軽い火傷事故', '調理中にスタッフが軽い火傷をしました。すぐに冷水で冷やし、応急処置を行いました。幸い軽傷で済みましたが、防護具の着用を再徹底します。', true, '2026-01-30'::DATE - INTERVAL '6 days' + TIME '13:30:00'),
+(3, 'A3', '2026-01-30'::DATE - INTERVAL '1 day', 'claim', 'hall', '待ち時間に関するクレーム', '満席時の待ち時間が長く、お客様からご不満の声をいただきました。待合スペースでのドリンクサービスを開始することを検討しています。', true, '2026-01-30'::DATE - INTERVAL '1 day' + TIME '20:00:00'),
+(3, 'B1', '2026-01-30'::DATE - INTERVAL '4 days', 'praise', 'hall', 'リピーター様からの感謝', '週に3回来店される常連のお客様から「いつも気持ちよく食事ができる」とのお言葉をいただきました。スタッフ一同励みになります。', true, '2026-01-30'::DATE - INTERVAL '4 days' + TIME '15:00:00'),
+(3, 'B2', '2026-01-30'::DATE - INTERVAL '6 days', 'accident', 'kitchen', '軽い火傷事故', '調理中にスタッフが軽い火傷をしました。すぐに冷水で冷やし、応急処置を行いました。幸い軽傷で済みましたが、防護具の着用を再徹底します。', true, '2026-01-30'::DATE - INTERVAL '6 days' + TIME '13:30:00'),
 (3, 'manager_002', '2026-01-30'::DATE - INTERVAL '9 days', 'report', 'other', '月間売上目標達成', '今月の売上目標を3日前倒しで達成しました。新メニューの販促キャンペーンが好調でした。来月はさらに5%増を目指します。', true, '2026-01-30'::DATE - INTERVAL '9 days' + TIME '22:00:00'),
-(3, 'staff_004', '2026-01-30'::DATE - INTERVAL '14 days', 'claim', 'cashier', 'クーポン適用ミス', 'クーポンの適用を忘れてしまい、お客様に再度レジ打ちをお願いしてしまいました。クーポン確認の声かけを習慣化します。', true, '2026-01-30'::DATE - INTERVAL '14 days' + TIME '19:30:00'),
-(3, 'staff_007', '2026-01-30'::DATE - INTERVAL '17 days', 'praise', 'hall', 'アレルギー対応への感謝', 'アレルギーをお持ちのお客様に丁寧に対応したところ、大変感謝されました。アレルギー表を確認しながらの説明が安心感につながったようです。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '13:00:00'),
-(3, 'staff_005', '2026-01-30'::DATE - INTERVAL '21 days', 'report', 'kitchen', 'メニュー改善の提案', '人気メニューのカレーライスについて、ルーの量を少し増やす提案をさせていただきます。お客様からの「もう少しルーが欲しい」という声が多いためです。', true, '2026-01-30'::DATE - INTERVAL '21 days' + TIME '16:00:00'),
+(3, 'A3', '2026-01-30'::DATE - INTERVAL '14 days', 'claim', 'cashier', 'クーポン適用ミス', 'クーポンの適用を忘れてしまい、お客様に再度レジ打ちをお願いしてしまいました。クーポン確認の声かけを習慣化します。', true, '2026-01-30'::DATE - INTERVAL '14 days' + TIME '19:30:00'),
+(3, 'B3', '2026-01-30'::DATE - INTERVAL '17 days', 'praise', 'hall', 'アレルギー対応への感謝', 'アレルギーをお持ちのお客様に丁寧に対応したところ、大変感謝されました。アレルギー表を確認しながらの説明が安心感につながったようです。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '13:00:00'),
+(3, 'B1', '2026-01-30'::DATE - INTERVAL '21 days', 'report', 'kitchen', 'メニュー改善の提案', '人気メニューのカレーライスについて、ルーの量を少し増やす提案をさせていただきます。お客様からの「もう少しルーが欲しい」という声が多いためです。', true, '2026-01-30'::DATE - INTERVAL '21 days' + TIME '16:00:00'),
 
 -- 池袋西口店の日報
-(4, 'staff_008', '2026-01-30'::DATE - INTERVAL '2 days', 'claim', 'toilet', 'トイレ清掃の指摘', 'お客様からトイレが汚れているとのご指摘を受けました。清掃頻度を30分から20分間隔に変更しました。', true, '2026-01-30'::DATE - INTERVAL '2 days' + TIME '16:00:00'),
-(4, 'staff_009', '2026-01-30'::DATE - INTERVAL '5 days', 'praise', 'hall', '誕生日サプライズが好評', 'お客様の誕生日祝いでデザートプレートをサービスしたところ、大変喜んでいただけました。SNSにも投稿していただけるとのことです。', true, '2026-01-30'::DATE - INTERVAL '5 days' + TIME '20:00:00'),
+(4, 'C1', '2026-01-30'::DATE - INTERVAL '2 days', 'claim', 'toilet', 'トイレ清掃の指摘', 'お客様からトイレが汚れているとのご指摘を受けました。清掃頻度を30分から20分間隔に変更しました。', true, '2026-01-30'::DATE - INTERVAL '2 days' + TIME '16:00:00'),
+(4, 'C2', '2026-01-30'::DATE - INTERVAL '5 days', 'praise', 'hall', '誕生日サプライズが好評', 'お客様の誕生日祝いでデザートプレートをサービスしたところ、大変喜んでいただけました。SNSにも投稿していただけるとのことです。', true, '2026-01-30'::DATE - INTERVAL '5 days' + TIME '20:00:00'),
 (4, 'manager_003', '2026-01-30'::DATE - INTERVAL '8 days', 'accident', 'hall', '空調設備の故障', '店内の空調が効かなくなりました。お客様にはご不便をおかけしましたが、扇風機で応急対応し、翌日修理完了しました。', true, '2026-01-30'::DATE - INTERVAL '8 days' + TIME '14:00:00'),
-(4, 'staff_008', '2026-01-30'::DATE - INTERVAL '13 days', 'report', 'other', 'テイクアウト需要増加', '最近テイクアウトの注文が増えています。専用の受け渡し窓口の設置を検討してはいかがでしょうか。', true, '2026-01-30'::DATE - INTERVAL '13 days' + TIME '18:00:00'),
-(4, 'staff_009', '2026-01-30'::DATE - INTERVAL '19 days', 'claim', 'kitchen', '料理の温度が低い', 'お客様から「スープがぬるい」とご指摘を受けました。提供前の温度確認を徹底します。', true, '2026-01-30'::DATE - INTERVAL '19 days' + TIME '12:30:00'),
+(4, 'C1', '2026-01-30'::DATE - INTERVAL '13 days', 'report', 'other', 'テイクアウト需要増加', '最近テイクアウトの注文が増えています。専用の受け渡し窓口の設置を検討してはいかがでしょうか。', true, '2026-01-30'::DATE - INTERVAL '13 days' + TIME '18:00:00'),
+(4, 'C2', '2026-01-30'::DATE - INTERVAL '19 days', 'claim', 'kitchen', '料理の温度が低い', 'お客様から「スープがぬるい」とご指摘を受けました。提供前の温度確認を徹底します。', true, '2026-01-30'::DATE - INTERVAL '19 days' + TIME '12:30:00'),
 
 -- 横浜駅前店の日報
-(5, 'staff_010', '2026-01-30'::DATE - INTERVAL '1 day', 'praise', 'hall', '接客対応を褒められました', 'お客様アンケートで「スタッフの笑顔が素晴らしい」と高評価をいただきました。日頃の接客研修の成果が出ています。', true, '2026-01-30'::DATE - INTERVAL '1 day' + TIME '21:00:00'),
-(5, 'staff_011', '2026-01-30'::DATE - INTERVAL '3 days', 'claim', 'hall', '予約時間のズレ', '予約システムの時間設定にずれがあり、お客様をお待たせしてしまいました。システムの時刻同期を確認しました。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '19:00:00'),
-(5, 'staff_012', '2026-01-30'::DATE - INTERVAL '7 days', 'accident', 'kitchen', '食器破損', 'お皿を3枚割ってしまいました。運搬時の持ち方を再確認しました。けが人はいません。', false, '2026-01-30'::DATE - INTERVAL '7 days' + TIME '11:00:00'),
+(5, 'C3', '2026-01-30'::DATE - INTERVAL '1 day', 'praise', 'hall', '接客対応を褒められました', 'お客様アンケートで「スタッフの笑顔が素晴らしい」と高評価をいただきました。日頃の接客研修の成果が出ています。', true, '2026-01-30'::DATE - INTERVAL '1 day' + TIME '21:00:00'),
+(5, 'D1', '2026-01-30'::DATE - INTERVAL '3 days', 'claim', 'hall', '予約時間のズレ', '予約システムの時間設定にずれがあり、お客様をお待たせしてしまいました。システムの時刻同期を確認しました。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '19:00:00'),
+(5, 'D2', '2026-01-30'::DATE - INTERVAL '7 days', 'accident', 'kitchen', '食器破損', 'お皿を3枚割ってしまいました。運搬時の持ち方を再確認しました。けが人はいません。', false, '2026-01-30'::DATE - INTERVAL '7 days' + TIME '11:00:00'),
 (5, 'manager_004', '2026-01-30'::DATE - INTERVAL '11 days', 'report', 'other', '近隣店舗との連携', '隣接するショッピングモールのイベントと連動したキャンペーンを実施し、新規客が20%増加しました。', true, '2026-01-30'::DATE - INTERVAL '11 days' + TIME '22:00:00'),
-(5, 'staff_010', '2026-01-30'::DATE - INTERVAL '16 days', 'praise', 'kitchen', 'ランチセットが好評', '新しく始めたビジネスランチセットが好評です。周辺オフィスからのリピーターが増えています。', true, '2026-01-30'::DATE - INTERVAL '16 days' + TIME '14:30:00'),
-(5, 'staff_011', '2026-01-30'::DATE - INTERVAL '23 days', 'claim', 'cashier', 'ポイントカードの読み取りエラー', 'ポイントカードの読み取り機が不調で、手動入力での対応となりました。機器のメンテナンスを依頼しました。', true, '2026-01-30'::DATE - INTERVAL '23 days' + TIME '17:00:00'),
+(5, 'C3', '2026-01-30'::DATE - INTERVAL '16 days', 'praise', 'kitchen', 'ランチセットが好評', '新しく始めたビジネスランチセットが好評です。周辺オフィスからのリピーターが増えています。', true, '2026-01-30'::DATE - INTERVAL '16 days' + TIME '14:30:00'),
+(5, 'D1', '2026-01-30'::DATE - INTERVAL '23 days', 'claim', 'cashier', 'ポイントカードの読み取りエラー', 'ポイントカードの読み取り機が不調で、手動入力での対応となりました。機器のメンテナンスを依頼しました。', true, '2026-01-30'::DATE - INTERVAL '23 days' + TIME '17:00:00'),
 
 -- 大阪梅田店の日報
-(6, 'staff_013', '2026-01-30'::DATE - INTERVAL '1 day', 'claim', 'hall', '注文間違い', 'オーダー取り違えがあり、お客様にご迷惑をおかけしました。注文確認の復唱を徹底します。', true, '2026-01-30'::DATE - INTERVAL '1 day' + TIME '13:00:00'),
+(6, 'D3', '2026-01-30'::DATE - INTERVAL '1 day', 'claim', 'hall', '注文間違い', 'オーダー取り違えがあり、お客様にご迷惑をおかけしました。注文確認の復唱を徹底します。', true, '2026-01-30'::DATE - INTERVAL '1 day' + TIME '13:00:00'),
 (6, 'staff_014', '2026-01-30'::DATE - INTERVAL '4 days', 'praise', 'hall', '関西弁での接客が好評', '地元のお客様から「親しみやすい接客」と好評をいただきました。土地柄に合わせた接客スタイルが功を奏しています。', true, '2026-01-30'::DATE - INTERVAL '4 days' + TIME '15:30:00'),
 (6, 'staff_015', '2026-01-30'::DATE - INTERVAL '8 days', 'accident', 'kitchen', '冷蔵庫の温度異常', '冷蔵庫の温度が8度まで上昇していることを発見。食材の確認を行い、修理業者を手配しました。', true, '2026-01-30'::DATE - INTERVAL '8 days' + TIME '09:00:00'),
 (6, 'manager_005', '2026-01-30'::DATE - INTERVAL '12 days', 'report', 'other', '新メニュー導入結果', '大阪限定のたこ焼き風メニューが予想以上の人気です。月間売上の15%を占めるようになりました。', true, '2026-01-30'::DATE - INTERVAL '12 days' + TIME '21:30:00'),
-(6, 'staff_013', '2026-01-30'::DATE - INTERVAL '18 days', 'praise', 'hall', 'グループ客への対応', '大人数のグループ客への対応がスムーズにでき、感謝されました。事前の席配置計画が効果的でした。', true, '2026-01-30'::DATE - INTERVAL '18 days' + TIME '20:00:00'),
+(6, 'D3', '2026-01-30'::DATE - INTERVAL '18 days', 'praise', 'hall', 'グループ客への対応', '大人数のグループ客への対応がスムーズにでき、感謝されました。事前の席配置計画が効果的でした。', true, '2026-01-30'::DATE - INTERVAL '18 days' + TIME '20:00:00'),
 (6, 'staff_014', '2026-01-30'::DATE - INTERVAL '24 days', 'claim', 'toilet', 'トイレットペーパー切れ', 'トイレットペーパーの補充が間に合わず、お客様にご不便をおかけしました。在庫チェックの頻度を増やします。', false, '2026-01-30'::DATE - INTERVAL '24 days' + TIME '16:00:00'),
 
 -- 名古屋栄店の日報
@@ -371,34 +371,34 @@ INSERT INTO daily_reports (store_id, user_id, date, genre, location, title, cont
 
 -- 3日前の土曜日（複数店舗で同時発生）
 (2, 'staff_001', '2026-01-30'::DATE - INTERVAL '3 days', 'claim', 'hall', 'ピーク時の待ち時間クレーム', '12時台のピーク時に30分以上お待たせしてしまいました。予約システムの見直しが必要です。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '13:30:00'),
-(2, 'staff_002', '2026-01-30'::DATE - INTERVAL '3 days', 'claim', 'kitchen', '料理提供遅延のクレーム', 'キッチンの混雑により、料理提供が40分かかりお客様から苦情。オペレーション改善を検討。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '14:00:00'),
-(2, 'staff_003', '2026-01-30'::DATE - INTERVAL '3 days', 'accident', 'hall', 'ドリンクをこぼす事故', 'ホール混雑時にドリンクをお客様の服にこぼしてしまいました。クリーニング代をお支払いしました。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '14:30:00'),
-(3, 'staff_004', '2026-01-30'::DATE - INTERVAL '3 days', 'claim', 'cashier', 'クレジットカード決済エラー', '決済端末の不具合で会計に時間がかかり、お客様をお待たせしました。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '13:00:00'),
-(3, 'staff_005', '2026-01-30'::DATE - INTERVAL '3 days', 'claim', 'hall', '席の案内ミス', '予約席を誤って他のお客様に案内してしまいました。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '12:30:00'),
-(4, 'staff_008', '2026-01-30'::DATE - INTERVAL '3 days', 'accident', 'kitchen', 'フライヤーでの軽い火傷', '揚げ物中に油が跳ねて軽い火傷。すぐに冷水で冷やし処置しました。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '11:45:00'),
-(5, 'staff_010', '2026-01-30'::DATE - INTERVAL '3 days', 'claim', 'toilet', 'トイレ清掃不備の指摘', 'お客様からトイレが汚れているとご指摘。清掃頻度を増やします。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '15:00:00'),
+(2, 'A1', '2026-01-30'::DATE - INTERVAL '3 days', 'claim', 'kitchen', '料理提供遅延のクレーム', 'キッチンの混雑により、料理提供が40分かかりお客様から苦情。オペレーション改善を検討。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '14:00:00'),
+(2, 'A2', '2026-01-30'::DATE - INTERVAL '3 days', 'accident', 'hall', 'ドリンクをこぼす事故', 'ホール混雑時にドリンクをお客様の服にこぼしてしまいました。クリーニング代をお支払いしました。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '14:30:00'),
+(3, 'A3', '2026-01-30'::DATE - INTERVAL '3 days', 'claim', 'cashier', 'クレジットカード決済エラー', '決済端末の不具合で会計に時間がかかり、お客様をお待たせしました。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '13:00:00'),
+(3, 'B1', '2026-01-30'::DATE - INTERVAL '3 days', 'claim', 'hall', '席の案内ミス', '予約席を誤って他のお客様に案内してしまいました。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '12:30:00'),
+(4, 'C1', '2026-01-30'::DATE - INTERVAL '3 days', 'accident', 'kitchen', 'フライヤーでの軽い火傷', '揚げ物中に油が跳ねて軽い火傷。すぐに冷水で冷やし処置しました。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '11:45:00'),
+(5, 'C3', '2026-01-30'::DATE - INTERVAL '3 days', 'claim', 'toilet', 'トイレ清掃不備の指摘', 'お客様からトイレが汚れているとご指摘。清掃頻度を増やします。', true, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '15:00:00'),
 
 -- 4日前の金曜日（夜のピーク）
 (2, 'staff_001', '2026-01-30'::DATE - INTERVAL '4 days', 'claim', 'hall', '予約確認ミス', '電話予約の時間を聞き間違え、お客様をお待たせしてしまいました。', true, '2026-01-30'::DATE - INTERVAL '4 days' + TIME '19:30:00'),
-(2, 'staff_002', '2026-01-30'::DATE - INTERVAL '4 days', 'praise', 'hall', '記念日のサプライズ成功', 'お誕生日のお客様へのサプライズデザートが大変喜ばれました。', true, '2026-01-30'::DATE - INTERVAL '4 days' + TIME '20:00:00'),
-(3, 'staff_006', '2026-01-30'::DATE - INTERVAL '4 days', 'claim', 'kitchen', '注文の作り間違い', 'アレルギー対応メニューの指示が伝わらず、作り直しになりました。', true, '2026-01-30'::DATE - INTERVAL '4 days' + TIME '19:00:00'),
-(6, 'staff_013', '2026-01-30'::DATE - INTERVAL '4 days', 'accident', 'hall', 'グラス破損', '食器を運ぶ際にグラスを3つ割ってしまいました。怪我人なし。', true, '2026-01-30'::DATE - INTERVAL '4 days' + TIME '21:00:00'),
+(2, 'A1', '2026-01-30'::DATE - INTERVAL '4 days', 'praise', 'hall', '記念日のサプライズ成功', 'お誕生日のお客様へのサプライズデザートが大変喜ばれました。', true, '2026-01-30'::DATE - INTERVAL '4 days' + TIME '20:00:00'),
+(3, 'B2', '2026-01-30'::DATE - INTERVAL '4 days', 'claim', 'kitchen', '注文の作り間違い', 'アレルギー対応メニューの指示が伝わらず、作り直しになりました。', true, '2026-01-30'::DATE - INTERVAL '4 days' + TIME '19:00:00'),
+(6, 'D3', '2026-01-30'::DATE - INTERVAL '4 days', 'accident', 'hall', 'グラス破損', '食器を運ぶ際にグラスを3つ割ってしまいました。怪我人なし。', true, '2026-01-30'::DATE - INTERVAL '4 days' + TIME '21:00:00'),
 
 -- 10日前の土曜日（複数件）
 (2, 'staff_001', '2026-01-30'::DATE - INTERVAL '10 days', 'claim', 'hall', '子供が走り回る問題', 'お子様連れのお客様のお子さんが店内を走り回り、他のお客様からクレーム。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '12:00:00'),
-(2, 'staff_003', '2026-01-30'::DATE - INTERVAL '10 days', 'claim', 'cashier', 'ポイント付与忘れ', 'ポイントカードへのポイント付与を忘れ、後から対応しました。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '14:00:00'),
-(3, 'staff_004', '2026-01-30'::DATE - INTERVAL '10 days', 'accident', 'kitchen', 'オーブンの過熱', 'オーブンが異常加熱し、自動停止しました。メンテナンス依頼済み。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '11:30:00'),
-(3, 'staff_007', '2026-01-30'::DATE - INTERVAL '10 days', 'claim', 'hall', '隣席の騒音クレーム', '宴会グループの騒音について、隣のテーブルからクレーム。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '20:30:00'),
-(4, 'staff_009', '2026-01-30'::DATE - INTERVAL '10 days', 'claim', 'toilet', 'トイレットペーパー切れ', '補充が間に合わず、お客様にご不便をおかけしました。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '13:00:00'),
-(5, 'staff_011', '2026-01-30'::DATE - INTERVAL '10 days', 'praise', 'hall', '外国人観光客への対応', '英語での丁寧な説明に感謝されました。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '15:00:00'),
+(2, 'A2', '2026-01-30'::DATE - INTERVAL '10 days', 'claim', 'cashier', 'ポイント付与忘れ', 'ポイントカードへのポイント付与を忘れ、後から対応しました。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '14:00:00'),
+(3, 'A3', '2026-01-30'::DATE - INTERVAL '10 days', 'accident', 'kitchen', 'オーブンの過熱', 'オーブンが異常加熱し、自動停止しました。メンテナンス依頼済み。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '11:30:00'),
+(3, 'B3', '2026-01-30'::DATE - INTERVAL '10 days', 'claim', 'hall', '隣席の騒音クレーム', '宴会グループの騒音について、隣のテーブルからクレーム。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '20:30:00'),
+(4, 'C2', '2026-01-30'::DATE - INTERVAL '10 days', 'claim', 'toilet', 'トイレットペーパー切れ', '補充が間に合わず、お客様にご不便をおかけしました。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '13:00:00'),
+(5, 'D1', '2026-01-30'::DATE - INTERVAL '10 days', 'praise', 'hall', '外国人観光客への対応', '英語での丁寧な説明に感謝されました。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '15:00:00'),
 (6, 'staff_014', '2026-01-30'::DATE - INTERVAL '10 days', 'claim', 'hall', '料理の温度クレーム', 'スープがぬるいとのご指摘。キッチンとの連携を強化します。', true, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '12:30:00'),
 
 -- 17日前の土曜日（複数件）
-(2, 'staff_002', '2026-01-30'::DATE - INTERVAL '17 days', 'accident', 'kitchen', '包丁で指を切る', '仕込み中に包丁で指を切りました。絆創膏で処置し、調理用手袋を着用。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '10:00:00'),
+(2, 'A1', '2026-01-30'::DATE - INTERVAL '17 days', 'accident', 'kitchen', '包丁で指を切る', '仕込み中に包丁で指を切りました。絆創膏で処置し、調理用手袋を着用。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '10:00:00'),
 (2, 'staff_001', '2026-01-30'::DATE - INTERVAL '17 days', 'claim', 'hall', '注文取り違え', 'テーブル番号を間違えて料理を配膳してしまいました。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '13:00:00'),
-(3, 'staff_005', '2026-01-30'::DATE - INTERVAL '17 days', 'claim', 'cashier', '割引適用ミス', 'クーポンの割引率を間違えて計算してしまいました。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '19:00:00'),
-(4, 'staff_008', '2026-01-30'::DATE - INTERVAL '17 days', 'accident', 'hall', '床が滑りやすい状態', '雨で床が濡れ、お客様が転びそうになりました。マット追加設置。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '14:00:00'),
-(5, 'staff_012', '2026-01-30'::DATE - INTERVAL '17 days', 'claim', 'kitchen', '異物混入の指摘', 'サラダに髪の毛が混入しているとのご指摘。調理時の帽子着用を徹底。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '12:00:00'),
+(3, 'B1', '2026-01-30'::DATE - INTERVAL '17 days', 'claim', 'cashier', '割引適用ミス', 'クーポンの割引率を間違えて計算してしまいました。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '19:00:00'),
+(4, 'C1', '2026-01-30'::DATE - INTERVAL '17 days', 'accident', 'hall', '床が滑りやすい状態', '雨で床が濡れ、お客様が転びそうになりました。マット追加設置。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '14:00:00'),
+(5, 'D2', '2026-01-30'::DATE - INTERVAL '17 days', 'claim', 'kitchen', '異物混入の指摘', 'サラダに髪の毛が混入しているとのご指摘。調理時の帽子着用を徹底。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '12:00:00'),
 (6, 'staff_015', '2026-01-30'::DATE - INTERVAL '17 days', 'praise', 'hall', '常連客からの感謝', '毎週来店のお客様から「いつも心地よい」とお言葉をいただきました。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '18:00:00'),
 (7, 'staff_016', '2026-01-30'::DATE - INTERVAL '17 days', 'claim', 'hall', '提供時間の遅れ', 'オーダーから50分かかりお客様をお待たせ。お詫びのデザートを提供。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '13:30:00'),
 (8, 'staff_018', '2026-01-30'::DATE - INTERVAL '17 days', 'accident', 'kitchen', '冷蔵庫のドア故障', '冷蔵庫のドアが閉まりにくくなり、温度上昇。修理業者を呼びました。', true, '2026-01-30'::DATE - INTERVAL '17 days' + TIME '09:00:00'),
@@ -406,21 +406,21 @@ INSERT INTO daily_reports (store_id, user_id, date, genre, location, title, cont
 -- ========== 場所別の偏りパターン ==========
 
 -- キッチン関連（事故が多め）
-(2, 'staff_002', '2026-01-30'::DATE - INTERVAL '6 days', 'accident', 'kitchen', 'フライパンの取っ手が熱い', '取っ手カバーが外れており、スタッフが軽い火傷。すぐに交換しました。', true, '2026-01-30'::DATE - INTERVAL '6 days' + TIME '11:00:00'),
-(3, 'staff_006', '2026-01-30'::DATE - INTERVAL '8 days', 'accident', 'kitchen', '換気扇の異常音', '換気扇から異音がするようになりました。メンテナンス予約済み。', false, '2026-01-30'::DATE - INTERVAL '8 days' + TIME '10:00:00'),
+(2, 'A1', '2026-01-30'::DATE - INTERVAL '6 days', 'accident', 'kitchen', 'フライパンの取っ手が熱い', '取っ手カバーが外れており、スタッフが軽い火傷。すぐに交換しました。', true, '2026-01-30'::DATE - INTERVAL '6 days' + TIME '11:00:00'),
+(3, 'B2', '2026-01-30'::DATE - INTERVAL '8 days', 'accident', 'kitchen', '換気扇の異常音', '換気扇から異音がするようになりました。メンテナンス予約済み。', false, '2026-01-30'::DATE - INTERVAL '8 days' + TIME '10:00:00'),
 (4, 'manager_003', '2026-01-30'::DATE - INTERVAL '11 days', 'accident', 'kitchen', 'ガスコンロの点火不良', 'コンロの一口が点火しなくなりました。業者を呼んで修理。', true, '2026-01-30'::DATE - INTERVAL '11 days' + TIME '09:30:00'),
-(5, 'staff_011', '2026-01-30'::DATE - INTERVAL '14 days', 'accident', 'kitchen', '食器洗浄機の水漏れ', '食洗機から水漏れ発生。応急処置後、修理依頼しました。', true, '2026-01-30'::DATE - INTERVAL '14 days' + TIME '16:00:00'),
+(5, 'D1', '2026-01-30'::DATE - INTERVAL '14 days', 'accident', 'kitchen', '食器洗浄機の水漏れ', '食洗機から水漏れ発生。応急処置後、修理依頼しました。', true, '2026-01-30'::DATE - INTERVAL '14 days' + TIME '16:00:00'),
 (6, 'staff_014', '2026-01-30'::DATE - INTERVAL '16 days', 'accident', 'kitchen', '製氷機の故障', '製氷機が氷を作らなくなりました。近隣店舗から氷を調達中。', true, '2026-01-30'::DATE - INTERVAL '16 days' + TIME '14:00:00'),
 (7, 'staff_017', '2026-01-30'::DATE - INTERVAL '19 days', 'accident', 'kitchen', '排水溝の詰まり', '排水が遅くなり、業者に清掃依頼しました。', false, '2026-01-30'::DATE - INTERVAL '19 days' + TIME '21:00:00'),
 (8, 'staff_019', '2026-01-30'::DATE - INTERVAL '21 days', 'accident', 'kitchen', 'レンジの故障', '電子レンジが動作しなくなりました。新しいものを発注。', true, '2026-01-30'::DATE - INTERVAL '21 days' + TIME '12:00:00'),
 (9, 'staff_021', '2026-01-30'::DATE - INTERVAL '23 days', 'accident', 'kitchen', 'グリルの温度調節不良', 'グリルの温度が安定しません。サーモスタットの交換が必要かも。', true, '2026-01-30'::DATE - INTERVAL '23 days' + TIME '11:00:00'),
 
 -- ホール関連（クレーム・賞賛両方）
-(2, 'staff_003', '2026-01-30'::DATE - INTERVAL '6 days', 'praise', 'hall', 'お子様への配慮', 'お子様用の小さなスプーンをお出ししたところ、とても喜ばれました。', true, '2026-01-30'::DATE - INTERVAL '6 days' + TIME '12:30:00'),
-(3, 'staff_007', '2026-01-30'::DATE - INTERVAL '7 days', 'claim', 'hall', '空調が効きすぎ', '冷房が強すぎるとのご指摘。温度調整しました。', false, '2026-01-30'::DATE - INTERVAL '7 days' + TIME '14:00:00'),
-(4, 'staff_009', '2026-01-30'::DATE - INTERVAL '9 days', 'praise', 'hall', '雨の日の傘袋サービス', '雨の日に傘袋をお渡ししたところ、感謝されました。', true, '2026-01-30'::DATE - INTERVAL '9 days' + TIME '18:00:00'),
-(5, 'staff_010', '2026-01-30'::DATE - INTERVAL '11 days', 'claim', 'hall', 'BGMがうるさい', '音楽の音量が大きいとのご指摘。音量を下げました。', false, '2026-01-30'::DATE - INTERVAL '11 days' + TIME '20:00:00'),
-(6, 'staff_013', '2026-01-30'::DATE - INTERVAL '13 days', 'praise', 'hall', '荷物預かりサービス', '買い物袋をお預かりしたところ、大変喜ばれました。', true, '2026-01-30'::DATE - INTERVAL '13 days' + TIME '13:00:00'),
+(2, 'A2', '2026-01-30'::DATE - INTERVAL '6 days', 'praise', 'hall', 'お子様への配慮', 'お子様用の小さなスプーンをお出ししたところ、とても喜ばれました。', true, '2026-01-30'::DATE - INTERVAL '6 days' + TIME '12:30:00'),
+(3, 'B3', '2026-01-30'::DATE - INTERVAL '7 days', 'claim', 'hall', '空調が効きすぎ', '冷房が強すぎるとのご指摘。温度調整しました。', false, '2026-01-30'::DATE - INTERVAL '7 days' + TIME '14:00:00'),
+(4, 'C2', '2026-01-30'::DATE - INTERVAL '9 days', 'praise', 'hall', '雨の日の傘袋サービス', '雨の日に傘袋をお渡ししたところ、感謝されました。', true, '2026-01-30'::DATE - INTERVAL '9 days' + TIME '18:00:00'),
+(5, 'C3', '2026-01-30'::DATE - INTERVAL '11 days', 'claim', 'hall', 'BGMがうるさい', '音楽の音量が大きいとのご指摘。音量を下げました。', false, '2026-01-30'::DATE - INTERVAL '11 days' + TIME '20:00:00'),
+(6, 'D3', '2026-01-30'::DATE - INTERVAL '13 days', 'praise', 'hall', '荷物預かりサービス', '買い物袋をお預かりしたところ、大変喜ばれました。', true, '2026-01-30'::DATE - INTERVAL '13 days' + TIME '13:00:00'),
 (7, 'staff_016', '2026-01-30'::DATE - INTERVAL '15 days', 'claim', 'hall', '椅子が不安定', '椅子がぐらつくとのご指摘。すぐに交換しました。', false, '2026-01-30'::DATE - INTERVAL '15 days' + TIME '12:00:00'),
 (8, 'staff_018', '2026-01-30'::DATE - INTERVAL '16 days', 'praise', 'hall', '誕生日サプライズ', 'お誕生日のお客様にスタッフ全員でお祝いし、感動していただけました。', true, '2026-01-30'::DATE - INTERVAL '16 days' + TIME '19:00:00'),
 (9, 'staff_020', '2026-01-30'::DATE - INTERVAL '18 days', 'claim', 'hall', 'テーブルが汚れていた', '前のお客様の食べこぼしが残っていました。清掃を徹底します。', true, '2026-01-30'::DATE - INTERVAL '18 days' + TIME '11:30:00'),
@@ -428,45 +428,45 @@ INSERT INTO daily_reports (store_id, user_id, date, genre, location, title, cont
 
 -- レジ関連（違算、対応ミス）
 (2, 'staff_001', '2026-01-30'::DATE - INTERVAL '7 days', 'claim', 'cashier', 'お会計の二重請求', '同じ商品を2回打ってしまい、返金対応しました。', true, '2026-01-30'::DATE - INTERVAL '7 days' + TIME '21:00:00'),
-(3, 'staff_005', '2026-01-30'::DATE - INTERVAL '9 days', 'claim', 'cashier', 'レシート発行忘れ', 'レシートを渡し忘れ、お客様から連絡がありました。', false, '2026-01-30'::DATE - INTERVAL '9 days' + TIME '14:30:00'),
-(4, 'staff_008', '2026-01-30'::DATE - INTERVAL '12 days', 'claim', 'cashier', '現金過不足', '閉店時に500円の過不足が発生。原因調査中。', true, '2026-01-30'::DATE - INTERVAL '12 days' + TIME '22:30:00'),
-(5, 'staff_012', '2026-01-30'::DATE - INTERVAL '15 days', 'claim', 'cashier', '電子マネー残高不足時の対応', '残高不足のお客様への説明が不十分でご不満を招きました。', true, '2026-01-30'::DATE - INTERVAL '15 days' + TIME '13:00:00'),
+(3, 'B1', '2026-01-30'::DATE - INTERVAL '9 days', 'claim', 'cashier', 'レシート発行忘れ', 'レシートを渡し忘れ、お客様から連絡がありました。', false, '2026-01-30'::DATE - INTERVAL '9 days' + TIME '14:30:00'),
+(4, 'C1', '2026-01-30'::DATE - INTERVAL '12 days', 'claim', 'cashier', '現金過不足', '閉店時に500円の過不足が発生。原因調査中。', true, '2026-01-30'::DATE - INTERVAL '12 days' + TIME '22:30:00'),
+(5, 'D2', '2026-01-30'::DATE - INTERVAL '15 days', 'claim', 'cashier', '電子マネー残高不足時の対応', '残高不足のお客様への説明が不十分でご不満を招きました。', true, '2026-01-30'::DATE - INTERVAL '15 days' + TIME '13:00:00'),
 (6, 'staff_015', '2026-01-30'::DATE - INTERVAL '18 days', 'claim', 'cashier', '領収書の宛名間違い', '領収書の宛名を書き間違え、再発行しました。', false, '2026-01-30'::DATE - INTERVAL '18 days' + TIME '20:00:00'),
 (7, 'manager_006', '2026-01-30'::DATE - INTERVAL '21 days', 'report', 'cashier', 'レジ締め時間の短縮', 'チェックリスト導入でレジ締め時間を15分短縮できました。', true, '2026-01-30'::DATE - INTERVAL '21 days' + TIME '23:00:00'),
 
 -- トイレ関連（清掃関連）
-(2, 'staff_003', '2026-01-30'::DATE - INTERVAL '8 days', 'claim', 'toilet', '手洗い石鹸切れ', '石鹸が切れていたとのご指摘。補充体制を見直します。', false, '2026-01-30'::DATE - INTERVAL '8 days' + TIME '15:00:00'),
-(3, 'staff_006', '2026-01-30'::DATE - INTERVAL '12 days', 'claim', 'toilet', '便座が冷たい', '暖房便座の電源が切れていました。', false, '2026-01-30'::DATE - INTERVAL '12 days' + TIME '10:00:00'),
+(2, 'A2', '2026-01-30'::DATE - INTERVAL '8 days', 'claim', 'toilet', '手洗い石鹸切れ', '石鹸が切れていたとのご指摘。補充体制を見直します。', false, '2026-01-30'::DATE - INTERVAL '8 days' + TIME '15:00:00'),
+(3, 'B2', '2026-01-30'::DATE - INTERVAL '12 days', 'claim', 'toilet', '便座が冷たい', '暖房便座の電源が切れていました。', false, '2026-01-30'::DATE - INTERVAL '12 days' + TIME '10:00:00'),
 (4, 'manager_003', '2026-01-30'::DATE - INTERVAL '15 days', 'report', 'toilet', 'トイレ芳香剤の導入', '新しい芳香剤を導入し、お客様から好評です。', true, '2026-01-30'::DATE - INTERVAL '15 days' + TIME '17:00:00'),
-(5, 'staff_010', '2026-01-30'::DATE - INTERVAL '19 days', 'claim', 'toilet', 'ウォシュレット故障', 'ウォシュレットが動作しなくなりました。修理依頼済み。', true, '2026-01-30'::DATE - INTERVAL '19 days' + TIME '11:00:00'),
+(5, 'C3', '2026-01-30'::DATE - INTERVAL '19 days', 'claim', 'toilet', 'ウォシュレット故障', 'ウォシュレットが動作しなくなりました。修理依頼済み。', true, '2026-01-30'::DATE - INTERVAL '19 days' + TIME '11:00:00'),
 (6, 'staff_014', '2026-01-30'::DATE - INTERVAL '22 days', 'claim', 'toilet', '鏡が汚れている', '鏡の水垢が目立つとのご指摘。清掃頻度を上げます。', false, '2026-01-30'::DATE - INTERVAL '22 days' + TIME '16:00:00'),
 
 -- ========== 各店舗の追加日報（バリエーション） ==========
 
 -- 渋谷店追加
 (2, 'manager_001', '2026-01-30'::DATE - INTERVAL '5 days', 'report', 'other', 'スタッフミーティング実施', '月次ミーティングを実施。売上目標と課題を共有しました。', true, '2026-01-30'::DATE - INTERVAL '5 days' + TIME '22:00:00'),
-(2, 'staff_002', '2026-01-30'::DATE - INTERVAL '9 days', 'praise', 'kitchen', '新メニューが好評', '季節限定のパスタが大変好評です。リピーターも増えています。', true, '2026-01-30'::DATE - INTERVAL '9 days' + TIME '14:00:00'),
-(2, 'staff_003', '2026-01-30'::DATE - INTERVAL '13 days', 'claim', 'hall', 'お子様の食器破損', 'お子様が食器を落として割ってしまいました。怪我なし。', false, '2026-01-30'::DATE - INTERVAL '13 days' + TIME '12:30:00'),
+(2, 'A1', '2026-01-30'::DATE - INTERVAL '9 days', 'praise', 'kitchen', '新メニューが好評', '季節限定のパスタが大変好評です。リピーターも増えています。', true, '2026-01-30'::DATE - INTERVAL '9 days' + TIME '14:00:00'),
+(2, 'A2', '2026-01-30'::DATE - INTERVAL '13 days', 'claim', 'hall', 'お子様の食器破損', 'お子様が食器を落として割ってしまいました。怪我なし。', false, '2026-01-30'::DATE - INTERVAL '13 days' + TIME '12:30:00'),
 (2, 'staff_001', '2026-01-30'::DATE - INTERVAL '16 days', 'praise', 'hall', 'SNS投稿でバズる', 'お客様のSNS投稿が拡散し、新規のお客様が増えました。', true, '2026-01-30'::DATE - INTERVAL '16 days' + TIME '18:00:00'),
 
 -- 新宿店追加
 (3, 'manager_002', '2026-01-30'::DATE - INTERVAL '5 days', 'report', 'other', '深夜帯の人員調整', '金曜の深夜帯スタッフを1名増員することにしました。', true, '2026-01-30'::DATE - INTERVAL '5 days' + TIME '23:00:00'),
-(3, 'staff_004', '2026-01-30'::DATE - INTERVAL '11 days', 'praise', 'hall', 'リピーター率向上', '常連のお客様が増えてきました。名前を覚えて挨拶する効果です。', true, '2026-01-30'::DATE - INTERVAL '11 days' + TIME '21:00:00'),
-(3, 'staff_007', '2026-01-30'::DATE - INTERVAL '13 days', 'accident', 'other', '看板の電球切れ', '店頭看板の電球が切れました。翌日交換完了。', false, '2026-01-30'::DATE - INTERVAL '13 days' + TIME '20:00:00'),
+(3, 'A3', '2026-01-30'::DATE - INTERVAL '11 days', 'praise', 'hall', 'リピーター率向上', '常連のお客様が増えてきました。名前を覚えて挨拶する効果です。', true, '2026-01-30'::DATE - INTERVAL '11 days' + TIME '21:00:00'),
+(3, 'B3', '2026-01-30'::DATE - INTERVAL '13 days', 'accident', 'other', '看板の電球切れ', '店頭看板の電球が切れました。翌日交換完了。', false, '2026-01-30'::DATE - INTERVAL '13 days' + TIME '20:00:00'),
 
 -- 池袋店追加（V字回復中のストーリー）
 (4, 'manager_003', '2026-01-30'::DATE - INTERVAL '5 days', 'report', 'other', '売上回復傾向', '先月の落ち込みから回復傾向です。接客研修の効果が出ています。', true, '2026-01-30'::DATE - INTERVAL '5 days' + TIME '22:00:00'),
-(4, 'staff_008', '2026-01-30'::DATE - INTERVAL '7 days', 'praise', 'hall', 'Googleレビュー4.5達成', 'お客様からの評価が上がり、レビュー4.5を達成しました！', true, '2026-01-30'::DATE - INTERVAL '7 days' + TIME '19:00:00'),
-(4, 'staff_009', '2026-01-30'::DATE - INTERVAL '14 days', 'report', 'other', '新人研修完了', '新人2名の基本研修が完了しました。来週から本格稼働。', true, '2026-01-30'::DATE - INTERVAL '14 days' + TIME '21:00:00'),
+(4, 'C1', '2026-01-30'::DATE - INTERVAL '7 days', 'praise', 'hall', 'Googleレビュー4.5達成', 'お客様からの評価が上がり、レビュー4.5を達成しました！', true, '2026-01-30'::DATE - INTERVAL '7 days' + TIME '19:00:00'),
+(4, 'C2', '2026-01-30'::DATE - INTERVAL '14 days', 'report', 'other', '新人研修完了', '新人2名の基本研修が完了しました。来週から本格稼働。', true, '2026-01-30'::DATE - INTERVAL '14 days' + TIME '21:00:00'),
 
 -- 横浜店追加
 (5, 'manager_004', '2026-01-30'::DATE - INTERVAL '6 days', 'report', 'other', 'モール連携キャンペーン', '隣接モールとの連携で来店数15%増加しました。', true, '2026-01-30'::DATE - INTERVAL '6 days' + TIME '21:00:00'),
-(5, 'staff_010', '2026-01-30'::DATE - INTERVAL '12 days', 'praise', 'kitchen', 'ビジネスランチが人気', 'オフィス街でのランチ需要を取り込めています。', true, '2026-01-30'::DATE - INTERVAL '12 days' + TIME '14:00:00'),
-(5, 'staff_011', '2026-01-30'::DATE - INTERVAL '18 days', 'claim', 'hall', 'エアコン温度の不満', '窓際が暑いとのご意見。席替えで対応しました。', false, '2026-01-30'::DATE - INTERVAL '18 days' + TIME '13:00:00'),
+(5, 'C3', '2026-01-30'::DATE - INTERVAL '12 days', 'praise', 'kitchen', 'ビジネスランチが人気', 'オフィス街でのランチ需要を取り込めています。', true, '2026-01-30'::DATE - INTERVAL '12 days' + TIME '14:00:00'),
+(5, 'D1', '2026-01-30'::DATE - INTERVAL '18 days', 'claim', 'hall', 'エアコン温度の不満', '窓際が暑いとのご意見。席替えで対応しました。', false, '2026-01-30'::DATE - INTERVAL '18 days' + TIME '13:00:00'),
 
 -- 大阪店追加（期間限定メニューの成功ストーリー）
 (6, 'manager_005', '2026-01-30'::DATE - INTERVAL '5 days', 'report', 'other', '限定メニュー売上報告', 'たこ焼き風メニューの売上が全体の18%を占めています。', true, '2026-01-30'::DATE - INTERVAL '5 days' + TIME '22:00:00'),
-(6, 'staff_013', '2026-01-30'::DATE - INTERVAL '9 days', 'praise', 'hall', '関西弁接客が好評', '親しみやすい接客スタイルがリピーターを生んでいます。', true, '2026-01-30'::DATE - INTERVAL '9 days' + TIME '20:00:00'),
+(6, 'D3', '2026-01-30'::DATE - INTERVAL '9 days', 'praise', 'hall', '関西弁接客が好評', '親しみやすい接客スタイルがリピーターを生んでいます。', true, '2026-01-30'::DATE - INTERVAL '9 days' + TIME '20:00:00'),
 (6, 'staff_015', '2026-01-30'::DATE - INTERVAL '14 days', 'praise', 'kitchen', 'お好み焼きが美味しいと評判', 'SNSで「関西の味が東京で食べられる」と話題に。', true, '2026-01-30'::DATE - INTERVAL '14 days' + TIME '15:00:00'),
 
 -- 名古屋店追加
@@ -493,35 +493,35 @@ INSERT INTO daily_reports (store_id, user_id, date, genre, location, title, cont
 
 -- 30日前（クレームが多かった時期）
 (2, 'staff_001', '2026-01-30'::DATE - INTERVAL '30 days', 'claim', 'hall', '予約システムの不具合', 'オンライン予約が反映されず混乱。システム会社に連絡。', true, '2026-01-30'::DATE - INTERVAL '30 days' + TIME '12:00:00'),
-(2, 'staff_002', '2026-01-30'::DATE - INTERVAL '30 days', 'claim', 'kitchen', '料理の品質クレーム', 'ステーキの焼き加減が違うとご指摘。作り直しました。', true, '2026-01-30'::DATE - INTERVAL '30 days' + TIME '19:00:00'),
-(3, 'staff_004', '2026-01-30'::DATE - INTERVAL '30 days', 'claim', 'hall', '待ち時間が長い', 'ピーク時1時間待ちでお客様が帰られました。', true, '2026-01-30'::DATE - INTERVAL '30 days' + TIME '13:00:00'),
-(4, 'staff_008', '2026-01-30'::DATE - INTERVAL '30 days', 'claim', 'cashier', 'お釣り間違い多発', '本日3件のお釣り間違いが発生。研修を実施します。', true, '2026-01-30'::DATE - INTERVAL '30 days' + TIME '22:00:00'),
+(2, 'A1', '2026-01-30'::DATE - INTERVAL '30 days', 'claim', 'kitchen', '料理の品質クレーム', 'ステーキの焼き加減が違うとご指摘。作り直しました。', true, '2026-01-30'::DATE - INTERVAL '30 days' + TIME '19:00:00'),
+(3, 'A3', '2026-01-30'::DATE - INTERVAL '30 days', 'claim', 'hall', '待ち時間が長い', 'ピーク時1時間待ちでお客様が帰られました。', true, '2026-01-30'::DATE - INTERVAL '30 days' + TIME '13:00:00'),
+(4, 'C1', '2026-01-30'::DATE - INTERVAL '30 days', 'claim', 'cashier', 'お釣り間違い多発', '本日3件のお釣り間違いが発生。研修を実施します。', true, '2026-01-30'::DATE - INTERVAL '30 days' + TIME '22:00:00'),
 
 -- 35日前
-(2, 'staff_003', '2026-01-30'::DATE - INTERVAL '35 days', 'claim', 'toilet', 'トイレの臭い', '換気扇の故障でトイレが臭いとのクレーム。', true, '2026-01-30'::DATE - INTERVAL '35 days' + TIME '14:00:00'),
-(3, 'staff_005', '2026-01-30'::DATE - INTERVAL '35 days', 'accident', 'kitchen', '食材の発注ミス', '発注量を間違え、ランチタイムに食材切れ。', true, '2026-01-30'::DATE - INTERVAL '35 days' + TIME '12:00:00'),
-(4, 'staff_009', '2026-01-30'::DATE - INTERVAL '35 days', 'claim', 'hall', '接客態度への苦情', 'スタッフの態度が悪いとのお叱り。個別指導しました。', true, '2026-01-30'::DATE - INTERVAL '35 days' + TIME '20:00:00'),
+(2, 'A2', '2026-01-30'::DATE - INTERVAL '35 days', 'claim', 'toilet', 'トイレの臭い', '換気扇の故障でトイレが臭いとのクレーム。', true, '2026-01-30'::DATE - INTERVAL '35 days' + TIME '14:00:00'),
+(3, 'B1', '2026-01-30'::DATE - INTERVAL '35 days', 'accident', 'kitchen', '食材の発注ミス', '発注量を間違え、ランチタイムに食材切れ。', true, '2026-01-30'::DATE - INTERVAL '35 days' + TIME '12:00:00'),
+(4, 'C2', '2026-01-30'::DATE - INTERVAL '35 days', 'claim', 'hall', '接客態度への苦情', 'スタッフの態度が悪いとのお叱り。個別指導しました。', true, '2026-01-30'::DATE - INTERVAL '35 days' + TIME '20:00:00'),
 
 -- 40日前（池袋店の落ち込み期）
 (4, 'manager_003', '2026-01-30'::DATE - INTERVAL '40 days', 'report', 'other', '売上低迷の原因分析', '周辺の競合店オープンによる影響を分析中。', true, '2026-01-30'::DATE - INTERVAL '40 days' + TIME '22:00:00'),
-(4, 'staff_008', '2026-01-30'::DATE - INTERVAL '40 days', 'claim', 'hall', '常連客の離脱', '長年の常連様から「最近サービスが悪い」とご意見。', true, '2026-01-30'::DATE - INTERVAL '40 days' + TIME '21:00:00'),
-(4, 'staff_009', '2026-01-30'::DATE - INTERVAL '42 days', 'claim', 'kitchen', '提供時間の遅延', '平均提供時間が30分を超えています。改善策を検討中。', true, '2026-01-30'::DATE - INTERVAL '42 days' + TIME '14:00:00'),
+(4, 'C1', '2026-01-30'::DATE - INTERVAL '40 days', 'claim', 'hall', '常連客の離脱', '長年の常連様から「最近サービスが悪い」とご意見。', true, '2026-01-30'::DATE - INTERVAL '40 days' + TIME '21:00:00'),
+(4, 'C2', '2026-01-30'::DATE - INTERVAL '42 days', 'claim', 'kitchen', '提供時間の遅延', '平均提供時間が30分を超えています。改善策を検討中。', true, '2026-01-30'::DATE - INTERVAL '42 days' + TIME '14:00:00'),
 
 -- 45日前（クレーム多発期）
 (2, 'staff_001', '2026-01-30'::DATE - INTERVAL '45 days', 'claim', 'hall', '混雑時の対応不備', 'スタッフ不足で対応が遅れ、複数のクレーム。', true, '2026-01-30'::DATE - INTERVAL '45 days' + TIME '13:00:00'),
-(3, 'staff_006', '2026-01-30'::DATE - INTERVAL '45 days', 'claim', 'cashier', 'ポイントカードエラー', 'システムエラーでポイントが消えたとのクレーム。', true, '2026-01-30'::DATE - INTERVAL '45 days' + TIME '19:00:00'),
-(5, 'staff_010', '2026-01-30'::DATE - INTERVAL '45 days', 'accident', 'hall', 'お客様の転倒事故', '床の水で滑って転倒。幸い軽傷でしたが、お見舞いしました。', true, '2026-01-30'::DATE - INTERVAL '45 days' + TIME '12:00:00'),
+(3, 'B2', '2026-01-30'::DATE - INTERVAL '45 days', 'claim', 'cashier', 'ポイントカードエラー', 'システムエラーでポイントが消えたとのクレーム。', true, '2026-01-30'::DATE - INTERVAL '45 days' + TIME '19:00:00'),
+(5, 'C3', '2026-01-30'::DATE - INTERVAL '45 days', 'accident', 'hall', 'お客様の転倒事故', '床の水で滑って転倒。幸い軽傷でしたが、お見舞いしました。', true, '2026-01-30'::DATE - INTERVAL '45 days' + TIME '12:00:00'),
 
 -- 50日前（池袋店の最悪期）
 (4, 'manager_003', '2026-01-30'::DATE - INTERVAL '50 days', 'report', 'other', '緊急スタッフミーティング', '売上低迷とクレーム増加について緊急会議を実施。', true, '2026-01-30'::DATE - INTERVAL '50 days' + TIME '22:00:00'),
-(4, 'staff_008', '2026-01-30'::DATE - INTERVAL '50 days', 'claim', 'hall', '予約のダブルブッキング', '同じ時間に2組の予約が入ってしまいました。', true, '2026-01-30'::DATE - INTERVAL '50 days' + TIME '18:00:00'),
-(4, 'staff_009', '2026-01-30'::DATE - INTERVAL '52 days', 'claim', 'kitchen', '食中毒の疑い', 'お客様から体調不良の連絡。調査の結果、別原因と判明。', true, '2026-01-30'::DATE - INTERVAL '52 days' + TIME '10:00:00'),
+(4, 'C1', '2026-01-30'::DATE - INTERVAL '50 days', 'claim', 'hall', '予約のダブルブッキング', '同じ時間に2組の予約が入ってしまいました。', true, '2026-01-30'::DATE - INTERVAL '50 days' + TIME '18:00:00'),
+(4, 'C2', '2026-01-30'::DATE - INTERVAL '52 days', 'claim', 'kitchen', '食中毒の疑い', 'お客様から体調不良の連絡。調査の結果、別原因と判明。', true, '2026-01-30'::DATE - INTERVAL '52 days' + TIME '10:00:00'),
 
 -- 55-60日前（各店舗の古いデータ）
-(2, 'staff_002', '2026-01-30'::DATE - INTERVAL '55 days', 'claim', 'hall', 'エアコン故障', '真夏にエアコンが故障し、お客様に謝罪。当日修理完了。', true, '2026-01-30'::DATE - INTERVAL '55 days' + TIME '14:00:00'),
-(3, 'staff_007', '2026-01-30'::DATE - INTERVAL '57 days', 'accident', 'kitchen', '冷凍庫の温度異常', '-18度を維持できず、一部食材を廃棄。', true, '2026-01-30'::DATE - INTERVAL '57 days' + TIME '09:00:00'),
-(5, 'staff_011', '2026-01-30'::DATE - INTERVAL '58 days', 'claim', 'cashier', 'クレジットカード手数料説明不足', '手数料について説明不足でトラブル。', true, '2026-01-30'::DATE - INTERVAL '58 days' + TIME '20:00:00'),
-(6, 'staff_013', '2026-01-30'::DATE - INTERVAL '60 days', 'claim', 'hall', '子供用椅子の不足', '繁忙期に子供用椅子が足りず、お客様をお待たせ。', true, '2026-01-30'::DATE - INTERVAL '60 days' + TIME '12:00:00');
+(2, 'A1', '2026-01-30'::DATE - INTERVAL '55 days', 'claim', 'hall', 'エアコン故障', '真夏にエアコンが故障し、お客様に謝罪。当日修理完了。', true, '2026-01-30'::DATE - INTERVAL '55 days' + TIME '14:00:00'),
+(3, 'B3', '2026-01-30'::DATE - INTERVAL '57 days', 'accident', 'kitchen', '冷凍庫の温度異常', '-18度を維持できず、一部食材を廃棄。', true, '2026-01-30'::DATE - INTERVAL '57 days' + TIME '09:00:00'),
+(5, 'D1', '2026-01-30'::DATE - INTERVAL '58 days', 'claim', 'cashier', 'クレジットカード手数料説明不足', '手数料について説明不足でトラブル。', true, '2026-01-30'::DATE - INTERVAL '58 days' + TIME '20:00:00'),
+(6, 'D3', '2026-01-30'::DATE - INTERVAL '60 days', 'claim', 'hall', '子供用椅子の不足', '繁忙期に子供用椅子が足りず、お客様をお待たせ。', true, '2026-01-30'::DATE - INTERVAL '60 days' + TIME '12:00:00');
 
 -- シーケンスの更新
 SELECT setval('daily_reports_report_id_seq', (SELECT MAX(report_id) FROM daily_reports));
@@ -558,8 +558,8 @@ INSERT INTO bbs_posts (store_id, user_id, report_id, genre, title, content, comm
 (6, 'manager_005', NULL, 'report', '地域限定メニューの成功事例', '大阪限定のたこ焼き風メニューが好調です。地域特性を活かしたメニュー開発の重要性を実感しました。他店舗でも地域限定メニューを検討してみてはいかがでしょうか。', 0, '2026-01-30'::DATE - INTERVAL '10 days' + TIME '22:00:00', '2026-01-30'::DATE - INTERVAL '10 days' + TIME '22:00:00'),
 
 -- ベストプラクティスの共有
-(5, 'staff_010', NULL, 'praise', '効果的なアップセルの方法', 'お会計時に「本日のデザートはいかがですか」と一言添えるだけで、デザート注文率が15%向上しました。シンプルですが効果的です。', 0, '2026-01-30'::DATE - INTERVAL '8 days' + TIME '19:00:00', '2026-01-30'::DATE - INTERVAL '8 days' + TIME '19:00:00'),
-(4, 'staff_009', NULL, 'report', 'テイクアウト用パッケージの改善', 'テイクアウト用の容器を保温性の高いものに変更したところ、お客様から「帰宅後も温かかった」と好評です。少しコストは上がりますが、満足度向上に効果があります。', 0, '2026-01-30'::DATE - INTERVAL '5 days' + TIME '17:00:00', '2026-01-30'::DATE - INTERVAL '5 days' + TIME '17:00:00'),
+(5, 'C3', NULL, 'praise', '効果的なアップセルの方法', 'お会計時に「本日のデザートはいかがですか」と一言添えるだけで、デザート注文率が15%向上しました。シンプルですが効果的です。', 0, '2026-01-30'::DATE - INTERVAL '8 days' + TIME '19:00:00', '2026-01-30'::DATE - INTERVAL '8 days' + TIME '19:00:00'),
+(4, 'C2', NULL, 'report', 'テイクアウト用パッケージの改善', 'テイクアウト用の容器を保温性の高いものに変更したところ、お客様から「帰宅後も温かかった」と好評です。少しコストは上がりますが、満足度向上に効果があります。', 0, '2026-01-30'::DATE - INTERVAL '5 days' + TIME '17:00:00', '2026-01-30'::DATE - INTERVAL '5 days' + TIME '17:00:00'),
 
 -- 質問・相談
 (8, 'staff_019', NULL, 'other', '外国人観光客への対応について質問', '最近、海外からのお客様が増えています。翻訳アプリ以外に効果的な対応方法があれば教えてください。', 0, '2026-01-30'::DATE - INTERVAL '3 days' + TIME '16:00:00', '2026-01-30'::DATE - INTERVAL '3 days' + TIME '16:00:00'),
@@ -588,7 +588,7 @@ LIMIT 1;
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
 SELECT
     p.post_id,
-    'staff_004',
+    'A3',
     '私も同様の経験がありました。ピーク時の事前準備と、お客様への声かけを心がけています。',
     true,
     p.created_at + INTERVAL '5 hours',
@@ -601,7 +601,7 @@ LIMIT 1;
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
 SELECT
     p.post_id,
-    'staff_013',
+    'D3',
     '素晴らしいですね！レシピのコツを共有していただけると嬉しいです。',
     false,
     p.created_at + INTERVAL '3 hours',
@@ -664,7 +664,7 @@ LIMIT 1;
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
 SELECT
     p.post_id,
-    'staff_003',
+    'A2',
     '渋谷店では指差しメニューを作成しています。写真付きで説明も英語・中国語・韓国語を併記しています。',
     false,
     p.created_at + INTERVAL '4 hours',
@@ -676,7 +676,7 @@ LIMIT 1;
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
 SELECT
     p.post_id,
-    'staff_007',
+    'B3',
     '新宿店では簡単な英語フレーズ集を作って、レジ横に置いています。「Would you like to sit here?」など基本的なものですが、役立っています。',
     true,
     p.created_at + INTERVAL '8 hours',
@@ -725,11 +725,11 @@ FROM bbs_posts p WHERE p.title = '年末年始の営業時間について' LIMIT
 
 -- 新メニュー導入のお知らせへのコメント
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
-SELECT p.post_id, 'staff_002', '試作してみましたが、とても美味しいです！お客様にも喜ばれそう。', false, p.created_at + INTERVAL '3 hours', p.created_at + INTERVAL '3 hours'
+SELECT p.post_id, 'A1', '試作してみましたが、とても美味しいです！お客様にも喜ばれそう。', false, p.created_at + INTERVAL '3 hours', p.created_at + INTERVAL '3 hours'
 FROM bbs_posts p WHERE p.title = '新メニュー導入のお知らせ' LIMIT 1;
 
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
-SELECT p.post_id, 'staff_006', '原価計算表を確認しました。利益率も良さそうですね。', false, p.created_at + INTERVAL '5 hours', p.created_at + INTERVAL '5 hours'
+SELECT p.post_id, 'B2', '原価計算表を確認しました。利益率も良さそうですね。', false, p.created_at + INTERVAL '5 hours', p.created_at + INTERVAL '5 hours'
 FROM bbs_posts p WHERE p.title = '新メニュー導入のお知らせ' LIMIT 1;
 
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
@@ -780,11 +780,11 @@ FROM bbs_posts p WHERE p.title = '地域限定メニューの成功事例' LIMIT
 
 -- テイクアウト用パッケージの改善へのコメント
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
-SELECT p.post_id, 'staff_013', 'どのメーカーの容器を使っていますか？うちも検討したいです。', false, p.created_at + INTERVAL '2 hours', p.created_at + INTERVAL '2 hours'
+SELECT p.post_id, 'D3', 'どのメーカーの容器を使っていますか？うちも検討したいです。', false, p.created_at + INTERVAL '2 hours', p.created_at + INTERVAL '2 hours'
 FROM bbs_posts p WHERE p.title = 'テイクアウト用パッケージの改善' LIMIT 1;
 
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
-SELECT p.post_id, 'staff_009', '○○製の保温容器を使っています。1個あたり20円アップですが、満足度向上を考えると価値ありです。', true, p.created_at + INTERVAL '4 hours', p.created_at + INTERVAL '4 hours'
+SELECT p.post_id, 'C2', '○○製の保温容器を使っています。1個あたり20円アップですが、満足度向上を考えると価値ありです。', true, p.created_at + INTERVAL '4 hours', p.created_at + INTERVAL '4 hours'
 FROM bbs_posts p WHERE p.title = 'テイクアウト用パッケージの改善' LIMIT 1;
 
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
@@ -793,7 +793,7 @@ FROM bbs_posts p WHERE p.title = 'テイクアウト用パッケージの改善'
 
 -- 効果的なアップセルの方法へのコメント
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
-SELECT p.post_id, 'staff_004', 'すぐに試してみます！シンプルだけど効果的ですね。', false, p.created_at + INTERVAL '1 hour', p.created_at + INTERVAL '1 hour'
+SELECT p.post_id, 'A3', 'すぐに試してみます！シンプルだけど効果的ですね。', false, p.created_at + INTERVAL '1 hour', p.created_at + INTERVAL '1 hour'
 FROM bbs_posts p WHERE p.title = '効果的なアップセルの方法' LIMIT 1;
 
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
@@ -814,7 +814,7 @@ SELECT p.post_id, 'manager_007', 'Google翻訳のリアルタイム会話機能�
 FROM bbs_posts p WHERE p.title = '外国人観光客への対応について質問' LIMIT 1;
 
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
-SELECT p.post_id, 'staff_011', '横浜店では「Welcome」「Thank you」などの基本フレーズを練習する時間を設けています。', false, p.created_at + INTERVAL '12 hours', p.created_at + INTERVAL '12 hours'
+SELECT p.post_id, 'D1', '横浜店では「Welcome」「Thank you」などの基本フレーズを練習する時間を設けています。', false, p.created_at + INTERVAL '12 hours', p.created_at + INTERVAL '12 hours'
 FROM bbs_posts p WHERE p.title = '外国人観光客への対応について質問' LIMIT 1;
 
 INSERT INTO bbs_comments (post_id, user_id, content, is_best_answer, created_at, updated_at)
@@ -852,7 +852,7 @@ SELECT p.post_id, 'staff_001', 'naruhodo', p.created_at + INTERVAL '1 hour'
 FROM bbs_posts p WHERE p.title = 'ピーク時の動線改善案' LIMIT 1;
 
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_005', 'iine', p.created_at + INTERVAL '2 hours'
+SELECT p.post_id, 'B1', 'iine', p.created_at + INTERVAL '2 hours'
 FROM bbs_posts p WHERE p.title = 'ピーク時の動線改善案' LIMIT 1;
 
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
@@ -860,11 +860,11 @@ SELECT p.post_id, 'manager_005', 'naruhodo', p.created_at + INTERVAL '3 hours'
 FROM bbs_posts p WHERE p.title = 'ピーク時の動線改善案' LIMIT 1;
 
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_008', 'iine', p.created_at + INTERVAL '4 hours'
+SELECT p.post_id, 'C1', 'iine', p.created_at + INTERVAL '4 hours'
 FROM bbs_posts p WHERE p.title = 'クレーム対応マニュアルの共有' LIMIT 1;
 
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_011', 'naruhodo', p.created_at + INTERVAL '5 hours'
+SELECT p.post_id, 'D1', 'naruhodo', p.created_at + INTERVAL '5 hours'
 FROM bbs_posts p WHERE p.title = 'クレーム対応マニュアルの共有' LIMIT 1;
 
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
@@ -907,11 +907,11 @@ SELECT p.post_id, 'manager_009', 'iine', p.created_at + INTERVAL '9 hours' FROM 
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'staff_001', 'iine', p.created_at + INTERVAL '1 hour' FROM bbs_posts p WHERE p.title = '新メニュー導入のお知らせ' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_004', 'naruhodo', p.created_at + INTERVAL '2 hours' FROM bbs_posts p WHERE p.title = '新メニュー導入のお知らせ' LIMIT 1;
+SELECT p.post_id, 'A3', 'naruhodo', p.created_at + INTERVAL '2 hours' FROM bbs_posts p WHERE p.title = '新メニュー導入のお知らせ' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_008', 'iine', p.created_at + INTERVAL '3 hours' FROM bbs_posts p WHERE p.title = '新メニュー導入のお知らせ' LIMIT 1;
+SELECT p.post_id, 'C1', 'iine', p.created_at + INTERVAL '3 hours' FROM bbs_posts p WHERE p.title = '新メニュー導入のお知らせ' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_013', 'iine', p.created_at + INTERVAL '4 hours' FROM bbs_posts p WHERE p.title = '新メニュー導入のお知らせ' LIMIT 1;
+SELECT p.post_id, 'D3', 'iine', p.created_at + INTERVAL '4 hours' FROM bbs_posts p WHERE p.title = '新メニュー導入のお知らせ' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'staff_018', 'naruhodo', p.created_at + INTERVAL '5 hours' FROM bbs_posts p WHERE p.title = '新メニュー導入のお知らせ' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
@@ -929,11 +929,11 @@ SELECT p.post_id, 'manager_003', 'naruhodo', p.created_at + INTERVAL '3 hours' F
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'manager_004', 'iine', p.created_at + INTERVAL '4 hours' FROM bbs_posts p WHERE p.title = '地域限定メニューの成功事例' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_002', 'naruhodo', p.created_at + INTERVAL '5 hours' FROM bbs_posts p WHERE p.title = '地域限定メニューの成功事例' LIMIT 1;
+SELECT p.post_id, 'A1', 'naruhodo', p.created_at + INTERVAL '5 hours' FROM bbs_posts p WHERE p.title = '地域限定メニューの成功事例' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_006', 'iine', p.created_at + INTERVAL '6 hours' FROM bbs_posts p WHERE p.title = '地域限定メニューの成功事例' LIMIT 1;
+SELECT p.post_id, 'B2', 'iine', p.created_at + INTERVAL '6 hours' FROM bbs_posts p WHERE p.title = '地域限定メニューの成功事例' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_010', 'naruhodo', p.created_at + INTERVAL '7 hours' FROM bbs_posts p WHERE p.title = '地域限定メニューの成功事例' LIMIT 1;
+SELECT p.post_id, 'C3', 'naruhodo', p.created_at + INTERVAL '7 hours' FROM bbs_posts p WHERE p.title = '地域限定メニューの成功事例' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'staff_016', 'iine', p.created_at + INTERVAL '8 hours' FROM bbs_posts p WHERE p.title = '地域限定メニューの成功事例' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
@@ -943,7 +943,7 @@ SELECT p.post_id, 'honbu_mgr', 'iine', p.created_at + INTERVAL '9 hours' FROM bb
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'staff_001', 'naruhodo', p.created_at + INTERVAL '1 hour' FROM bbs_posts p WHERE p.title = 'テイクアウト用パッケージの改善' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_005', 'iine', p.created_at + INTERVAL '2 hours' FROM bbs_posts p WHERE p.title = 'テイクアウト用パッケージの改善' LIMIT 1;
+SELECT p.post_id, 'B1', 'iine', p.created_at + INTERVAL '2 hours' FROM bbs_posts p WHERE p.title = 'テイクアウト用パッケージの改善' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'manager_001', 'iine', p.created_at + INTERVAL '3 hours' FROM bbs_posts p WHERE p.title = 'テイクアウト用パッケージの改善' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
@@ -957,17 +957,17 @@ SELECT p.post_id, 'manager_002', 'iine', p.created_at + INTERVAL '2 hours' FROM 
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'manager_003', 'iine', p.created_at + INTERVAL '3 hours' FROM bbs_posts p WHERE p.title = '衛生管理講習会の実施について' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_002', 'iine', p.created_at + INTERVAL '4 hours' FROM bbs_posts p WHERE p.title = '衛生管理講習会の実施について' LIMIT 1;
+SELECT p.post_id, 'A1', 'iine', p.created_at + INTERVAL '4 hours' FROM bbs_posts p WHERE p.title = '衛生管理講習会の実施について' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_006', 'iine', p.created_at + INTERVAL '5 hours' FROM bbs_posts p WHERE p.title = '衛生管理講習会の実施について' LIMIT 1;
+SELECT p.post_id, 'B2', 'iine', p.created_at + INTERVAL '5 hours' FROM bbs_posts p WHERE p.title = '衛生管理講習会の実施について' LIMIT 1;
 
 -- 外国人観光客への対応について質問
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'staff_001', 'naruhodo', p.created_at + INTERVAL '1 hour' FROM bbs_posts p WHERE p.title = '外国人観光客への対応について質問' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_004', 'iine', p.created_at + INTERVAL '2 hours' FROM bbs_posts p WHERE p.title = '外国人観光客への対応について質問' LIMIT 1;
+SELECT p.post_id, 'A3', 'iine', p.created_at + INTERVAL '2 hours' FROM bbs_posts p WHERE p.title = '外国人観光客への対応について質問' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_010', 'naruhodo', p.created_at + INTERVAL '3 hours' FROM bbs_posts p WHERE p.title = '外国人観光客への対応について質問' LIMIT 1;
+SELECT p.post_id, 'C3', 'naruhodo', p.created_at + INTERVAL '3 hours' FROM bbs_posts p WHERE p.title = '外国人観光客への対応について質問' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'manager_007', 'iine', p.created_at + INTERVAL '4 hours' FROM bbs_posts p WHERE p.title = '外国人観光客への対応について質問' LIMIT 1;
 
@@ -981,9 +981,9 @@ SELECT p.post_id, 'manager_009', 'naruhodo', p.created_at + INTERVAL '3 hours' F
 
 -- ピーク時の動線改善案（追加リアクション）
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_009', 'iine', p.created_at + INTERVAL '5 hours' FROM bbs_posts p WHERE p.title = 'ピーク時の動線改善案' LIMIT 1;
+SELECT p.post_id, 'C2', 'iine', p.created_at + INTERVAL '5 hours' FROM bbs_posts p WHERE p.title = 'ピーク時の動線改善案' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_013', 'naruhodo', p.created_at + INTERVAL '6 hours' FROM bbs_posts p WHERE p.title = 'ピーク時の動線改善案' LIMIT 1;
+SELECT p.post_id, 'D3', 'naruhodo', p.created_at + INTERVAL '6 hours' FROM bbs_posts p WHERE p.title = 'ピーク時の動線改善案' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'manager_006', 'iine', p.created_at + INTERVAL '7 hours' FROM bbs_posts p WHERE p.title = 'ピーク時の動線改善案' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
@@ -995,11 +995,11 @@ SELECT p.post_id, 'staff_020', 'iine', p.created_at + INTERVAL '9 hours' FROM bb
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'staff_001', 'naruhodo', p.created_at + INTERVAL '7 hours' FROM bbs_posts p WHERE p.title = 'クレーム対応マニュアルの共有' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_004', 'iine', p.created_at + INTERVAL '8 hours' FROM bbs_posts p WHERE p.title = 'クレーム対応マニュアルの共有' LIMIT 1;
+SELECT p.post_id, 'A3', 'iine', p.created_at + INTERVAL '8 hours' FROM bbs_posts p WHERE p.title = 'クレーム対応マニュアルの共有' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_009', 'naruhodo', p.created_at + INTERVAL '9 hours' FROM bbs_posts p WHERE p.title = 'クレーム対応マニュアルの共有' LIMIT 1;
+SELECT p.post_id, 'C2', 'naruhodo', p.created_at + INTERVAL '9 hours' FROM bbs_posts p WHERE p.title = 'クレーム対応マニュアルの共有' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_013', 'iine', p.created_at + INTERVAL '10 hours' FROM bbs_posts p WHERE p.title = 'クレーム対応マニュアルの共有' LIMIT 1;
+SELECT p.post_id, 'D3', 'iine', p.created_at + INTERVAL '10 hours' FROM bbs_posts p WHERE p.title = 'クレーム対応マニュアルの共有' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'staff_018', 'naruhodo', p.created_at + INTERVAL '11 hours' FROM bbs_posts p WHERE p.title = 'クレーム対応マニュアルの共有' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
@@ -1009,9 +1009,9 @@ SELECT p.post_id, 'manager_001', 'iine', p.created_at + INTERVAL '12 hours' FROM
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'staff_001', 'iine', p.created_at + INTERVAL '5 hours' FROM bbs_posts p WHERE p.title = '効果的なアップセルの方法' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_005', 'naruhodo', p.created_at + INTERVAL '6 hours' FROM bbs_posts p WHERE p.title = '効果的なアップセルの方法' LIMIT 1;
+SELECT p.post_id, 'B1', 'naruhodo', p.created_at + INTERVAL '6 hours' FROM bbs_posts p WHERE p.title = '効果的なアップセルの方法' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
-SELECT p.post_id, 'staff_009', 'iine', p.created_at + INTERVAL '7 hours' FROM bbs_posts p WHERE p.title = '効果的なアップセルの方法' LIMIT 1;
+SELECT p.post_id, 'C2', 'iine', p.created_at + INTERVAL '7 hours' FROM bbs_posts p WHERE p.title = '効果的なアップセルの方法' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
 SELECT p.post_id, 'manager_002', 'naruhodo', p.created_at + INTERVAL '8 hours' FROM bbs_posts p WHERE p.title = '効果的なアップセルの方法' LIMIT 1;
 INSERT INTO bbs_reactions (post_id, user_id, reaction_type, created_at)
